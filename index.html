@@ -94,7 +94,7 @@
             transition: opacity 0.3s ease-in-out;
         }
         .db-item-icon {
-            @apply w-5 h-5 text-gray-500 hover:text-indigo-600 cursor-pointer;
+            @apply w-5 h-5 text-gray-500 hover:text-indigo-600 cursor-pointer flex-shrink-0;
         }
     </style>
 </head>
@@ -168,14 +168,6 @@
             <!-- Generator Artikel Tab -->
             <div id="content-generator" class="tab-content active p-6 md:p-8 fade-in">
                 
-                <!-- Article Database -->
-                <div id="article-db-container" class="mb-8 hidden">
-                     <h3 class="text-lg font-medium text-gray-800 border-b pb-2 mb-3">Database Artikel</h3>
-                     <div id="article-list" class="space-y-2 max-h-48 overflow-y-auto pr-2">
-                         <!-- Saved articles will be listed here -->
-                     </div>
-                </div>
-
                 <div class="space-y-6">
                     <div>
                         <label for="topic" class="block text-sm font-medium text-gray-700">Topik Artikel</label>
@@ -213,6 +205,14 @@
                             Buat Artikel Baru
                         </button>
                     </div>
+                </div>
+                
+                <!-- Article Database -->
+                <div id="article-db-container" class="mt-10 hidden">
+                     <h3 class="text-lg font-medium text-gray-800 border-b pb-2 mb-3">Database Artikel</h3>
+                     <div id="article-list" class="space-y-2 max-h-48 overflow-y-auto pr-2">
+                         <!-- Saved articles will be listed here -->
+                     </div>
                 </div>
 
                 <div id="loading" class="mt-8 text-center" style="display: none;">
@@ -482,7 +482,10 @@
         document.getElementById('save-btn').addEventListener('click', () => {
             const content = articleOutput.innerHTML;
             const titleElement = articleOutput.querySelector('h1');
-            const title = titleElement ? titleElement.innerText : "Artikel Tanpa Judul";
+            let title = titleElement ? titleElement.innerText : document.getElementById('topic').value.trim();
+            if (!title) {
+                title = "Artikel Tanpa Judul";
+            }
             const id = currentArticleIdInput.value ? parseInt(currentArticleIdInput.value) : null;
 
             if (!content.trim()) {
@@ -529,10 +532,10 @@
                         const item = document.createElement('div');
                         item.className = 'flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-gray-100';
                         item.innerHTML = `
-                            <span class="truncate text-sm text-gray-700">${article.title}</span>
-                            <div class="flex items-center space-x-2 flex-shrink-0">
+                            <div class="flex items-center space-x-2 flex-grow overflow-hidden">
                                 <svg class="db-item-icon" data-id="${article.id}" data-action="edit" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path></svg>
                                 <svg class="db-item-icon text-red-400 hover:text-red-600" data-id="${article.id}" data-action="delete" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>
+                                <span class="truncate text-sm text-gray-700 ml-2">${article.title}</span>
                             </div>
                         `;
                         articleList.appendChild(item);
