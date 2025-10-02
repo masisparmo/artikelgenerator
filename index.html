@@ -87,6 +87,9 @@
         #api-modal-overlay {
             transition: opacity 0.3s ease-in-out;
         }
+        .db-item-icon {
+            @apply w-5 h-5 text-gray-500 hover:text-indigo-600 cursor-pointer;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -123,6 +126,19 @@
             </div>
         </div>
     </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full">
+            <h3 class="text-lg font-medium text-gray-900">Konfirmasi Hapus</h3>
+            <p class="mt-2 text-sm text-gray-500">Apakah Anda yakin ingin menghapus artikel ini? Tindakan ini tidak dapat diurungkan.</p>
+            <div class="mt-4 flex justify-end space-x-2">
+                <button id="cancel-delete-btn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Batal</button>
+                <button id="confirm-delete-btn" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700">Hapus</button>
+            </div>
+        </div>
+    </div>
+
 
     <div class="container mx-auto p-4 md:p-8 max-w-4xl">
         <header class="text-center mb-8">
@@ -145,6 +161,15 @@
 
             <!-- Generator Artikel Tab -->
             <div id="content-generator" class="tab-content active p-6 md:p-8 fade-in">
+                
+                <!-- Article Database -->
+                <div id="article-db-container" class="mb-8 hidden">
+                     <h3 class="text-lg font-medium text-gray-800 border-b pb-2 mb-3">Database Artikel</h3>
+                     <div id="article-list" class="space-y-2 max-h-48 overflow-y-auto pr-2">
+                         <!-- Saved articles will be listed here -->
+                     </div>
+                </div>
+
                 <div class="space-y-6">
                     <div>
                         <label for="topic" class="block text-sm font-medium text-gray-700">Topik Artikel</label>
@@ -179,7 +204,7 @@
 
                     <div>
                         <button id="generate-btn" class="w-full inline-flex justify-center py-3 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            Buat Artikel
+                            Buat Artikel Baru
                         </button>
                     </div>
                 </div>
@@ -189,10 +214,11 @@
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <p class="mt-2 text-gray-600">AI sedang melakukan riset dan menulis artikel untuk Anda... Ini mungkin memerlukan waktu beberapa saat.</p>
+                    <p class="mt-2 text-gray-600">AI sedang memproses permintaan Anda... Ini mungkin memerlukan waktu beberapa saat.</p>
                 </div>
 
                 <div id="output-container" class="mt-8" style="display: none;">
+                     <input type="hidden" id="current-article-id">
                     <!-- Editor Controls -->
                      <div id="editor-controls" class="hidden flex items-center p-1 bg-gray-100 rounded-t-lg border-x border-t border-gray-300 flex-wrap gap-y-1">
                         <div class="toolbar-group">
@@ -236,6 +262,11 @@
                         </div>
                     </div>
                     <div id="article-output" class="prose bg-white p-6 rounded-b-lg"></div>
+                    <div id="action-buttons" class="mt-4 flex flex-wrap gap-2 justify-end">
+                         <button id="rewrite-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700">Re-Write</button>
+                         <button id="paraphrase-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700">Parafrase</button>
+                         <button id="save-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-sky-600 hover:bg-sky-700">Simpan</button>
+                    </div>
                 </div>
 
 
@@ -259,13 +290,38 @@
     </div>
 
     <script>
+        // --- API Key Modal Logic ---
         let userApiKey = '';
         const apiKeyModalOverlay = document.getElementById('api-modal-overlay');
         const saveApiKeyBtn = document.getElementById('save-api-key');
         const apiKeyInput = document.getElementById('api-key-input');
         const apiKeyError = document.getElementById('api-key-error');
 
+        // --- IndexedDB Logic ---
+        let db;
+        const dbName = "ArticleGeneratorDB";
+
+        function initDB() {
+            const request = indexedDB.open(dbName, 1);
+
+            request.onerror = (event) => {
+                console.error("Database error:", event.target.errorCode);
+            };
+
+            request.onupgradeneeded = (event) => {
+                db = event.target.result;
+                const objectStore = db.createObjectStore("articles", { keyPath: "id", autoIncrement: true });
+                objectStore.createIndex("title", "title", { unique: false });
+            };
+
+            request.onsuccess = (event) => {
+                db = event.target.result;
+                displayArticles();
+            };
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
+            initDB();
             userApiKey = localStorage.getItem('geminiApiKey');
             if (!userApiKey) {
                 apiKeyModalOverlay.classList.remove('hidden');
@@ -284,6 +340,7 @@
             }
         });
 
+        // --- Main App Logic ---
         function switchTab(tabName) {
             const tabs = ['generator', 'panduan'];
             tabs.forEach(tab => {
@@ -309,78 +366,69 @@
         const editorControls = document.getElementById('editor-controls');
         const copyBtn = document.getElementById('copy-btn');
         const copyOptions = document.getElementById('copy-options');
+        const currentArticleIdInput = document.getElementById('current-article-id');
 
-        generateBtn.addEventListener('click', async () => {
+
+        async function handleArticleGeneration(promptModifier = "") {
             if (!userApiKey) {
                 apiKeyModalOverlay.classList.remove('hidden');
                 alert("Silakan masukkan Kunci API Gemini Anda untuk melanjutkan.");
                 return;
             }
+            
+            let userQuery;
+            const systemPrompt = `Anda adalah seorang penulis konten ahli dan spesialis SEO. Tugas Anda adalah memproses teks yang diberikan sesuai instruksi.`;
 
-            const topic = document.getElementById('topic').value;
-            const keywords = document.getElementById('keywords').value;
-            const references = {
-                website: document.getElementById('url_website').value,
-                youtube: document.getElementById('url_youtube').value,
-                text: document.getElementById('text_paste').value,
-                files: document.getElementById('file_upload').files
-            };
-
-            if (!topic.trim()) {
-                outputContainer.style.display = 'block';
-                articleOutput.innerHTML = `<p class="text-red-500">Silakan masukkan topik artikel.</p>`;
-                return;
+            if (promptModifier) { // For Re-write or Paraphrase
+                const currentContent = articleOutput.innerText;
+                if (!currentContent.trim()) {
+                    alert("Tidak ada artikel untuk diproses.");
+                    return;
+                }
+                userQuery = `${promptModifier}:\n\n---\n${currentContent}\n---`;
+            } else { // For new article generation
+                const topic = document.getElementById('topic').value;
+                const keywords = document.getElementById('keywords').value;
+                if (!topic.trim()) {
+                    alert("Silakan masukkan topik artikel.");
+                    return;
+                }
+                userQuery = `Topik Artikel: "${topic}"\nKata Kunci: "${keywords}"\n\n Tulis artikel blog yang komprehensif (minimal 1500 kata). Sertakan '## Resume Artikel', '## Daftar Isi' dengan placeholder '[Daftar Isi]', dan bagian utama artikel.`;
             }
 
             loadingDiv.style.display = 'block';
             outputContainer.style.display = 'none';
-            articleOutput.innerHTML = '';
             
-            const systemPrompt = `Anda adalah seorang penulis konten ahli, spesialis SEO, dan pakar berpengalaman puluhan tahun di bidang yang relevan dengan topik yang diberikan. Tugas Anda adalah menulis artikel blog yang komprehensif, mendalam, dan sangat informatif dengan minimal 1500 kata.
-
-Aturan Penting:
-1.  **Grounded in Reality:** Gunakan kemampuan pencarian Google Anda untuk menemukan dan mensintesis informasi dari sumber-sumber yang paling kredibel di internet. Jangan membuat informasi.
-2.  **Integrasikan Referensi Pengguna:** Jika pengguna memberikan referensi, prioritaskan dan integrasikan wawasan dari sumber-sumber ini.
-3.  **Struktur SEO-Friendly:** Gunakan judul utama (H1), beberapa subjudul (H2), dan jika perlu sub-subjudul (H3). Gunakan paragraf ringkas, daftar berpoin, dan cetak tebal. JANGAN gunakan format '####' atau lebih dalam.
-4.  **Terapkan E-E-A-T:** Tulis dengan nada yang menunjukkan Pengalaman, Keahlian, Otoritas, dan Kepercayaan.
-5.  **Gunakan Kata Kunci:** Integrasikan kata kunci secara alami di seluruh artikel.
-6.  **Struktur Artikel Spesifik:** Hasilkan artikel dengan urutan sebagai berikut:
-    a.  **Resume Artikel:** Di paling atas, buat ringkasan singkat (maksimal 100 kata). Beri judul '## Resume Artikel'.
-    b.  **Daftar Isi:** Setelah resume, beri judul '## Daftar Isi' dan tulis placeholder '[Daftar Isi]'.
-    c.  **Isi Artikel:** Bagian utama artikel Anda (minimal 1500 kata) dengan struktur H1, H2, H3.
-7.  **Format Output:** Hasilkan artikel dalam format Markdown yang bersih. Gunakan dua baris baru antar elemen.`;
-
-            let userQuery = `Topik Artikel: "${topic}"\nKata Kunci: "${keywords}"\n\n`;
-            if (references.website) userQuery += `Rujuk URL website ini: ${references.website}\n`;
-            if (references.youtube) userQuery += `Rujuk video YouTube ini: ${references.youtube}\n`;
-            if (references.text) userQuery += `Rujuk teks ini:\n---\n${references.text}\n---\n`;
-            
-            userQuery += `\nSekarang, tulis artikel blog yang komprehensif (minimal 1500 kata) berdasarkan instruksi di atas.`;
-
             try {
                 const { text: articleMarkdown, sources } = await callGeminiAPI(systemPrompt, userQuery);
                 let finalMarkdown = articleMarkdown;
                 
                 if (sources && sources.length > 0) {
                     finalMarkdown += `\n\n## Referensi\n`;
-                    sources.forEach((source) => {
+                    sources.forEach(source => {
                        if(source.uri) finalMarkdown += `* [${source.title}](${source.uri})\n`;
                     });
                 }
                 
+                currentArticleIdInput.value = ""; // It's a new/modified article, not from DB
                 articleOutput.innerHTML = processMarkdownToHtml(finalMarkdown);
                 outputContainer.style.display = 'block';
                 editorControls.classList.remove('hidden');
                 editorControls.classList.add('flex');
 
             } catch (error) {
-                console.error("Error generating article:", error);
+                console.error("Error processing article:", error);
                 outputContainer.style.display = 'block';
-                articleOutput.innerHTML = `<p class="text-red-500">Maaf, terjadi kesalahan saat membuat artikel. Error: ${error.message}</p>`;
+                articleOutput.innerHTML = `<p class="text-red-500">Maaf, terjadi kesalahan: ${error.message}</p>`;
             } finally {
                 loadingDiv.style.display = 'none';
             }
-        });
+        }
+
+        generateBtn.addEventListener('click', () => handleArticleGeneration());
+        document.getElementById('rewrite-btn').addEventListener('click', () => handleArticleGeneration("Tulis ulang artikel berikut dengan gaya dan struktur yang berbeda, namun tetap pertahankan ide utamanya. Buatlah lebih menarik dan segar."));
+        document.getElementById('paraphrase-btn').addEventListener('click', () => handleArticleGeneration("Parafrasekan artikel berikut kalimat per kalimat. Gunakan sinonim dan ubah struktur kalimat agar unik, namun jangan mengubah makna aslinya."));
+
 
         async function callGeminiAPI(systemPrompt, userQuery) {
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${userApiKey}`;
@@ -423,7 +471,128 @@ Aturan Penting:
             }
             throw new Error("Gagal mendapatkan respons dari API.");
         }
+
+        // --- Database Functions ---
+        document.getElementById('save-btn').addEventListener('click', () => {
+            const content = articleOutput.innerHTML;
+            const titleElement = articleOutput.querySelector('h1');
+            const title = titleElement ? titleElement.innerText : "Artikel Tanpa Judul";
+            const id = currentArticleIdInput.value ? parseInt(currentArticleIdInput.value) : null;
+
+            if (!content.trim()) {
+                alert("Tidak ada konten untuk disimpan.");
+                return;
+            }
+
+            const transaction = db.transaction(["articles"], "readwrite");
+            const objectStore = transaction.objectStore("articles");
+            
+            const article = { title, content };
+            if (id) {
+                article.id = id;
+            }
+
+            const request = id ? objectStore.put(article) : objectStore.add(article);
+
+            request.onsuccess = () => {
+                alert("Artikel berhasil disimpan!");
+                displayArticles();
+                if (!id) {
+                   currentArticleIdInput.value = request.result;
+                }
+            };
+            request.onerror = (event) => {
+                console.error("Gagal menyimpan artikel:", event.target.errorCode);
+                alert("Gagal menyimpan artikel.");
+            };
+        });
+
+        function displayArticles() {
+            const articleList = document.getElementById('article-list');
+            const dbContainer = document.getElementById('article-db-container');
+            articleList.innerHTML = '';
+
+            const objectStore = db.transaction("articles").objectStore("articles");
+            const request = objectStore.getAll();
+            
+            request.onsuccess = (event) => {
+                const articles = event.target.result;
+                if (articles && articles.length > 0) {
+                    dbContainer.classList.remove('hidden');
+                    articles.forEach(article => {
+                        const item = document.createElement('div');
+                        item.className = 'flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-gray-100';
+                        item.innerHTML = `
+                            <span class="truncate text-sm text-gray-700">${article.title}</span>
+                            <div class="flex items-center space-x-2 flex-shrink-0">
+                                <svg class="db-item-icon" data-id="${article.id}" data-action="edit" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path></svg>
+                                <svg class="db-item-icon text-red-400 hover:text-red-600" data-id="${article.id}" data-action="delete" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>
+                            </div>
+                        `;
+                        articleList.appendChild(item);
+                    });
+                } else {
+                    dbContainer.classList.add('hidden');
+                }
+            };
+        }
+
+        document.getElementById('article-list').addEventListener('click', (e) => {
+            const target = e.target.closest('[data-action]');
+            if (!target) return;
+
+            const id = parseInt(target.dataset.id);
+            const action = target.dataset.action;
+
+            if (action === 'edit') {
+                loadArticleForEditing(id);
+            } else if (action === 'delete') {
+                showDeleteConfirmation(id);
+            }
+        });
+
+        function loadArticleForEditing(id) {
+            const request = db.transaction("articles").objectStore("articles").get(id);
+            request.onsuccess = (event) => {
+                const article = event.target.result;
+                articleOutput.innerHTML = article.content;
+                currentArticleIdInput.value = article.id;
+                outputContainer.style.display = 'block';
+                editorControls.classList.remove('hidden');
+                editorControls.classList.add('flex');
+                window.scrollTo({ top: outputContainer.offsetTop, behavior: 'smooth' });
+            };
+        }
         
+        // Delete Modal Logic
+        const deleteModalOverlay = document.getElementById('delete-modal-overlay');
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+        const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+        let articleIdToDelete = null;
+
+        function showDeleteConfirmation(id) {
+            articleIdToDelete = id;
+            deleteModalOverlay.classList.remove('hidden');
+        }
+
+        cancelDeleteBtn.addEventListener('click', () => {
+            deleteModalOverlay.classList.add('hidden');
+            articleIdToDelete = null;
+        });
+
+        confirmDeleteBtn.addEventListener('click', () => {
+            if (articleIdToDelete) {
+                const request = db.transaction(["articles"], "readwrite").objectStore("articles").delete(articleIdToDelete);
+                request.onsuccess = () => {
+                    displayArticles();
+                };
+            }
+            deleteModalOverlay.classList.add('hidden');
+            articleIdToDelete = null;
+        });
+
+
+        // --- Markdown & Editor Functions ---
         function processMarkdownToHtml(markdown) {
             if (!markdown) return '';
             let tocItems = [];
@@ -449,15 +618,12 @@ Aturan Penting:
             let inList = null;
             for (let i = 0; i < lines.length; i++) {
                 let line = lines[i];
-
                 let isUl = line.trim().startsWith('* ');
                 let isOl = line.trim().match(/^\d+\.\s/);
-                
                 if (inList && !isUl && !isOl && line.trim() !== '') {
                     html += (inList === 'ul' ? '</ul>' : '</ol>') + '\n';
                     inList = null;
                 }
-
                 if (line.startsWith('<h2')) { html += line + '\n'; }
                 else if (line.startsWith('## ')) { html += `<h2>${applyInlineFormatting(line.substring(3))}</h2>\n`; }
                 else if (line.startsWith('### ')) { html += `<h3>${applyInlineFormatting(line.substring(4))}</h3>\n`; }
@@ -492,7 +658,6 @@ Aturan Penting:
                 editBtn.textContent = 'Edit Artikel';
                 articleOutput.classList.remove('border-2', 'border-indigo-300', 'p-4', 'rounded-b-md', '-mt-px');
                 editorControls.classList.add('rounded-b-lg');
-
                 toolbarElements.forEach(el => el.disabled = true);
             } else {
                 articleOutput.contentEditable = 'true';
@@ -516,55 +681,27 @@ Aturan Penting:
             }
         }
 
-        copyBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            copyOptions.classList.toggle('hidden');
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!copyOptions.classList.contains('hidden') && !copyBtn.contains(e.target)) {
-                copyOptions.classList.add('hidden');
-            }
-        });
-
-        document.getElementById('copy-text').addEventListener('click', (e) => {
-            e.preventDefault();
-            copyToClipboard(articleOutput.innerText, 'Teks Biasa');
-        });
-
-        document.getElementById('copy-html').addEventListener('click', (e) => {
-            e.preventDefault();
-            copyRichTextToClipboard();
-        });
+        copyBtn.addEventListener('click', (e) => { e.stopPropagation(); copyOptions.classList.toggle('hidden'); });
+        document.addEventListener('click', (e) => { if (!copyOptions.classList.contains('hidden') && !copyBtn.contains(e.target)) { copyOptions.classList.add('hidden'); } });
+        document.getElementById('copy-text').addEventListener('click', (e) => { e.preventDefault(); copyToClipboard(articleOutput.innerText, 'Teks Biasa'); });
+        document.getElementById('copy-html').addEventListener('click', (e) => { e.preventDefault(); copyRichTextToClipboard(); });
 
         function copyToClipboard(text, type) {
-            navigator.clipboard.writeText(text).then(() => {
-                notifyCopySuccess(type);
-            }).catch(err => {
-                console.error('Gagal menyalin: ', err);
-                alert('Gagal menyalin. Silakan coba salin manual.');
-            });
+            navigator.clipboard.writeText(text).then(() => { notifyCopySuccess(type); }).catch(err => { console.error('Gagal menyalin: ', err); alert('Gagal menyalin.'); });
         }
         
         function copyRichTextToClipboard() {
             const content = articleOutput.innerHTML;
             const blob = new Blob([content], {type: 'text/html'});
             const clipboardItem = new ClipboardItem({'text/html': blob});
-            navigator.clipboard.write([clipboardItem]).then(() => {
-                notifyCopySuccess('Rich Text');
-            }).catch(err => {
-                console.error('Gagal menyalin rich text: ', err);
-                copyToClipboard(content, 'HTML'); // Fallback
-            });
+            navigator.clipboard.write([clipboardItem]).then(() => { notifyCopySuccess('Rich Text'); }).catch(err => { console.error('Gagal menyalin rich text: ', err); copyToClipboard(content, 'HTML'); });
         }
 
         function notifyCopySuccess(type) {
             const originalText = copyBtn.textContent;
             copyBtn.textContent = `${type} disalin!`;
             copyOptions.classList.add('hidden');
-            setTimeout(() => {
-                copyBtn.textContent = 'Salin';
-            }, 2000);
+            setTimeout(() => { copyBtn.textContent = 'Salin'; }, 2000);
         }
 
     </script>
