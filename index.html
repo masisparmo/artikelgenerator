@@ -38,6 +38,12 @@
             margin-top: 1.2em;
             margin-bottom: 0.4em;
         }
+        .prose h4 {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-top: 1em;
+            margin-bottom: 0.3em;
+        }
         .prose p, .prose ul, .prose ol {
             margin-bottom: 1em;
             line-height: 1.6;
@@ -377,7 +383,7 @@
             }
             
             let userQuery;
-            const systemPrompt = `Anda adalah seorang penulis konten ahli dan spesialis SEO. Tugas Anda adalah memproses teks yang diberikan sesuai instruksi.`;
+            const systemPrompt = `Anda adalah seorang penulis konten ahli dan spesialis SEO. Tugas Anda adalah memproses teks yang diberikan sesuai instruksi. Gunakan format Markdown yang bersih. Untuk heading, gunakan HANYA format '# Judul H1', '## Judul H2', dan '### Judul H3'. Jangan gunakan format '####' atau heading yang lebih dalam.`;
 
             if (promptModifier) { // For Re-write or Paraphrase
                 const currentContent = articleOutput.innerText;
@@ -625,8 +631,9 @@
                     inList = null;
                 }
                 if (line.startsWith('<h2')) { html += line + '\n'; }
-                else if (line.startsWith('## ')) { html += `<h2>${applyInlineFormatting(line.substring(3))}</h2>\n`; }
+                else if (line.startsWith('#### ')) { html += `<h4>${applyInlineFormatting(line.substring(5))}</h4>\n`; }
                 else if (line.startsWith('### ')) { html += `<h3>${applyInlineFormatting(line.substring(4))}</h3>\n`; }
+                else if (line.startsWith('## ')) { html += `<h2>${applyInlineFormatting(line.substring(3))}</h2>\n`; }
                 else if (line.startsWith('# ')) { html += `<h1>${applyInlineFormatting(line.substring(2))}</h1>\n`; }
                 else if (isUl) {
                     if (inList !== 'ul') { html += '<ul>\n'; inList = 'ul'; }
