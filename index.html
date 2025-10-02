@@ -70,14 +70,59 @@
         }
         /* Styling for editor toolbar */
         .editor-btn {
-            @apply p-2 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-indigo-400;
+             @apply p-2 rounded enabled:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-indigo-400 text-gray-600;
+        }
+        .editor-select {
+             @apply text-sm px-2 py-1.5 rounded bg-transparent hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-indigo-400 border-0;
         }
         #article-output[contenteditable="true"] {
-            @apply border-2 border-indigo-300 p-4 rounded-md focus:outline-none;
+            @apply border-2 border-indigo-300 p-4 rounded-b-md focus:outline-none -mt-px;
+        }
+        .toolbar-group {
+            @apply flex items-center border-r border-gray-300 px-1;
+        }
+        .toolbar-group:last-child {
+            @apply border-r-0;
+        }
+        #api-modal-overlay {
+            transition: opacity 0.3s ease-in-out;
         }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
+
+    <!-- API Key Modal -->
+    <div id="api-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-lg w-full transform transition-all" id="api-modal-content">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Masukkan Kunci API Gemini Anda</h2>
+            <p class="text-gray-600 mb-6">Aplikasi ini memerlukan Kunci API Google Gemini untuk berfungsi. Kunci Anda akan disimpan dengan aman di browser Anda dan tidak akan dibagikan.</p>
+            
+            <input type="password" id="api-key-input" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4" placeholder="AIza...">
+            <button id="save-api-key" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 font-medium">
+                Simpan dan Lanjutkan
+            </button>
+            <p id="api-key-error" class="text-red-500 text-sm mt-2 hidden">Kunci API tidak boleh kosong.</p>
+
+            <div class="mt-8">
+                <details class="bg-gray-50 rounded-md p-4">
+                    <summary class="font-medium text-gray-700 cursor-pointer hover:text-indigo-600">
+                        Bagaimana cara mendapatkan Kunci API Gemini gratis?
+                    </summary>
+                    <div class="mt-4 text-sm text-gray-600 space-y-3">
+                        <p>Anda bisa mendapatkan Kunci API secara gratis dari Google AI Studio. Berikut langkah-langkahnya:</p>
+                        <ol class="list-decimal list-inside space-y-2">
+                            <li>Buka <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-600 font-medium hover:underline">Google AI Studio</a>.</li>
+                            <li>Masuk dengan Akun Google Anda.</li>
+                            <li>Klik tombol "<strong>Create API key</strong>".</li>
+                            <li>Pilih proyek yang ada atau buat proyek Google Cloud baru (ini gratis).</li>
+                            <li>Kunci API Anda akan dibuat. Salin (copy) seluruh kunci tersebut.</li>
+                            <li>Tempel (paste) kunci yang sudah disalin ke kolom input di atas dan klik simpan.</li>
+                        </ol>
+                    </div>
+                </details>
+            </div>
+        </div>
+    </div>
 
     <div class="container mx-auto p-4 md:p-8 max-w-4xl">
         <header class="text-center mb-8">
@@ -149,26 +194,48 @@
 
                 <div id="output-container" class="mt-8" style="display: none;">
                     <!-- Editor Controls -->
-                     <div id="editor-controls" class="flex items-center justify-between p-2 bg-gray-100 rounded-t-lg space-x-2 border-b border-gray-300 flex-wrap">
-                        <div class="flex items-center space-x-1 flex-wrap">
-                            <button class="editor-btn" onclick="formatDoc('bold')" title="Bold" disabled><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.44 14.38a.5.5 0 00.56.02c.8-.53 1.34-1.42 1.34-2.4 0-1.63-1.03-2.73-2.84-2.73H6.5v5.12h2.94zm-1.1-3.72h1.1c.92 0 1.44.52 1.44 1.28 0 .8-.52 1.32-1.44 1.32H8.34v-2.6zm6.16-5.16c-2.1 0-3.5 1.57-3.5 3.82 0 1.5.78 2.6 2.05 3.26a3.59 3.59 0 01-1.89.56H6.5a.5.5 0 00-.5.5v.63a.5.5 0 00.5.5H11c2.8 0 4.5-1.78 4.5-4.24 0-2.3-1.7-4.04-4-4.04z"></path></svg></button>
-                            <button class="editor-btn" onclick="formatDoc('italic')" title="Italic" disabled><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M7.75 4.5a.5.5 0 000 1h1.36l-1.88 8H6a.5.5 0 000 1h4a.5.5 0 000-1H8.64l1.88-8H11.5a.5.5 0 000-1h-4z"></path></svg></button>
-                            <button class="editor-btn" onclick="formatDoc('underline')" title="Underline" disabled><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M6.5 4.5a.5.5 0 000 1h7a.5.5 0 000-1h-7zM5 14.5a.5.5 0 00.5.5h9a.5.5 0 000-1h-9a.5.5 0 00-.5.5zM10 12.5c-2.48 0-4.5-2.02-4.5-4.5V5.75a.5.5 0 011 0V8c0 1.93 1.57 3.5 3.5 3.5s3.5-1.57 3.5-3.5V5.75a.5.5 0 011 0V8c0 2.48-2.02 4.5-4.5 4.5z"></path></svg></button>
-                            <button class="editor-btn" onclick="formatDoc('insertUnorderedList')" title="Bullet List" disabled><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 6a1 1 0 11-2 0 1 1 0 012 0zm0 4a1 1 0 11-2 0 1 1 0 012 0zm0 4a1 1 0 11-2 0 1 1 0 012 0zm4-8a.5.5 0 01.5.5h6a.5.5 0 010 1h-6a.5.5 0 01-.5-.5zm0 4a.5.5 0 01.5.5h6a.5.5 0 010 1h-6a.5.5 0 01-.5-.5zm0 4a.5.5 0 01.5.5h6a.5.5 0 010 1h-6a.5.5 0 01-.5-.5z" clip-rule="evenodd"></path></svg></button>
-                            <button class="editor-btn" onclick="formatDoc('insertOrderedList')" title="Numbered List" disabled><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M4.5 6a.5.5 0 01.5-.5h6a.5.5 0 010 1h-6a.5.5 0 01-.5-.5zm0 4a.5.5 0 01.5-.5h6a.5.5 0 010 1h-6a.5.5 0 01-.5-.5zm0 4a.5.5 0 01.5-.5h6a.5.5 0 010 1h-6a.5.5 0 01-.5-.5zM2.854 5.146a.5.5 0 010 .708l-1 1a.5.5 0 01-.708 0l-1-1a.5.5 0 01.708-.708L1.5 5.793l.646-.647a.5.5 0 01.708 0zm0 4a.5.5 0 010 .708l-1 1a.5.5 0 01-.708 0l-1-1a.5.5 0 01.708-.708L1.5 9.793l.646-.647a.5.5 0 01.708 0zm0 4a.5.5 0 010 .708l-1 1a.5.5 0 01-.708 0l-1-1a.5.5 0 11.708-.708L1.5 13.793l.646-.647a.5.5 0 01.708 0z"></path></svg></button>
+                     <div id="editor-controls" class="hidden flex items-center p-1 bg-gray-100 rounded-t-lg border-x border-t border-gray-300 flex-wrap gap-y-1">
+                        <div class="toolbar-group">
+                             <select id="heading-select" class="editor-select" onchange="formatDoc('formatBlock', this.value)" disabled>
+                                <option value="p">Paragraf</option>
+                                <option value="h1">Heading 1</option>
+                                <option value="h2">Heading 2</option>
+                                <option value="h3">Heading 3</option>
+                            </select>
                         </div>
-                        <div class="flex items-center space-x-2">
+                        <div class="toolbar-group">
+                            <button class="editor-btn" onclick="formatDoc('bold')" title="Bold" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4.25-4H7v14h7.04c2.1 0 3.71-1.7 3.71-3.78 0-1.52-.86-2.82-2.15-3.43zM10 6.5h3c.97 0 1.75.78 1.75 1.75S13.97 10 13 10h-3V6.5zm3.5 8.5H10v-3h3.5c.97 0 1.75.78 1.75 1.75s-.78 1.25-1.75 1.25z"></path></svg></button>
+                            <button class="editor-btn" onclick="formatDoc('italic')" title="Italic" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4v3h2.21l-3.42 8H6v3h8v-3h-2.21l3.42-8H18V4z"></path></svg></button>
+                            <button class="editor-btn" onclick="formatDoc('underline')" title="Underline" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17c3.31 0 6-2.69 6-6V3h-2.5v8c0 1.93-1.57 3.5-3.5 3.5S8.5 12.93 8.5 11V3H6v8c0 3.31 2.69 6 6 6zm-7 2v2h14v-2H5z"></path></svg></button>
+                        </div>
+                        <div class="toolbar-group">
+                            <button class="editor-btn" onclick="formatDoc('insertUnorderedList')" title="Bullet List" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm0-6c-.83 0-1.5.67-1.5 1.5S3.17 7.5 4 7.5 5.5 6.83 5.5 6 4.83 4.5 4 4.5zm0 12c-.83 0-1.5.68-1.5 1.5s.68 1.5 1.5 1.5 1.5-.68 1.5-1.5-.67-1.5-1.5-1.5zM7 19h14v-2H7v2zm0-6h14v-2H7v2zm0-8v2h14V5H7z"></path></svg></button>
+                            <button class="editor-btn" onclick="formatDoc('insertOrderedList')" title="Numbered List" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2v1zm1-9h1V4H2v1h1v3zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 11.9V11H2v1zm5-6v2h14V5H7zm0 14h14v-2H7v2zm0-6h14v-2H7v2z"></path></svg></button>
+                        </div>
+                        <div class="toolbar-group">
+                            <button class="editor-btn" onclick="insertLink()" title="Insert Link" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"></path></svg></button>
+                        </div>
+                        <div class="toolbar-group">
+                             <button class="editor-btn" onclick="formatDoc('justifyLeft')" title="Rata Kiri" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M15 15H3v2h12v-2zm0-8H3v2h12V7zM3 13h18v-2H3v2zm0 8h18v-2H3v2zM3 3v2h18V3H3z"></path></svg></button>
+                            <button class="editor-btn" onclick="formatDoc('justifyCenter')" title="Rata Tengah" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M7 15v2h10v-2H7zm-4 6h18v-2H3v2zm0-8h18v-2H3v2zm4-6v2h10V7H7zM3 3v2h18V3H3z"></path></svg></button>
+                            <button class="editor-btn" onclick="formatDoc('justifyRight')" title="Rata Kanan" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3 21h18v-2H3v2zm6-4h12v-2H9v2zm-6-4h18v-2H3v2zm6-4h12V7H9v2zM3 3v2h18V3H3z"></path></svg></button>
+                        </div>
+                        <div class="toolbar-group">
+                            <button class="editor-btn" onclick="formatDoc('removeFormat')" title="Hapus Format" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3.27 5L2 6.27l6.97 6.97L6.5 19h3l1.57-3.66L16.73 21 18 19.73 3.55 5.27 3.27 5zM6 5v.18L8.82 8h2.4l-.72 1.68 2.1 2.1L14.21 8h2.4L19 5H6z"></path></svg></button>
+                        </div>
+                        <div class="flex-grow"></div>
+                        <div class="flex items-center space-x-2 pl-2">
                              <div class="relative">
                                 <button id="copy-btn" class="py-2 px-3 text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">Salin</button>
-                                <div id="copy-options" class="hidden absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-10 border">
+                                <div id="copy-options" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border">
                                     <a href="#" id="copy-text" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Salin sebagai Teks Biasa</a>
-                                    <a href="#" id="copy-html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Salin sebagai Rich Text</a>
+                                    <a href="#" id="copy-html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Salin sebagai Rich Text (HTML)</a>
                                 </div>
                             </div>
                             <button id="edit-btn" class="py-2 px-3 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">Edit Artikel</button>
                         </div>
                     </div>
-                    <div id="article-output" class="prose bg-white p-6 rounded-b-lg border-t-0"></div>
+                    <div id="article-output" class="prose bg-white p-6 rounded-b-lg"></div>
                 </div>
 
 
@@ -176,47 +243,47 @@
 
             <!-- Panduan SEO Tab -->
             <div id="content-panduan" class="tab-content p-6 md:p-8 prose fade-in">
-                <h2>Panduan Membuat Konten Web SEO-Friendly</h2>
+                 <h2>Panduan Membuat Konten Web SEO-Friendly</h2>
                 <p>Berikut adalah panduan detail berdasarkan dokumen Google untuk membuat konten yang bermanfaat, andal, dan mengutamakan pengguna, yang merupakan kunci utama SEO.</p>
                 <h3>1. Fokus pada Konten yang Bermanfaat dan Mengutamakan Pengguna</h3>
-                <p>Google memberi penghargaan pada konten yang dibuat untuk manusia, bukan untuk mesin pencari. Tanyakan pada diri Anda:</p>
-                <ul>
-                    <li>Apakah audiens target Anda akan merasa konten ini bermanfaat jika mereka menemukannya langsung?</li>
-                    <li>Apakah konten Anda menunjukkan keahlian dan pengetahuan mendalam (misalnya, keahlian yang didapat dari pengalaman nyata menggunakan produk/layanan atau mengunjungi suatu tempat)?</li>
-                    <li>Apakah situs Anda memiliki tujuan atau fokus utama?</li>
-                    <li>Setelah membaca konten Anda, apakah pembaca akan merasa telah belajar cukup banyak tentang suatu topik untuk membantu mencapai tujuan mereka?</li>
-                    <li>Apakah pembaca akan merasa mendapatkan pengalaman yang memuaskan?</li>
-                </ul>
+                <ul><li>Apakah audiens target Anda akan merasa konten ini bermanfaat jika mereka menemukannya langsung?</li><li>Apakah konten Anda menunjukkan keahlian dan pengetahuan mendalam?</li><li>Apakah situs Anda memiliki tujuan atau fokus utama?</li><li>Setelah membaca konten Anda, apakah pembaca akan merasa telah belajar cukup banyak tentang suatu topik untuk membantu mencapai tujuan mereka?</li></ul>
                 <h3>2. Tunjukkan Pengalaman, Keahlian, Otoritas, dan Kepercayaan (E-E-A-T)</h3>
-                <p>E-E-A-T (Experience, Expertise, Authoritativeness, Trust) adalah faktor krusial, terutama untuk topik "Your Money or Your Life" (YMYL) yang dapat memengaruhi kesehatan, keuangan, atau keselamatan seseorang.</p>
-                <ul>
-                    <li><strong>Pengalaman (Experience):</strong> Tunjukkan bahwa konten dibuat oleh seseorang dengan pengalaman langsung. Misalnya, ulasan produk dari orang yang benar-benar telah menggunakannya.</li>
-                    <li><strong>Keahlian (Expertise):</strong> Konten harus dibuat oleh seseorang yang memiliki pengetahuan atau keterampilan yang diperlukan tentang topik tersebut.</li>
-                    <li><strong>Otoritas (Authoritativeness):</strong> Jadikan situs Anda atau pembuat konten sebagai sumber utama untuk topik tersebut. Informasi "Tentang Kami" yang jelas dan profil penulis membantu membangun otoritas.</li>
-                    <li><strong>Kepercayaan (Trust):</strong> Pengguna harus merasa aman dan percaya pada situs Anda. Ini mencakup informasi kontak yang jelas, keamanan situs (HTTPS), dan ulasan pelanggan yang jujur.</li>
-                </ul>
+                <ul><li><strong>Pengalaman (Experience):</strong> Tunjukkan bahwa konten dibuat oleh seseorang dengan pengalaman langsung.</li><li><strong>Keahlian (Expertise):</strong> Konten harus dibuat oleh seseorang yang memiliki pengetahuan atau keterampilan yang diperlukan.</li><li><strong>Otoritas (Authoritativeness):</strong> Jadikan situs Anda atau pembuat konten sebagai sumber utama untuk topik tersebut.</li><li><strong>Kepercayaan (Trust):</strong> Pengguna harus merasa aman dan percaya pada situs Anda.</li></ul>
                 <h3>3. Hindari Membuat Konten untuk Mesin Pencari Terlebih Dahulu</h3>
-                <p>Praktik yang harus dihindari:</p>
-                <ul>
-                    <li>Membuat konten terutama untuk menarik kunjungan dari mesin pencari.</li>
-                    <li>Memproduksi banyak konten tentang berbagai topik dengan harapan beberapa di antaranya akan berkinerja baik di hasil penelusuran.</li>
-                    <li>Menggunakan otomatisasi ekstensif (termasuk AI) untuk menghasilkan konten tentang banyak topik.</li>
-                    <li>Terlalu banyak meringkas apa yang telah dikatakan orang lain tanpa menambahkan nilai baru.</li>
-                    <li>Menulis tentang suatu topik hanya karena sedang tren, bukan karena Anda akan menulisnya untuk audiens Anda.</li>
-                    <li>Membuat pembaca merasa perlu mencari lagi untuk mendapatkan informasi yang lebih baik dari sumber lain.</li>
-                </ul>
+                <ul><li>Membuat konten terutama untuk menarik kunjungan dari mesin pencari.</li><li>Memproduksi banyak konten tentang berbagai topik dengan harapan beberapa di antaranya akan berkinerja baik.</li><li>Menggunakan otomatisasi ekstensif (AI) untuk menghasilkan konten tentang banyak topik.</li><li>Meringkas apa yang telah dikatakan orang lain tanpa menambahkan nilai baru.</li></ul>
                  <h3>4. Siapa, Bagaimana, dan Mengapa</h3>
-                <p>Transparansi adalah kunci. Pengguna lebih mempercayai konten jika mereka tahu siapa yang menulisnya, bagaimana konten itu dibuat, dan mengapa mereka harus mempercayai Anda.</p>
-                <ul>
-                    <li><strong>Siapa (Who):</strong> Jelaskan siapa yang menulis konten tersebut. Sertakan halaman penulis atau bagian "Tentang Kami" yang jelas.</li>
-                    <li><strong>Bagaimana (How):</strong> Jelaskan bagaimana konten dibuat. Misalnya, untuk ulasan produk, jelaskan proses pengujiannya. Untuk konten berita, jelaskan proses pengecekan faktanya.</li>
-                    <li><strong>Mengapa (Why):</strong> Jelaskan mengapa Anda adalah sumber yang tepat. Apa tujuan situs Anda? Apa misi Anda? Ini membantu membangun kepercayaan dan menunjukkan fokus utama situs Anda.</li>
-                </ul>
+                 <p>Transparansi adalah kunci. Pengguna lebih mempercayai konten jika mereka tahu siapa yang menulisnya, bagaimana konten itu dibuat, dan mengapa mereka harus mempercayai Anda.</p>
+                 <ul><li><strong>Siapa (Who):</strong> Jelaskan siapa yang menulis konten tersebut.</li><li><strong>Bagaimana (How):</strong> Jelaskan bagaimana konten dibuat.</li><li><strong>Mengapa (Why):</strong> Jelaskan mengapa Anda adalah sumber yang tepat dan apa tujuan situs Anda.</li></ul>
             </div>
         </div>
     </div>
 
     <script>
+        let userApiKey = '';
+        const apiKeyModalOverlay = document.getElementById('api-modal-overlay');
+        const saveApiKeyBtn = document.getElementById('save-api-key');
+        const apiKeyInput = document.getElementById('api-key-input');
+        const apiKeyError = document.getElementById('api-key-error');
+
+        window.addEventListener('DOMContentLoaded', () => {
+            userApiKey = localStorage.getItem('geminiApiKey');
+            if (!userApiKey) {
+                apiKeyModalOverlay.classList.remove('hidden');
+            }
+        });
+
+        saveApiKeyBtn.addEventListener('click', () => {
+            const key = apiKeyInput.value.trim();
+            if (key) {
+                localStorage.setItem('geminiApiKey', key);
+                userApiKey = key;
+                apiKeyModalOverlay.classList.add('hidden');
+                apiKeyError.classList.add('hidden');
+            } else {
+                apiKeyError.classList.remove('hidden');
+            }
+        });
+
         function switchTab(tabName) {
             const tabs = ['generator', 'panduan'];
             tabs.forEach(tab => {
@@ -235,30 +302,28 @@
         }
 
         const generateBtn = document.getElementById('generate-btn');
-        const topicInput = document.getElementById('topic');
-        const keywordsInput = document.getElementById('keywords');
         const articleOutput = document.getElementById('article-output');
         const loadingDiv = document.getElementById('loading');
         const outputContainer = document.getElementById('output-container');
-        
-        const websiteUrlInput = document.getElementById('url_website');
-        const youtubeUrlInput = document.getElementById('url_youtube');
-        const textPasteInput = document.getElementById('text_paste');
-        const fileUploadInput = document.getElementById('file_upload');
-
         const editBtn = document.getElementById('edit-btn');
         const editorControls = document.getElementById('editor-controls');
         const copyBtn = document.getElementById('copy-btn');
         const copyOptions = document.getElementById('copy-options');
 
         generateBtn.addEventListener('click', async () => {
-            const topic = topicInput.value;
-            const keywords = keywordsInput.value;
+            if (!userApiKey) {
+                apiKeyModalOverlay.classList.remove('hidden');
+                alert("Silakan masukkan Kunci API Gemini Anda untuk melanjutkan.");
+                return;
+            }
+
+            const topic = document.getElementById('topic').value;
+            const keywords = document.getElementById('keywords').value;
             const references = {
-                website: websiteUrlInput.value,
-                youtube: youtubeUrlInput.value,
-                text: textPasteInput.value,
-                files: fileUploadInput.files
+                website: document.getElementById('url_website').value,
+                youtube: document.getElementById('url_youtube').value,
+                text: document.getElementById('text_paste').value,
+                files: document.getElementById('file_upload').files
             };
 
             if (!topic.trim()) {
@@ -275,22 +340,20 @@
 
 Aturan Penting:
 1.  **Grounded in Reality:** Gunakan kemampuan pencarian Google Anda untuk menemukan dan mensintesis informasi dari sumber-sumber yang paling kredibel di internet. Jangan membuat informasi.
-2.  **Integrasikan Referensi Pengguna:** Jika pengguna memberikan URL, teks, atau file, anggap itu sebagai sumber informasi utama. Prioritaskan dan integrasikan wawasan dari sumber-sumber ini ke dalam artikel Anda.
-3.  **Struktur SEO-Friendly:** Artikel harus memiliki struktur yang jelas dengan judul utama (H1), beberapa subjudul (H2), dan jika perlu sub-subjudul (H3). Gunakan paragraf yang ringkas, daftar berpoin (bullet points), dan cetak tebal untuk meningkatkan keterbacaan. JANGAN gunakan format '####' atau lebih dalam.
-4.  **Terapkan E-E-A-T:** Tulis dengan nada yang menunjukkan Pengalaman (Experience), Keahlian (Expertise), Otoritas (Authoritativeness), dan Kepercayaan (Trust). Tunjukkan pemahaman mendalam tentang nuansa topik.
-5.  **Gunakan Kata Kunci:** Integrasikan kata kunci yang diberikan pengguna secara alami di seluruh artikel, termasuk dalam judul, subjudul, dan isi paragraf.
+2.  **Integrasikan Referensi Pengguna:** Jika pengguna memberikan referensi, prioritaskan dan integrasikan wawasan dari sumber-sumber ini.
+3.  **Struktur SEO-Friendly:** Gunakan judul utama (H1), beberapa subjudul (H2), dan jika perlu sub-subjudul (H3). Gunakan paragraf ringkas, daftar berpoin, dan cetak tebal. JANGAN gunakan format '####' atau lebih dalam.
+4.  **Terapkan E-E-A-T:** Tulis dengan nada yang menunjukkan Pengalaman, Keahlian, Otoritas, dan Kepercayaan.
+5.  **Gunakan Kata Kunci:** Integrasikan kata kunci secara alami di seluruh artikel.
 6.  **Struktur Artikel Spesifik:** Hasilkan artikel dengan urutan sebagai berikut:
-    a.  **Resume Artikel:** Di paling atas, buat ringkasan singkat (maksimal 100 kata) dari keseluruhan artikel. Beri judul '## Resume Artikel'.
-    b.  **Daftar Isi:** Setelah resume, buat daftar isi sederhana. Beri judul '## Daftar Isi' dan Cukup tulis placeholder '[Daftar Isi]'. Skrip akan mengisinya secara otomatis.
-    c.  **Isi Artikel:** Bagian utama artikel Anda dengan struktur H1, H2, H3. Pastikan ada paragraf pembuka setelah judul utama (H1) dan sebelum subjudul (H2) pertama.
-7.  **Panjang Artikel:** Pastikan artikel akhir memiliki panjang minimal 1500 kata.
-8.  **Format Output:** Hasilkan artikel dalam format Markdown yang bersih. Gunakan dua baris baru di antara setiap elemen (paragraf, judul, daftar) untuk parsing yang lebih mudah.`;
+    a.  **Resume Artikel:** Di paling atas, buat ringkasan singkat (maksimal 100 kata). Beri judul '## Resume Artikel'.
+    b.  **Daftar Isi:** Setelah resume, beri judul '## Daftar Isi' dan tulis placeholder '[Daftar Isi]'.
+    c.  **Isi Artikel:** Bagian utama artikel Anda (minimal 1500 kata) dengan struktur H1, H2, H3.
+7.  **Format Output:** Hasilkan artikel dalam format Markdown yang bersih. Gunakan dua baris baru antar elemen.`;
 
             let userQuery = `Topik Artikel: "${topic}"\nKata Kunci: "${keywords}"\n\n`;
-            if (references.website) userQuery += `Mohon rujuk konten dari URL website ini: ${references.website}\n`;
-            if (references.youtube) userQuery += `Mohon rujuk konten dari video YouTube ini: ${references.youtube}\n`;
-            if (references.text) userQuery += `Mohon rujuk teks yang ditempel berikut ini:\n---\n${references.text}\n---\n`;
-            if (references.files.length > 0) userQuery += `Saya juga telah mengunggah ${references.files.length} file sebagai referensi tambahan. Harap pertimbangkan informasi dari file-file ini dalam tulisan Anda.\n`;
+            if (references.website) userQuery += `Rujuk URL website ini: ${references.website}\n`;
+            if (references.youtube) userQuery += `Rujuk video YouTube ini: ${references.youtube}\n`;
+            if (references.text) userQuery += `Rujuk teks ini:\n---\n${references.text}\n---\n`;
             
             userQuery += `\nSekarang, tulis artikel blog yang komprehensif (minimal 1500 kata) berdasarkan instruksi di atas.`;
 
@@ -313,16 +376,14 @@ Aturan Penting:
             } catch (error) {
                 console.error("Error generating article:", error);
                 outputContainer.style.display = 'block';
-                articleOutput.innerHTML = `<p class="text-red-500">Maaf, terjadi kesalahan saat membuat artikel. Silakan coba lagi. Error: ${error.message}</p>`;
+                articleOutput.innerHTML = `<p class="text-red-500">Maaf, terjadi kesalahan saat membuat artikel. Error: ${error.message}</p>`;
             } finally {
                 loadingDiv.style.display = 'none';
             }
         });
 
         async function callGeminiAPI(systemPrompt, userQuery) {
-            const apiKey = ""; // Disediakan oleh environment
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${userApiKey}`;
             const payload = {
                 systemInstruction: { parts: [{ text: systemPrompt }] },
                 contents: [{ parts: [{ text: userQuery }] }],
@@ -330,17 +391,10 @@ Aturan Penting:
             };
             
             let response;
-            let retries = 3;
-            let delay = 1000;
-
+            let retries = 3, delay = 1000;
             for (let i = 0; i < retries; i++) {
                 try {
-                    response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
+                    response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                     if (response.ok) {
                         const result = await response.json();
                         const candidate = result.candidates?.[0];
@@ -349,32 +403,31 @@ Aturan Penting:
                             let sources = [];
                             const groundingMetadata = candidate.groundingMetadata;
                             if (groundingMetadata && groundingMetadata.groundingAttributions) {
-                                sources = groundingMetadata.groundingAttributions
-                                    .map(attr => ({ uri: attr.web?.uri, title: attr.web?.title }))
-                                    .filter(source => source.uri && source.title);
+                                sources = groundingMetadata.groundingAttributions.map(attr => ({ uri: attr.web?.uri, title: attr.web?.title })).filter(s => s.uri && s.title);
                             }
                             return { text, sources };
-                        } else {
-                            throw new Error("Struktur respons API tidak valid atau konten kosong.");
-                        }
-                    } else if (response.status === 429 || response.status >= 500) {
-                        if (i < retries - 1) { await new Promise(res => setTimeout(res, delay)); delay *= 2; continue; }
+                        } else { throw new Error("Respons API tidak valid."); }
+                    } else if (response.status === 401 || response.status === 403) {
+                        localStorage.removeItem('geminiApiKey');
+                        userApiKey = '';
+                        apiKeyModalOverlay.classList.remove('hidden');
+                        throw new Error("Kunci API tidak valid atau telah dicabut. Silakan masukkan kunci yang baru.");
+                    } else if (response.status === 429 || response.status >= 500) { 
+                        if (i < retries - 1) { await new Promise(res => setTimeout(res, delay)); delay *= 2; continue; } 
                     }
-                    throw new Error(`API request failed with status ${response.status}: ${response.statusText}`);
+                    throw new Error(`Permintaan API gagal: ${response.status} ${response.statusText}`);
                 } catch (error) {
                     if (i < retries - 1) { await new Promise(res => setTimeout(res, delay)); delay *= 2; continue; }
                     throw error;
                 }
             }
-             throw new Error("Gagal mendapatkan respons dari API setelah beberapa kali percobaan.");
+            throw new Error("Gagal mendapatkan respons dari API.");
         }
         
         function processMarkdownToHtml(markdown) {
             if (!markdown) return '';
-            
             let tocItems = [];
             let sectionCounter = 0;
-
             let processedMarkdown = markdown.replace(/^## (?!Resume Artikel|Daftar Isi|Referensi)(.*$)/gmi, (match, title) => {
                 sectionCounter++;
                 const id = `section-${sectionCounter}`;
@@ -382,65 +435,47 @@ Aturan Penting:
                 tocItems.push({ title: cleanTitle, id: id });
                 return `<h2 id="${id}">${cleanTitle}</h2>`;
             });
-            
             let tocHtml = tocItems.length > 0 ? '<ul>' : '';
-            tocItems.forEach(item => {
-                tocHtml += `<li><a href="#${item.id}" class="text-indigo-600 hover:underline">${item.title}</a></li>`;
-            });
+            tocItems.forEach(item => { tocHtml += `<li><a href="#${item.id}" class="text-indigo-600 hover:underline">${item.title}</a></li>`; });
             tocHtml += tocItems.length > 0 ? '</ul>' : '';
-            
-            processedMarkdown = processedMarkdown.replace('## Daftar Isi\n\n[Daftar Isi]', `<h2>Daftar Isi</h2>\n\n${tocHtml}`);
-            processedMarkdown = processedMarkdown.replace('## Daftar Isi\n[Daftar Isi]', `<h2>Daftar Isi</h2>\n\n${tocHtml}`);
-            
+            processedMarkdown = processedMarkdown.replace(/## Daftar Isi\s*\[Daftar Isi\]/g, `<h2>Daftar Isi</h2>\n\n${tocHtml}`);
             return simpleMarkdownToHtml(processedMarkdown);
         }
 
        function simpleMarkdownToHtml(markdown) {
             if (!markdown) return '';
-
             const lines = markdown.split('\n');
             let html = '';
-            let inList = null; // null, 'ul', 'ol'
-
+            let inList = null;
             for (let i = 0; i < lines.length; i++) {
                 let line = lines[i];
 
-                // Close list if line is empty or not a list item
-                if (inList && (!line.startsWith('* ') && !line.match(/^\d+\.\s/))) {
+                let isUl = line.trim().startsWith('* ');
+                let isOl = line.trim().match(/^\d+\.\s/);
+                
+                if (inList && !isUl && !isOl && line.trim() !== '') {
                     html += (inList === 'ul' ? '</ul>' : '</ol>') + '\n';
                     inList = null;
                 }
 
-                // Headers
                 if (line.startsWith('<h2')) { html += line + '\n'; }
                 else if (line.startsWith('## ')) { html += `<h2>${applyInlineFormatting(line.substring(3))}</h2>\n`; }
                 else if (line.startsWith('### ')) { html += `<h3>${applyInlineFormatting(line.substring(4))}</h3>\n`; }
                 else if (line.startsWith('# ')) { html += `<h1>${applyInlineFormatting(line.substring(2))}</h1>\n`; }
-                
-                // Unordered list
-                else if (line.startsWith('* ')) {
+                else if (isUl) {
                     if (inList !== 'ul') { html += '<ul>\n'; inList = 'ul'; }
-                    html += `<li>${applyInlineFormatting(line.substring(2))}</li>\n`;
+                    html += `<li>${applyInlineFormatting(line.trim().substring(2))}</li>\n`;
                 }
-                // Ordered list
-                else if (line.match(/^\d+\.\s/)) {
+                else if (isOl) {
                     if (inList !== 'ol') { html += '<ol>\n'; inList = 'ol'; }
-                    html += `<li>${applyInlineFormatting(line.replace(/^\d+\.\s/, ''))}</li>\n`;
+                    html += `<li>${applyInlineFormatting(line.trim().replace(/^\d+\.\s/, ''))}</li>\n`;
                 }
-                // Paragraph
-                else if (line.trim() !== '') {
-                     html += `<p>${applyInlineFormatting(line)}</p>\n`;
-                }
+                else if (line.trim().startsWith('<ul>')) { html += line; inList = 'ul' }
+                else if (line.trim() !== '') { html += `<p>${applyInlineFormatting(line)}</p>\n`; }
             }
-
-            // Close any open list at the end
-            if (inList) {
-                html += (inList === 'ul' ? '</ul>' : '</ol>') + '\n';
-            }
-
-            return html.replace('<h2>Daftar Isi</h2>\n\n<ul>', '<h2>Daftar Isi</h2><ul>');
+            if (inList) { html += (inList === 'ul' ? '</ul>' : '</ol>') + '\n'; }
+            return html;
         }
-
 
         function applyInlineFormatting(text) {
             return text
@@ -449,21 +484,22 @@ Aturan Penting:
                 .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
         }
 
-        // --- Editor and Copy Functionality ---
-
         editBtn.addEventListener('click', () => {
             const isEditable = articleOutput.isContentEditable;
-            const toolbarButtons = editorControls.querySelectorAll('button.editor-btn');
+            const toolbarElements = editorControls.querySelectorAll('button.editor-btn, select.editor-select');
             if (isEditable) {
                 articleOutput.contentEditable = 'false';
                 editBtn.textContent = 'Edit Artikel';
-                articleOutput.classList.remove('border-2', 'border-indigo-300', 'p-6');
-                toolbarButtons.forEach(btn => btn.disabled = true);
+                articleOutput.classList.remove('border-2', 'border-indigo-300', 'p-4', 'rounded-b-md', '-mt-px');
+                editorControls.classList.add('rounded-b-lg');
+
+                toolbarElements.forEach(el => el.disabled = true);
             } else {
                 articleOutput.contentEditable = 'true';
                 editBtn.textContent = 'Selesai';
-                articleOutput.classList.add('border-2', 'border-indigo-300', 'p-6');
-                toolbarButtons.forEach(btn => btn.disabled = false);
+                articleOutput.classList.add('border-2', 'border-indigo-300', 'p-4', 'rounded-b-md', '-mt-px');
+                editorControls.classList.remove('rounded-b-lg');
+                toolbarElements.forEach(el => el.disabled = false);
                 articleOutput.focus();
             }
         });
@@ -471,6 +507,13 @@ Aturan Penting:
         function formatDoc(command, value = null) {
             document.execCommand(command, false, value);
             articleOutput.focus();
+        }
+
+        function insertLink() {
+            const url = prompt("Masukkan URL:", "https://");
+            if (url) {
+                formatDoc('createLink', url);
+            }
         }
 
         copyBtn.addEventListener('click', (e) => {
@@ -496,15 +539,10 @@ Aturan Penting:
 
         function copyToClipboard(text, type) {
             navigator.clipboard.writeText(text).then(() => {
-                const originalText = copyBtn.textContent;
-                copyBtn.textContent = `${type} disalin!`;
-                copyOptions.classList.add('hidden');
-                setTimeout(() => {
-                    copyBtn.textContent = 'Salin';
-                }, 2000);
+                notifyCopySuccess(type);
             }).catch(err => {
-                console.error('Gagal menyalin teks: ', err);
-                alert('Gagal menyalin.');
+                console.error('Gagal menyalin: ', err);
+                alert('Gagal menyalin. Silakan coba salin manual.');
             });
         }
         
@@ -512,19 +550,21 @@ Aturan Penting:
             const content = articleOutput.innerHTML;
             const blob = new Blob([content], {type: 'text/html'});
             const clipboardItem = new ClipboardItem({'text/html': blob});
-
             navigator.clipboard.write([clipboardItem]).then(() => {
-                const originalText = copyBtn.textContent;
-                copyBtn.textContent = `Rich Text disalin!`;
-                copyOptions.classList.add('hidden');
-                setTimeout(() => {
-                    copyBtn.textContent = 'Salin';
-                }, 2000);
+                notifyCopySuccess('Rich Text');
             }).catch(err => {
                 console.error('Gagal menyalin rich text: ', err);
-                // Fallback for older browsers
-                copyToClipboard(content, 'HTML');
+                copyToClipboard(content, 'HTML'); // Fallback
             });
+        }
+
+        function notifyCopySuccess(type) {
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = `${type} disalin!`;
+            copyOptions.classList.add('hidden');
+            setTimeout(() => {
+                copyBtn.textContent = 'Salin';
+            }, 2000);
         }
 
     </script>
