@@ -228,6 +228,13 @@
                     <div id="idea-suggestion-container" class="hidden space-y-2 mb-4">
                         <!-- Generated ideas will be injected here -->
                     </div>
+                    <!-- Idea Database -->
+                    <div id="idea-db-container" class="hidden mt-4">
+                         <h3 class="text-lg font-medium text-gray-800 border-b pb-2 mb-3">Database Topik Artikel</h3>
+                         <div id="idea-list" class="space-y-2 max-h-48 overflow-y-auto pr-2">
+                             <!-- Saved ideas will be listed here -->
+                         </div>
+                    </div>
                     <div>
                         <label for="keywords" class="block text-sm font-medium text-gray-700">Kata Kunci (pisahkan dengan koma)</label>
                         <input type="text" id="keywords" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Contoh: teh hijau, antioksidan, kesehatan jantung">
@@ -271,13 +278,6 @@
                          <h3 class="text-lg font-medium text-gray-800 border-b pb-2 mb-3">Database Artikel</h3>
                          <div id="article-list" class="space-y-2 max-h-48 overflow-y-auto pr-2">
                              <!-- Saved articles will be listed here -->
-                         </div>
-                    </div>
-                    <!-- Idea Database -->
-                    <div id="idea-db-container" class="hidden">
-                         <h3 class="text-lg font-medium text-gray-800 border-b pb-2 mb-3">Database Ide</h3>
-                         <div id="idea-list" class="space-y-2 max-h-48 overflow-y-auto pr-2">
-                             <!-- Saved ideas will be listed here -->
                          </div>
                     </div>
                 </div>
@@ -1133,14 +1133,14 @@
                     ideaDbContainer.classList.remove('hidden');
                     ideas.forEach(idea => {
                         const item = document.createElement('div');
-                        item.className = 'flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-gray-100';
+                        item.className = 'flex items-center p-2 bg-gray-50 rounded hover:bg-gray-100';
                         item.innerHTML = `
-                            <span class="flex-grow text-sm text-gray-700">${idea.idea}</span>
-                            <div class="flex-shrink-0 flex items-center space-x-2">
+                            <div class="flex-shrink-0 flex items-center space-x-2 mr-3">
                                 <svg data-id="${idea.id}" data-action="use" class="w-5 h-5 text-gray-400 hover:text-green-600 cursor-pointer" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
                                 <svg data-id="${idea.id}" data-action="edit" class="w-5 h-5 text-gray-400 hover:text-indigo-600 cursor-pointer" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path></svg>
                                 <svg data-id="${idea.id}" data-action="delete" class="w-5 h-5 text-gray-400 hover:text-red-600 cursor-pointer" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
                             </div>
+                            <span class="flex-grow text-sm text-gray-700">${idea.idea}</span>
                         `;
                         ideaList.appendChild(item);
                     });
