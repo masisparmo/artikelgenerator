@@ -169,6 +169,19 @@
         </div>
     </div>
 
+    <!-- Edit Idea Modal -->
+    <div id="edit-idea-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full">
+            <h3 class="text-lg font-medium text-gray-900 uppercase mb-4">Edit Ide</h3>
+            <input type="hidden" id="edit-idea-id">
+            <textarea id="edit-idea-text" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50"></textarea>
+            <div class="mt-4 flex justify-end space-x-2">
+                <button id="cancel-edit-idea-btn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 uppercase">Batal</button>
+                <button id="confirm-edit-idea-btn" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 uppercase">Simpan</button>
+            </div>
+        </div>
+    </div>
+
 
     <div class="container mx-auto p-4 md:p-8 max-w-4xl">
         <header class="text-center mb-8">
@@ -197,9 +210,18 @@
                         <label for="topic" class="block text-sm font-medium text-gray-700">Topik Artikel</label>
                         <input type="text" id="topic" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Contoh: Manfaat teh hijau untuk kesehatan">
                     </div>
+                    <div class="flex justify-end -mt-2 mb-2">
+                        <button id="generate-ideas-btn" class="text-xs text-indigo-600 hover:underline uppercase font-medium">GENERATE IDE</button>
+                    </div>
+                    <div id="idea-suggestion-container" class="hidden space-y-2 mb-4">
+                        <!-- Generated ideas will be injected here -->
+                    </div>
                     <div>
                         <label for="keywords" class="block text-sm font-medium text-gray-700">Kata Kunci (pisahkan dengan koma)</label>
                         <input type="text" id="keywords" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Contoh: teh hijau, antioksidan, kesehatan jantung">
+                    </div>
+                    <div class="flex justify-end -mt-2 mb-2">
+                        <button id="generate-keywords-btn" class="text-xs text-indigo-600 hover:underline uppercase font-medium">GENERATE KEYWORD</button>
                     </div>
 
                     <h3 class="text-lg font-medium text-gray-800 border-t pt-6">Sumber Referensi (Opsional)</h3>
@@ -231,12 +253,21 @@
                     </div>
                 </div>
                 
-                <!-- Article Database -->
-                <div id="article-db-container" class="mt-10 hidden">
-                     <h3 class="text-lg font-medium text-gray-800 border-b pb-2 mb-3">Database Artikel</h3>
-                     <div id="article-list" class="space-y-2 max-h-48 overflow-y-auto pr-2">
-                         <!-- Saved articles will be listed here -->
-                     </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
+                    <!-- Article Database -->
+                    <div id="article-db-container" class="hidden">
+                         <h3 class="text-lg font-medium text-gray-800 border-b pb-2 mb-3">Database Artikel</h3>
+                         <div id="article-list" class="space-y-2 max-h-48 overflow-y-auto pr-2">
+                             <!-- Saved articles will be listed here -->
+                         </div>
+                    </div>
+                    <!-- Idea Database -->
+                    <div id="idea-db-container" class="hidden">
+                         <h3 class="text-lg font-medium text-gray-800 border-b pb-2 mb-3">Database Ide</h3>
+                         <div id="idea-list" class="space-y-2 max-h-48 overflow-y-auto pr-2">
+                             <!-- Saved ideas will be listed here -->
+                         </div>
+                    </div>
                 </div>
 
                 <!-- Image Prompt Generator -->
@@ -419,13 +450,17 @@
 
             request.onupgradeneeded = (event) => {
                 db = event.target.result;
-                const objectStore = db.createObjectStore("articles", { keyPath: "id", autoIncrement: true });
-                objectStore.createIndex("title", "title", { unique: false });
+                const articleStore = db.createObjectStore("articles", { keyPath: "id", autoIncrement: true });
+                articleStore.createIndex("title", "title", { unique: false });
+
+                const ideaStore = db.createObjectStore("ideas", { keyPath: "id", autoIncrement: true });
+                ideaStore.createIndex("idea", "idea", { unique: false });
             };
 
             request.onsuccess = (event) => {
                 db = event.target.result;
                 displayArticles();
+                displayIdeas();
             };
         }
 
@@ -857,6 +892,9 @@
         const toJsonBtn = document.getElementById('to-json-btn');
         const copyPromptTextBtn = document.getElementById('copy-prompt-text-btn');
         const copyPromptJsonBtn = document.getElementById('copy-prompt-json-btn');
+        const generateIdeasBtn = document.getElementById('generate-ideas-btn');
+        const generateKeywordsBtn = document.getElementById('generate-keywords-btn');
+        const ideaSuggestionContainer = document.getElementById('idea-suggestion-container');
         const aspectRatioSelector = document.getElementById('aspect-ratio-selector');
         const promptText = document.getElementById('prompt-text');
         const promptJson = document.getElementById('prompt-json');
@@ -924,7 +962,7 @@
                 Tujuan Anda adalah memberikan prompt yang sangat detail sehingga AI generator gambar dapat menciptakan hasil yang kaya, kompleks, dan sesuai dengan visi yang diperluas. Balas HANYA dengan prompt yang sudah disempurnakan, tanpa kata pengantar atau penjelasan apa pun.`;
                 const userQuery = `Sempurnakan prompt ini: "${currentPrompt}"`;
 
-                const { text: refinedPrompt } = await callGeminiAPI(systemPrompt, userQuery);
+                const { text: refinedPrompt } = await callSimpleGenerationAPI(systemPrompt, userQuery);
 
                 promptText.value = refinedPrompt.trim();
 
@@ -937,20 +975,133 @@
             }
         });
 
-        copyPromptTextBtn.addEventListener('click', () => {
+        copyPromptTextBtn.addEventListener('click', (e) => {
+            const btn = e.currentTarget;
+            const originalText = btn.textContent;
             if (!promptText.value.trim()) {
                 alert("Tidak ada teks untuk disalin.");
                 return;
             }
-            copyToClipboard(promptText.value, "Prompt Teks");
+            navigator.clipboard.writeText(promptText.value).then(() => {
+                btn.textContent = "Tersalin!";
+                setTimeout(() => { btn.textContent = originalText; }, 2000);
+            }).catch(err => { console.error('Gagal menyalin: ', err); alert('Gagal menyalin.'); });
         });
 
-        copyPromptJsonBtn.addEventListener('click', () => {
+        copyPromptJsonBtn.addEventListener('click', (e) => {
+            const btn = e.currentTarget;
+            const originalText = btn.textContent;
             if (!promptJson.value.trim()) {
                 alert("Tidak ada JSON untuk disalin.");
                 return;
             }
-            copyToClipboard(promptJson.value, "Prompt JSON");
+            navigator.clipboard.writeText(promptJson.value).then(() => {
+                btn.textContent = "Tersalin!";
+                setTimeout(() => { btn.textContent = originalText; }, 2000);
+            }).catch(err => { console.error('Gagal menyalin: ', err); alert('Gagal menyalin.'); });
+        });
+
+        generateIdeasBtn.addEventListener('click', async () => {
+            // TODO: This feature is temporarily disabled due to a persistent API issue (400 Bad Request).
+            // The underlying call in callSimpleGenerationAPI needs to be debugged and fixed.
+            alert("Maaf, fitur Generate Ide saat ini sedang mengalami masalah teknis dan tidak dapat digunakan. Kami sedang berupaya memperbaikinya.");
+        });
+
+        ideaSuggestionContainer.addEventListener('click', (e) => {
+            if (e.target.closest('.save-idea-btn')) {
+                const ideaText = e.target.closest('.flex').querySelector('.idea-text').textContent;
+                const transaction = db.transaction(["ideas"], "readwrite");
+                const objectStore = transaction.objectStore("ideas");
+                objectStore.add({ idea: ideaText });
+                transaction.oncomplete = () => {
+                    displayIdeas();
+                };
+            } else {
+                 const ideaTextEl = e.target.closest('.idea-text');
+                if (ideaTextEl) {
+                    document.getElementById('topic').value = ideaTextEl.textContent;
+                }
+            }
+        });
+
+        generateKeywordsBtn.addEventListener('click', async () => {
+            // TODO: This feature is temporarily disabled due to a persistent API issue (400 Bad Request).
+            // The underlying call in callSimpleGenerationAPI needs to be debugged and fixed.
+            alert("Maaf, fitur Generate Keyword saat ini sedang mengalami masalah teknis dan tidak dapat digunakan. Kami sedang berupaya memperbaikinya.");
+        });
+
+        // --- Idea Database Functions ---
+        function displayIdeas() {
+            const ideaList = document.getElementById('idea-list');
+            const ideaDbContainer = document.getElementById('idea-db-container');
+            ideaList.innerHTML = '';
+
+            const transaction = db.transaction("ideas", "readonly");
+            const objectStore = transaction.objectStore("ideas");
+            const request = objectStore.getAll();
+
+            request.onsuccess = (event) => {
+                const ideas = event.target.result;
+                if (ideas && ideas.length > 0) {
+                    ideaDbContainer.classList.remove('hidden');
+                    ideas.forEach(idea => {
+                        const item = document.createElement('div');
+                        item.className = 'flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-gray-100';
+                        item.innerHTML = `
+                            <span class="flex-grow text-sm text-gray-700">${idea.idea}</span>
+                            <div class="flex-shrink-0 flex items-center space-x-2">
+                                <svg data-id="${idea.id}" data-action="use" class="w-5 h-5 text-gray-400 hover:text-green-600 cursor-pointer" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                <svg data-id="${idea.id}" data-action="edit" class="w-5 h-5 text-gray-400 hover:text-indigo-600 cursor-pointer" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path></svg>
+                                <svg data-id="${idea.id}" data-action="delete" class="w-5 h-5 text-gray-400 hover:text-red-600 cursor-pointer" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                            </div>
+                        `;
+                        ideaList.appendChild(item);
+                    });
+                } else {
+                    ideaDbContainer.classList.add('hidden');
+                }
+            };
+        }
+
+        document.getElementById('idea-list').addEventListener('click', (e) => {
+            const target = e.target.closest('[data-action]');
+            if (!target) return;
+            const id = parseInt(target.dataset.id);
+            const action = target.dataset.action;
+            const ideaText = target.closest('.flex').querySelector('span').textContent;
+
+            if (action === 'use') {
+                document.getElementById('topic').value = ideaText;
+            } else if (action === 'delete') {
+                const transaction = db.transaction(["ideas"], "readwrite");
+                transaction.objectStore("ideas").delete(id);
+                transaction.oncomplete = () => displayIdeas();
+            } else if (action === 'edit') {
+                document.getElementById('edit-idea-id').value = id;
+                document.getElementById('edit-idea-text').value = ideaText;
+                document.getElementById('edit-idea-modal-overlay').classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('cancel-edit-idea-btn').addEventListener('click', () => {
+            document.getElementById('edit-idea-modal-overlay').classList.add('hidden');
+        });
+
+        document.getElementById('confirm-edit-idea-btn').addEventListener('click', () => {
+            const id = parseInt(document.getElementById('edit-idea-id').value);
+            const newText = document.getElementById('edit-idea-text').value;
+            const transaction = db.transaction(["ideas"], "readwrite");
+            const objectStore = transaction.objectStore("ideas");
+            const request = objectStore.get(id);
+            request.onsuccess = () => {
+                const data = request.result;
+                data.idea = newText;
+                const updateRequest = objectStore.put(data);
+                updateRequest.onsuccess = () => {
+                    document.getElementById('edit-idea-modal-overlay').classList.add('hidden');
+                    displayIdeas();
+                };
+            };
         });
 
     </script>
