@@ -97,6 +97,18 @@
 </head>
 <body class="bg-gray-100 text-gray-800">
 
+    <!-- Loading Modal -->
+    <div id="loading-modal-overlay" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 text-center">
+            <svg class="animate-spin h-10 w-10 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="mt-4 text-gray-700 font-medium">AI sedang memproses permintaan Anda...</p>
+            <p class="text-sm text-gray-500">Ini mungkin memerlukan waktu beberapa saat.</p>
+        </div>
+    </div>
+
     <!-- API Key Modal -->
     <div id="api-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-lg shadow-xl p-8 max-w-lg w-full transform transition-all" id="api-modal-content">
@@ -349,13 +361,6 @@
                     </div>
                 </div>
 
-                <div id="loading" class="mt-8 text-center" style="display: none;">
-                    <svg class="animate-spin h-8 w-8 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <p class="mt-2 text-gray-600">AI sedang memproses permintaan Anda... Ini mungkin memerlukan waktu beberapa saat.</p>
-                </div>
 
                 <div id="output-container" class="mt-8" style="display: none;">
                      <input type="hidden" id="current-article-id">
@@ -504,7 +509,7 @@
 
         const generateBtn = document.getElementById('generate-btn');
         const articleOutput = document.getElementById('article-output');
-        const loadingDiv = document.getElementById('loading');
+        const loadingModalOverlay = document.getElementById('loading-modal-overlay');
         const outputContainer = document.getElementById('output-container');
         const editBtn = document.getElementById('edit-btn');
         const editorControls = document.getElementById('editor-controls');
@@ -540,7 +545,7 @@
                 userQuery = `Topik Artikel: "${topic}"\nKata Kunci: "${keywords}"\n\n Tulis artikel blog yang komprehensif (minimal 1500 kata). Sertakan '## Resume Artikel', '## Daftar Isi' dengan placeholder '[Daftar Isi]', dan bagian utama artikel.`;
             }
 
-            loadingDiv.style.display = 'block';
+            loadingModalOverlay.classList.remove('hidden');
             outputContainer.style.display = 'none';
             
             try {
@@ -566,7 +571,7 @@
                 outputContainer.style.display = 'block';
                 articleOutput.innerHTML = `<p class="text-red-500">Maaf, terjadi kesalahan: ${error.message}</p>`;
             } finally {
-                loadingDiv.style.display = 'none';
+                loadingModalOverlay.classList.add('hidden');
             }
         }
 
@@ -978,8 +983,7 @@
                 return;
             }
 
-            loadingDiv.style.display = 'block';
-            imageGeneratorContainer.style.opacity = '0.5';
+            loadingModalOverlay.classList.remove('hidden');
 
             try {
                 const systemPrompt = `Anda adalah seorang Prompt Engineer ahli dengan pengalaman puluhan tahun. Peran Anda adalah untuk mengubah prompt sederhana menjadi sebuah mahakarya deskriptif yang siap menghasilkan gambar fotorealistik atau artistik yang menakjubkan.
@@ -1001,8 +1005,7 @@
                 console.error("Error refining prompt:", error);
                 alert(`Gagal menyempurnakan prompt: ${error.message}`);
             } finally {
-                loadingDiv.style.display = 'none';
-                imageGeneratorContainer.style.opacity = '1';
+                loadingModalOverlay.classList.add('hidden');
             }
         });
 
@@ -1039,7 +1042,7 @@
                 return;
             }
 
-            loadingDiv.style.display = 'block';
+            loadingModalOverlay.classList.remove('hidden');
             ideaSuggestionContainer.innerHTML = '';
             ideaSuggestionContainer.classList.add('hidden');
 
@@ -1068,7 +1071,7 @@
                 console.error("Error generating ideas:", error);
                 alert(`Gagal menghasilkan ide: ${error.message}`);
             } finally {
-                loadingDiv.style.display = 'none';
+                loadingModalOverlay.classList.add('hidden');
             }
         });
 
@@ -1096,7 +1099,7 @@
                 return;
             }
 
-            loadingDiv.style.display = 'block';
+            loadingModalOverlay.classList.remove('hidden');
 
             try {
                 const systemPrompt = "Anda adalah seorang spesialis SEO. Berdasarkan topik yang diberikan, hasilkan daftar kata kunci yang relevan. Pisahkan setiap kata kunci dengan koma. Berikan hanya daftar kata kunci, tanpa teks tambahan.";
@@ -1110,7 +1113,7 @@
                 console.error("Error generating keywords:", error);
                 alert(`Gagal menghasilkan kata kunci: ${error.message}`);
             } finally {
-                loadingDiv.style.display = 'none';
+                loadingModalOverlay.classList.add('hidden');
             }
         });
 
