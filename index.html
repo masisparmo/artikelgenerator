@@ -145,8 +145,8 @@
 
     <div class="container mx-auto p-4 md:p-8 max-w-4xl">
         <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">GENERATOR ARTIKEL SEO FRIENDLY</h1>
-            <p class="mt-2 text-gray-600">Aplikasi Web diperkuat AI Untuk Membuat Konten Berkualitas Tinggi yang Disukai Google dan Pembaca.</p>
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Generator Artikel SEO Friendly</h1>
+            <p class="mt-2 text-gray-600">Buat, edit, dan salin konten berkualitas tinggi yang disukai Google dan pembaca Anda.</p>
         </header>
 
         <div class="bg-white rounded-lg shadow-lg">
@@ -210,6 +210,76 @@
                      <div id="article-list" class="space-y-2 max-h-48 overflow-y-auto pr-2">
                          <!-- Saved articles will be listed here -->
                      </div>
+                </div>
+
+                <!-- Image Generator -->
+                <div id="image-generator-container" class="mt-10 hidden">
+                    <h3 class="text-lg font-medium text-gray-800 border-b pb-2 mb-3">Buat Gambar Ilustrasi</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Left Column: Controls -->
+                        <div class="space-y-4">
+                            <div>
+                                <label for="image-type" class="block text-sm font-medium text-gray-700">Tipe Gambar</label>
+                                <select id="image-type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50">
+                                    <option>Foto Realistis</option>
+                                    <option>Gambar 2D</option>
+                                    <option>Gambar 3D</option>
+                                    <option>Abstrak</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Aspek Rasio Gambar</label>
+                                <div id="aspect-ratio-selector" class="mt-1 flex items-center space-x-2 flex-wrap">
+                                    <button data-ratio="1:1" class="aspect-btn border-2 border-indigo-500 p-2 rounded-md text-indigo-600">
+                                        <svg class="w-6 h-6" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" fill="currentColor"></rect></svg>
+                                    </button>
+                                    <button data-ratio="4:3" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
+                                        <svg class="w-8 h-6" viewBox="0 0 32 24"><rect x="0" y="0" width="32" height="24" fill="currentColor"></rect></svg>
+                                    </button>
+                                    <button data-ratio="3:4" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
+                                        <svg class="w-6 h-8" viewBox="0 0 24 32"><rect x="0" y="0" width="24" height="32" fill="currentColor"></rect></svg>
+                                    </button>
+                                    <button data-ratio="16:9" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
+                                        <svg class="w-10 h-6" viewBox="0 0 48 27"><rect x="0" y="0" width="48" height="27" fill="currentColor"></rect></svg>
+                                    </button>
+                                     <button data-ratio="9:16" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
+                                        <svg class="w-6 h-10" viewBox="0 0 27 48"><rect x="0" y="0" width="27" height="48" fill="currentColor"></rect></svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between items-center">
+                                    <label for="prompt-text" class="block text-sm font-medium text-gray-700">Prompt (Teks)</label>
+                                    <button id="to-json-btn" class="text-xs text-indigo-600 hover:underline uppercase">Ubah ke JSON</button>
+                                </div>
+                                <textarea id="prompt-text" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Jelaskan gambar yang ingin Anda buat..."></textarea>
+                            </div>
+
+                            <div>
+                                <label for="prompt-json" class="block text-sm font-medium text-gray-700">Prompt (JSON)</label>
+                                <textarea id="prompt-json" rows="4" readonly class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm bg-blue-50 cursor-not-allowed" placeholder="Format JSON akan muncul di sini..."></textarea>
+                            </div>
+
+                            <div class="flex flex-wrap gap-2">
+                                <button id="generate-prompt-btn" class="flex-1 py-2 px-4 text-sm font-medium rounded-md text-white bg-slate-600 hover:bg-slate-700 uppercase">Generate Prompt</button>
+                                <button id="refine-prompt-btn" class="flex-1 py-2 px-4 text-sm font-medium rounded-md text-white bg-slate-600 hover:bg-slate-700 uppercase">Sempurnakan Prompt</button>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Results -->
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <h4 class="text-sm font-medium text-gray-700">Hasil Gambar</h4>
+                                <button id="clear-gallery-btn" class="text-xs text-red-600 hover:underline uppercase">CLEAR</button>
+                            </div>
+                            <div id="image-gallery" class="h-96 bg-gray-200 rounded-lg p-2 overflow-y-auto space-y-2 border">
+                                <div class="text-center text-gray-500 pt-16">Gambar yang dihasilkan akan muncul di sini.</div>
+                            </div>
+                            <button id="generate-image-btn" class="w-full py-3 px-4 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 uppercase">Generate Image</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div id="loading" class="mt-8 text-center" style="display: none;">
@@ -418,6 +488,7 @@
                 outputContainer.style.display = 'block';
                 editorControls.classList.remove('hidden');
                 editorControls.classList.add('flex');
+                document.getElementById('image-generator-container').classList.remove('hidden');
 
             } catch (error) {
                 console.error("Error processing article:", error);
@@ -566,6 +637,7 @@
                 outputContainer.style.display = 'block';
                 editorControls.classList.remove('hidden');
                 editorControls.classList.add('flex');
+                document.getElementById('image-generator-container').classList.remove('hidden');
                 window.scrollTo({ top: outputContainer.offsetTop, behavior: 'smooth' });
             };
         }
@@ -710,6 +782,105 @@
             copyOptions.classList.add('hidden');
             setTimeout(() => { copyBtn.textContent = 'Salin'; }, 2000);
         }
+
+        // --- Image Generator Logic ---
+        const imageGeneratorContainer = document.getElementById('image-generator-container');
+        const generatePromptBtn = document.getElementById('generate-prompt-btn');
+        const refinePromptBtn = document.getElementById('refine-prompt-btn');
+        const toJsonBtn = document.getElementById('to-json-btn');
+        const clearGalleryBtn = document.getElementById('clear-gallery-btn');
+        const aspectRatioSelector = document.getElementById('aspect-ratio-selector');
+        const promptText = document.getElementById('prompt-text');
+        const promptJson = document.getElementById('prompt-json');
+        let selectedAspectRatio = "1:1"; // Default
+
+        aspectRatioSelector.addEventListener('click', (e) => {
+            const button = e.target.closest('.aspect-btn');
+            if (button) {
+                // Remove border from all buttons
+                aspectRatioSelector.querySelectorAll('.aspect-btn').forEach(btn => {
+                    btn.classList.remove('border-indigo-500', 'text-indigo-600');
+                    btn.classList.add('border-transparent', 'text-gray-400');
+                });
+                // Add border to clicked button
+                button.classList.add('border-indigo-500', 'text-indigo-600');
+                button.classList.remove('border-transparent', 'text-gray-400');
+                selectedAspectRatio = button.dataset.ratio;
+            }
+        });
+
+        generatePromptBtn.addEventListener('click', () => {
+            const topic = document.getElementById('topic').value;
+            const keywords = document.getElementById('keywords').value;
+            if (!topic.trim()) {
+                alert("Silakan masukkan topik artikel terlebih dahulu.");
+                return;
+            }
+            promptText.value = `Sebuah gambar ilustrasi untuk artikel tentang "${topic}". Fokus pada kata kunci: ${keywords}.`;
+        });
+
+        toJsonBtn.addEventListener('click', () => {
+            const imageType = document.getElementById('image-type').value;
+            const prompt = promptText.value;
+            if (!prompt.trim()) {
+                alert("Silakan isi prompt teks terlebih dahulu.");
+                return;
+            }
+            const jsonObject = {
+                "prompt": prompt,
+                "image_type": imageType,
+                "aspect_ratio": selectedAspectRatio
+            };
+            promptJson.value = JSON.stringify(jsonObject, null, 2);
+        });
+
+        clearGalleryBtn.addEventListener('click', () => {
+            document.getElementById('image-gallery').innerHTML = '<div class="text-center text-gray-500 pt-16">Gambar yang dihasilkan akan muncul di sini.</div>';
+            promptText.value = '';
+            promptJson.value = '';
+        });
+
+        refinePromptBtn.addEventListener('click', async () => {
+            const currentPrompt = promptText.value;
+            if (!currentPrompt.trim()) {
+                alert("Silakan isi prompt terlebih dahulu untuk disempurnakan.");
+                return;
+            }
+
+            loadingDiv.style.display = 'block';
+            imageGeneratorContainer.style.opacity = '0.5';
+
+            try {
+                const systemPrompt = `Anda adalah seorang Prompt Engineer ahli dengan pengalaman puluhan tahun. Peran Anda adalah untuk mengubah prompt sederhana menjadi sebuah mahakarya deskriptif yang siap menghasilkan gambar fotorealistik atau artistik yang menakjubkan.
+
+                Saat Anda menerima prompt dari pengguna, lakukan hal berikut:
+                1.  **Analisis Konsep Inti**: Identifikasi subjek utama, lingkungan, dan emosi dari prompt awal.
+                2.  **Tambahkan Detail Sinematik**: Jelaskan pencahayaan (misalnya, 'cahaya keemasan sore hari', 'pencahayaan neon remang-remang'), sudut kamera (misalnya, 'sudut rendah', 'close-up dramatis'), dan komposisi.
+                3.  **Perkaya Deskripsi**: Gunakan kata-kata yang kuat dan imajinatif untuk mendeskripsikan tekstur, warna, atmosfer, dan detail latar belakang.
+                4.  **Tentukan Gaya Artistik**: Jika sesuai, sarankan gaya visual seperti 'gaya lukisan cat minyak impresionistis', 'fotografi potret hyper-realistic', atau 'seni konsep fiksi ilmiah sinematik'.
+
+                Tujuan Anda adalah memberikan prompt yang sangat detail sehingga AI generator gambar dapat menciptakan hasil yang kaya, kompleks, dan sesuai dengan visi yang diperluas. Balas HANYA dengan prompt yang sudah disempurnakan, tanpa kata pengantar atau penjelasan apa pun.`;
+                const userQuery = `Sempurnakan prompt ini: "${currentPrompt}"`;
+
+                const { text: refinedPrompt } = await callGeminiAPI(systemPrompt, userQuery);
+
+                promptText.value = refinedPrompt.trim();
+
+            } catch (error) {
+                console.error("Error refining prompt:", error);
+                alert(`Gagal menyempurnakan prompt: ${error.message}`);
+            } finally {
+                loadingDiv.style.display = 'none';
+                imageGeneratorContainer.style.opacity = '1';
+            }
+        });
+
+        document.getElementById('generate-image-btn').addEventListener('click', async () => {
+            // TODO: Implement actual image generation API call.
+            // The current implementation is a placeholder as the specified model
+            // 'Gemini-2.5-flash-image' is not available through a standard public endpoint.
+            alert("Fitur pembuatan gambar belum terhubung. Fungsi ini akan diimplementasikan saat API tersedia.");
+        });
 
     </script>
 </body>
