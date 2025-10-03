@@ -229,7 +229,7 @@
                         <!-- Generated ideas will be injected here -->
                     </div>
                     <!-- Idea Database -->
-                    <div id="idea-db-container" class="hidden mt-4">
+                    <div id="idea-db-container" class="mt-4" style="display: none;">
                          <h3 class="text-lg font-medium text-gray-800 border-b pb-2 mb-3">Database Topik Artikel</h3>
                          <div id="idea-list" class="space-y-2 max-h-48 overflow-y-auto pr-2">
                              <!-- Saved ideas will be listed here -->
@@ -1080,9 +1080,9 @@
                 const ideaText = e.target.closest('.flex').querySelector('.idea-text').textContent;
                 const transaction = db.transaction(["ideas"], "readwrite");
                 const objectStore = transaction.objectStore("ideas");
-                const request = objectStore.add({ idea: ideaText });
+                objectStore.add({ idea: ideaText });
 
-                request.onsuccess = () => {
+                transaction.oncomplete = () => {
                     displayIdeas();
                 };
             } else {
@@ -1131,7 +1131,7 @@
             request.onsuccess = (event) => {
                 const ideas = event.target.result;
                 if (ideas && ideas.length > 0) {
-                    ideaDbContainer.classList.remove('hidden');
+                    ideaDbContainer.style.display = 'block';
                     ideas.forEach(idea => {
                         const item = document.createElement('div');
                         item.className = 'flex items-center p-2 bg-gray-50 rounded hover:bg-gray-100';
@@ -1146,7 +1146,7 @@
                         ideaList.appendChild(item);
                     });
                 } else {
-                    ideaDbContainer.classList.add('hidden');
+                    ideaDbContainer.style.display = 'none';
                 }
             };
         }
@@ -1191,7 +1191,6 @@
                 };
             };
         });
-
     </script>
 </body>
 </html>
