@@ -103,15 +103,15 @@
             <h2 class="text-2xl font-bold mb-4 text-gray-800">Masukkan Kunci API Gemini Anda</h2>
             <p class="text-gray-600 mb-6">Aplikasi ini memerlukan Kunci API Google Gemini untuk berfungsi. Kunci Anda akan disimpan dengan aman di browser Anda dan tidak akan dibagikan.</p>
             
-            <input type="password" id="api-key-input" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4" placeholder="AIza...">
-            <button id="save-api-key" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 font-medium">
+            <input type="password" id="api-key-input" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4 bg-blue-50" placeholder="AIza...">
+            <button id="save-api-key" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 font-medium uppercase">
                 Simpan dan Lanjutkan
             </button>
             <p id="api-key-error" class="text-red-500 text-sm mt-2 hidden">Kunci API tidak boleh kosong.</p>
 
             <div class="mt-8">
                 <details class="bg-gray-50 rounded-md p-4">
-                    <summary class="font-medium text-gray-700 cursor-pointer hover:text-indigo-600">
+                    <summary class="font-medium text-gray-700 cursor-pointer hover:text-indigo-600 uppercase">
                         Bagaimana cara mendapatkan Kunci API Gemini gratis?
                     </summary>
                     <div class="mt-4 text-sm text-gray-600 space-y-3">
@@ -133,11 +133,11 @@
     <!-- Delete Confirmation Modal -->
     <div id="delete-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full">
-            <h3 class="text-lg font-medium text-gray-900">Konfirmasi Hapus</h3>
+            <h3 class="text-lg font-medium text-gray-900 uppercase">Konfirmasi Hapus</h3>
             <p class="mt-2 text-sm text-gray-500">Apakah Anda yakin ingin menghapus artikel ini? Tindakan ini tidak dapat diurungkan.</p>
             <div class="mt-4 flex justify-end space-x-2">
-                <button id="cancel-delete-btn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Batal</button>
-                <button id="confirm-delete-btn" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700">Hapus</button>
+                <button id="cancel-delete-btn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 uppercase">Batal</button>
+                <button id="confirm-delete-btn" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 uppercase">Hapus</button>
             </div>
         </div>
     </div>
@@ -153,10 +153,10 @@
             <!-- Tab Buttons -->
             <div class="border-b border-gray-200">
                 <nav class="-mb-px flex" aria-label="Tabs">
-                    <button id="tab-generator" class="w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm text-indigo-600 border-indigo-500" onclick="switchTab('generator')">
+                    <button id="tab-generator" class="w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm text-indigo-600 border-indigo-500 uppercase" onclick="switchTab('generator')">
                         Generator Artikel
                     </button>
-                    <button id="tab-panduan" class="w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300" onclick="switchTab('panduan')">
+                    <button id="tab-panduan" class="w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300 uppercase" onclick="switchTab('panduan')">
                         Panduan SEO
                     </button>
                 </nav>
@@ -168,37 +168,37 @@
                 <div class="space-y-6">
                     <div>
                         <label for="topic" class="block text-sm font-medium text-gray-700">Topik Artikel</label>
-                        <input type="text" id="topic" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Contoh: Manfaat teh hijau untuk kesehatan">
+                        <input type="text" id="topic" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Contoh: Manfaat teh hijau untuk kesehatan">
                     </div>
                     <div>
                         <label for="keywords" class="block text-sm font-medium text-gray-700">Kata Kunci (pisahkan dengan koma)</label>
-                        <input type="text" id="keywords" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Contoh: teh hijau, antioksidan, kesehatan jantung">
+                        <input type="text" id="keywords" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Contoh: teh hijau, antioksidan, kesehatan jantung">
                     </div>
 
                     <h3 class="text-lg font-medium text-gray-800 border-t pt-6">Sumber Referensi (Opsional)</h3>
 
                     <div>
                         <label for="url_website" class="block text-sm font-medium text-gray-700">URL Website</label>
-                        <input type="url" id="url_website" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="https://contoh-website.com/artikel">
+                        <input type="url" id="url_website" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="https://contoh-website.com/artikel">
                     </div>
 
                     <div>
                         <label for="url_youtube" class="block text-sm font-medium text-gray-700">URL YouTube</label>
-                        <input type="url" id="url_youtube" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="https://www.youtube.com/watch?v=...">
+                        <input type="url" id="url_youtube" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="https://www.youtube.com/watch?v=...">
                     </div>
 
                     <div>
                          <label for="text_paste" class="block text-sm font-medium text-gray-700">Tempel Teks</label>
-                         <textarea id="text_paste" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Tempelkan teks referensi di sini..."></textarea>
+                         <textarea id="text_paste" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Tempelkan teks referensi di sini..."></textarea>
                     </div>
 
                     <div>
                         <label for="file_upload" class="block text-sm font-medium text-gray-700">Unggah File (.pdf, .docx, .pptx, .xlsx, .epub)</label>
-                        <input type="file" id="file_upload" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.epub">
+                        <input type="file" id="file_upload" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 uppercase" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.epub">
                     </div>
 
                     <div>
-                        <button id="generate-btn" class="w-full inline-flex justify-center py-3 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <button id="generate-btn" class="w-full inline-flex justify-center py-3 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 uppercase">
                             Buat Artikel Baru
                         </button>
                     </div>
@@ -255,20 +255,20 @@
                         <div class="flex-grow"></div>
                         <div class="flex items-center space-x-2 pl-2">
                              <div class="relative">
-                                <button id="copy-btn" class="py-2 px-3 text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">Salin</button>
+                                <button id="copy-btn" class="py-2 px-3 text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 uppercase">Salin</button>
                                 <div id="copy-options" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border">
-                                    <a href="#" id="copy-text" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Salin sebagai Teks Biasa</a>
-                                    <a href="#" id="copy-html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Salin sebagai Rich Text (HTML)</a>
+                                    <a href="#" id="copy-text" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 uppercase">Salin sebagai Teks Biasa</a>
+                                    <a href="#" id="copy-html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 uppercase">Salin sebagai Rich Text (HTML)</a>
                                 </div>
                             </div>
-                            <button id="edit-btn" class="py-2 px-3 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">Edit Artikel</button>
+                            <button id="edit-btn" class="py-2 px-3 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 uppercase">Edit Artikel</button>
                         </div>
                     </div>
                     <div id="article-output" class="prose bg-white p-6 rounded-b-lg"></div>
                     <div id="action-buttons" class="mt-4 flex flex-wrap gap-2 justify-end">
-                         <button id="rewrite-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700">Re-Write</button>
-                         <button id="paraphrase-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700">Parafrase</button>
-                         <button id="save-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-sky-600 hover:bg-sky-700">Simpan</button>
+                         <button id="rewrite-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 uppercase">Re-Write</button>
+                         <button id="paraphrase-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 uppercase">Parafrase</button>
+                         <button id="save-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-sky-600 hover:bg-sky-700 uppercase">Simpan</button>
                     </div>
                 </div>
 

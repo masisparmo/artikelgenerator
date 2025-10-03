@@ -24,22 +24,20 @@ def run(playwright):
     # The modal should not be visible now.
     expect(page.locator("#api-modal-overlay")).to_be_hidden()
 
+    # Take a screenshot of the main generator content area
+    generator_content = page.locator("#content-generator")
+    generator_content.screenshot(path="jules-scratch/verification/verification-all-changes.png")
+
     # Now, let's create and save an article to make the DB section appear.
-    # Set the content of the article output div.
     page.locator("#article-output").evaluate("element => element.innerHTML = '<h1>My Test Article</h1><p>Hello world</p>'")
-
-    # The output container is hidden initially, let's show it.
     page.locator("#output-container").evaluate("element => element.style.display = 'block'")
-
-    # Click the save button
     page.locator("#save-btn").click()
 
-    # The save action should have made the article DB container visible.
     article_db_container = page.locator("#article-db-container")
     expect(article_db_container).to_be_visible()
 
-    # Take a screenshot of the article database section
-    article_db_container.screenshot(path="jules-scratch/verification/verification.png")
+    # Take a screenshot of the article database section to verify icon fix
+    article_db_container.screenshot(path="jules-scratch/verification/verification-icon-fix.png")
 
     browser.close()
 
