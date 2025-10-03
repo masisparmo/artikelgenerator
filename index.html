@@ -212,11 +212,11 @@
                      </div>
                 </div>
 
-                <!-- Image Generator -->
+                <!-- Image Prompt Generator -->
                 <div id="image-generator-container" class="mt-10 hidden">
-                    <h3 class="text-lg font-medium text-gray-800 border-b pb-2 mb-3">Buat Gambar Ilustrasi</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Left Column: Controls -->
+                    <h3 class="text-lg font-medium text-gray-800 border-b pb-2 mb-3">Buat Prompt Gambar Ilustrasi</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-1 gap-6 max-w-xl mx-auto">
+                        <!-- Controls -->
                         <div class="space-y-4">
                             <div>
                                 <label for="image-type" class="block text-sm font-medium text-gray-700">Tipe Gambar</label>
@@ -266,18 +266,6 @@
                                 <button id="generate-prompt-btn" class="flex-1 py-2 px-4 text-sm font-medium rounded-md text-white bg-slate-600 hover:bg-slate-700 uppercase">Generate Prompt</button>
                                 <button id="refine-prompt-btn" class="flex-1 py-2 px-4 text-sm font-medium rounded-md text-white bg-slate-600 hover:bg-slate-700 uppercase">Sempurnakan Prompt</button>
                             </div>
-                        </div>
-
-                        <!-- Right Column: Results -->
-                        <div class="space-y-4">
-                            <div class="flex justify-between items-center">
-                                <h4 class="text-sm font-medium text-gray-700">Hasil Gambar</h4>
-                                <button id="clear-gallery-btn" class="text-xs text-red-600 hover:underline uppercase">CLEAR</button>
-                            </div>
-                            <div id="image-gallery" class="h-96 bg-gray-200 rounded-lg p-2 overflow-y-auto space-y-2 border">
-                                <div class="text-center text-gray-500 pt-16">Gambar yang dihasilkan akan muncul di sini.</div>
-                            </div>
-                            <button id="generate-image-btn" class="w-full py-3 px-4 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 uppercase">Generate Image</button>
                         </div>
                     </div>
                 </div>
@@ -788,7 +776,6 @@
         const generatePromptBtn = document.getElementById('generate-prompt-btn');
         const refinePromptBtn = document.getElementById('refine-prompt-btn');
         const toJsonBtn = document.getElementById('to-json-btn');
-        const clearGalleryBtn = document.getElementById('clear-gallery-btn');
         const aspectRatioSelector = document.getElementById('aspect-ratio-selector');
         const promptText = document.getElementById('prompt-text');
         const promptJson = document.getElementById('prompt-json');
@@ -834,12 +821,6 @@
             promptJson.value = JSON.stringify(jsonObject, null, 2);
         });
 
-        clearGalleryBtn.addEventListener('click', () => {
-            document.getElementById('image-gallery').innerHTML = '<div class="text-center text-gray-500 pt-16">Gambar yang dihasilkan akan muncul di sini.</div>';
-            promptText.value = '';
-            promptJson.value = '';
-        });
-
         refinePromptBtn.addEventListener('click', async () => {
             const currentPrompt = promptText.value;
             if (!currentPrompt.trim()) {
@@ -873,13 +854,6 @@
                 loadingDiv.style.display = 'none';
                 imageGeneratorContainer.style.opacity = '1';
             }
-        });
-
-        document.getElementById('generate-image-btn').addEventListener('click', async () => {
-            // TODO: Implement actual image generation API call.
-            // The current implementation is a placeholder as the specified model
-            // 'Gemini-2.5-flash-image' is not available through a standard public endpoint.
-            alert("Fitur pembuatan gambar belum terhubung. Fungsi ini akan diimplementasikan saat API tersedia.");
         });
 
     </script>
