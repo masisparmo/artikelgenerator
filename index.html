@@ -142,6 +142,33 @@
         </div>
     </div>
 
+    <!-- Re-Write Options Modal -->
+    <div id="rewrite-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full">
+            <h3 class="text-lg font-medium text-gray-900 uppercase mb-4">Opsi Tulis Ulang</h3>
+
+            <div class="space-y-4">
+                <div>
+                    <label for="rewrite-style" class="block text-sm font-medium text-gray-700">Gaya Penulisan</label>
+                    <select id="rewrite-style" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50">
+                        <option>Gaya Penulisan Awam</option>
+                        <option>Gaya Penulisan Semi Formal</option>
+                        <option>Gaya Penulisan Casual</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="rewrite-extra-prompt" class="block text-sm font-medium text-gray-700">Penambahan Pembahasan</label>
+                    <textarea id="rewrite-extra-prompt" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Masukkan topik atau poin tambahan untuk dibahas dalam artikel yang ditulis ulang..."></textarea>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end space-x-2">
+                <button id="cancel-rewrite-btn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 uppercase">BATAL</button>
+                <button id="confirm-rewrite-btn" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 uppercase">OK</button>
+            </div>
+        </div>
+    </div>
+
 
     <div class="container mx-auto p-4 md:p-8 max-w-4xl">
         <header class="text-center mb-8">
@@ -231,34 +258,55 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Aspek Rasio Gambar</label>
                                 <div id="aspect-ratio-selector" class="mt-1 flex items-center space-x-2 flex-wrap">
-                                    <button data-ratio="1:1" class="aspect-btn border-2 border-indigo-500 p-2 rounded-md text-indigo-600">
-                                        <svg class="w-6 h-6" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" fill="currentColor"></rect></svg>
-                                    </button>
-                                    <button data-ratio="4:3" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
-                                        <svg class="w-8 h-6" viewBox="0 0 32 24"><rect x="0" y="0" width="32" height="24" fill="currentColor"></rect></svg>
-                                    </button>
-                                    <button data-ratio="3:4" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
-                                        <svg class="w-6 h-8" viewBox="0 0 24 32"><rect x="0" y="0" width="24" height="32" fill="currentColor"></rect></svg>
-                                    </button>
-                                    <button data-ratio="16:9" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
-                                        <svg class="w-10 h-6" viewBox="0 0 48 27"><rect x="0" y="0" width="48" height="27" fill="currentColor"></rect></svg>
-                                    </button>
-                                     <button data-ratio="9:16" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
-                                        <svg class="w-6 h-10" viewBox="0 0 27 48"><rect x="0" y="0" width="27" height="48" fill="currentColor"></rect></svg>
-                                    </button>
+                                    <div class="text-center">
+                                        <button data-ratio="1:1" class="aspect-btn border-2 border-indigo-500 p-2 rounded-md text-indigo-600">
+                                            <svg class="w-6 h-6" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" fill="currentColor"></rect></svg>
+                                        </button>
+                                        <span class="text-xs text-gray-500">1:1</span>
+                                    </div>
+                                    <div class="text-center">
+                                        <button data-ratio="4:3" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
+                                            <svg class="w-8 h-6" viewBox="0 0 32 24"><rect x="0" y="0" width="32" height="24" fill="currentColor"></rect></svg>
+                                        </button>
+                                        <span class="text-xs text-gray-500">4:3</span>
+                                    </div>
+                                    <div class="text-center">
+                                        <button data-ratio="3:4" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
+                                            <svg class="w-6 h-8" viewBox="0 0 24 32"><rect x="0" y="0" width="24" height="32" fill="currentColor"></rect></svg>
+                                        </button>
+                                         <span class="text-xs text-gray-500">3:4</span>
+                                    </div>
+                                    <div class="text-center">
+                                        <button data-ratio="16:9" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
+                                            <svg class="w-10 h-6" viewBox="0 0 48 27"><rect x="0" y="0" width="48" height="27" fill="currentColor"></rect></svg>
+                                        </button>
+                                         <span class="text-xs text-gray-500">16:9</span>
+                                    </div>
+                                     <div class="text-center">
+                                         <button data-ratio="9:16" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
+                                            <svg class="w-6 h-10" viewBox="0 0 27 48"><rect x="0" y="0" width="27" height="48" fill="currentColor"></rect></svg>
+                                        </button>
+                                         <span class="text-xs text-gray-500">9:16</span>
+                                    </div>
                                 </div>
                             </div>
 
                             <div>
                                 <div class="flex justify-between items-center">
                                     <label for="prompt-text" class="block text-sm font-medium text-gray-700">Prompt (Teks)</label>
-                                    <button id="to-json-btn" class="text-xs text-indigo-600 hover:underline uppercase">Ubah ke JSON</button>
+                                    <div class="space-x-2">
+                                        <button id="copy-prompt-text-btn" class="text-xs text-indigo-600 hover:underline uppercase">SALIN</button>
+                                        <button id="to-json-btn" class="text-xs text-indigo-600 hover:underline uppercase">Ubah ke JSON</button>
+                                    </div>
                                 </div>
                                 <textarea id="prompt-text" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Jelaskan gambar yang ingin Anda buat..."></textarea>
                             </div>
 
                             <div>
-                                <label for="prompt-json" class="block text-sm font-medium text-gray-700">Prompt (JSON)</label>
+                                <div class="flex justify-between items-center">
+                                    <label for="prompt-json" class="block text-sm font-medium text-gray-700">Prompt (JSON)</label>
+                                    <button id="copy-prompt-json-btn" class="text-xs text-indigo-600 hover:underline uppercase">SALIN</button>
+                                </div>
                                 <textarea id="prompt-json" rows="4" readonly class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm bg-blue-50 cursor-not-allowed" placeholder="Format JSON akan muncul di sini..."></textarea>
                             </div>
 
@@ -488,7 +536,38 @@
         }
 
         generateBtn.addEventListener('click', () => handleArticleGeneration());
-        document.getElementById('rewrite-btn').addEventListener('click', () => handleArticleGeneration("Tulis ulang artikel berikut dengan gaya dan struktur yang berbeda, namun tetap pertahankan ide utamanya. Buatlah lebih menarik dan segar."));
+
+        const rewriteBtn = document.getElementById('rewrite-btn');
+        const rewriteModalOverlay = document.getElementById('rewrite-modal-overlay');
+        const cancelRewriteBtn = document.getElementById('cancel-rewrite-btn');
+        const confirmRewriteBtn = document.getElementById('confirm-rewrite-btn');
+
+        rewriteBtn.addEventListener('click', () => {
+            const currentContent = articleOutput.innerText;
+            if (!currentContent.trim()) {
+                alert("Tidak ada artikel untuk ditulis ulang.");
+                return;
+            }
+            rewriteModalOverlay.classList.remove('hidden');
+        });
+
+        cancelRewriteBtn.addEventListener('click', () => {
+            rewriteModalOverlay.classList.add('hidden');
+        });
+
+        confirmRewriteBtn.addEventListener('click', () => {
+            const style = document.getElementById('rewrite-style').value;
+            const extraPrompt = document.getElementById('rewrite-extra-prompt').value;
+
+            let prompt = `Tulis ulang artikel berikut dengan '${style}'.`;
+            if (extraPrompt.trim()) {
+                prompt += `\n\nSertakan juga pembahasan tambahan mengenai: "${extraPrompt}"`;
+            }
+
+            handleArticleGeneration(prompt);
+            rewriteModalOverlay.classList.add('hidden');
+        });
+
         document.getElementById('paraphrase-btn').addEventListener('click', () => handleArticleGeneration("Parafrasekan artikel berikut kalimat per kalimat. Gunakan sinonim dan ubah struktur kalimat agar unik, namun jangan mengubah makna aslinya."));
 
 
@@ -776,6 +855,8 @@
         const generatePromptBtn = document.getElementById('generate-prompt-btn');
         const refinePromptBtn = document.getElementById('refine-prompt-btn');
         const toJsonBtn = document.getElementById('to-json-btn');
+        const copyPromptTextBtn = document.getElementById('copy-prompt-text-btn');
+        const copyPromptJsonBtn = document.getElementById('copy-prompt-json-btn');
         const aspectRatioSelector = document.getElementById('aspect-ratio-selector');
         const promptText = document.getElementById('prompt-text');
         const promptJson = document.getElementById('prompt-json');
@@ -854,6 +935,22 @@
                 loadingDiv.style.display = 'none';
                 imageGeneratorContainer.style.opacity = '1';
             }
+        });
+
+        copyPromptTextBtn.addEventListener('click', () => {
+            if (!promptText.value.trim()) {
+                alert("Tidak ada teks untuk disalin.");
+                return;
+            }
+            copyToClipboard(promptText.value, "Prompt Teks");
+        });
+
+        copyPromptJsonBtn.addEventListener('click', () => {
+            if (!promptJson.value.trim()) {
+                alert("Tidak ada JSON untuk disalin.");
+                return;
+            }
+            copyToClipboard(promptJson.value, "Prompt JSON");
         });
 
     </script>
