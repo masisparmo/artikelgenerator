@@ -1080,8 +1080,9 @@
                 const ideaText = e.target.closest('.flex').querySelector('.idea-text').textContent;
                 const transaction = db.transaction(["ideas"], "readwrite");
                 const objectStore = transaction.objectStore("ideas");
-                objectStore.add({ idea: ideaText });
-                transaction.oncomplete = () => {
+                const request = objectStore.add({ idea: ideaText });
+
+                request.onsuccess = () => {
                     displayIdeas();
                 };
             } else {
