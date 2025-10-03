@@ -979,7 +979,7 @@
         });
 
         async function callImageGenerationAPI(prompt) {
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:predict?key=${userApiKey}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemimagen-3.0-generate-002:predict?key=${userApiKey}`;
             const payload = { instances: { prompt: prompt }, parameters: { "sampleCount": 1 } };
 
             let response;
