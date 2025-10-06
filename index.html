@@ -8,8 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -338,7 +336,6 @@
                          <button id="paraphrase-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 uppercase">Parafrase</button>
                          <button id="save-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-sky-600 hover:bg-sky-700 uppercase">Simpan</button>
                          <button id="download-docx-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 uppercase">Unduh DOCX</button>
-                         <button id="download-pdf-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 uppercase">Unduh PDF</button>
                     </div>
 
                     <!-- Image Prompt Generator -->
@@ -1311,7 +1308,6 @@
 
         // --- Download Logic ---
         const downloadDocxBtn = document.getElementById('download-docx-btn');
-        const downloadPdfBtn = document.getElementById('download-pdf-btn');
 
         function sanitizeFilename(name) {
             return name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').substring(0, 50) || "artikel";
@@ -1363,68 +1359,6 @@
             saveAs(converted, `${sanitizeFilename(topic)}.docx`);
         });
 
-        downloadPdfBtn.addEventListener('click', () => {
-            const { jsPDF } = window.jspdf;
-            const topic = document.getElementById('topic').value.trim();
-            const keywords = document.getElementById('keywords').value.trim();
-            const articleContent = articleOutput.innerHTML;
-
-            if (!topic && !articleContent.trim()) {
-                alert("Tidak ada konten untuk diunduh.");
-                return;
-            }
-
-            // Create a temporary div to manipulate the article content
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = articleContent;
-
-            // Remove the H1 from the temporary div to avoid duplication
-            const h1 = tempDiv.querySelector('h1');
-            if (h1) {
-                h1.parentNode.removeChild(h1);
-            }
-            const cleanedArticleContent = tempDiv.innerHTML;
-
-            // Create a new container for PDF generation that will be styled correctly
-            const pdfContainer = document.createElement('div');
-
-            // Apply the 'prose' class to inherit the article's styling
-            pdfContainer.className = 'prose';
-
-            // Set styles to make it renderable but not visible on screen
-            pdfContainer.style.position = 'absolute';
-            pdfContainer.style.left = '-9999px';
-            pdfContainer.style.width = '800px'; // A reasonable width for rendering
-
-            // Construct the clean HTML content
-            pdfContainer.innerHTML = `
-                <h1>${topic}</h1>
-                <p><strong>Keywords:</strong> ${keywords}</p>
-                <hr>
-                ${cleanedArticleContent}
-            `;
-
-            // Append to body to make it renderable by html2canvas
-            document.body.appendChild(pdfContainer);
-
-            const doc = new jsPDF({
-                orientation: 'p',
-                unit: 'mm',
-                format: 'a4'
-            });
-
-            doc.html(pdfContainer, {
-                callback: function (doc) {
-                    // Remove the temporary container after rendering is complete
-                    document.body.removeChild(pdfContainer);
-                    doc.save(`${sanitizeFilename(topic)}.pdf`);
-                },
-                x: 15,
-                y: 15,
-                width: 180, // A4 width is 210mm, with 15mm margin on each side
-                windowWidth: 800 // Corresponds to the width set on pdfContainer
-            });
-        });
     </script>
 </body>
 </html>
