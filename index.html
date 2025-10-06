@@ -549,7 +549,7 @@
             outputContainer.style.display = 'none';
             
             try {
-                const { text: articleMarkdown, sources } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash', true);
+                const { text: articleMarkdown, sources } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash', true);
                 let finalMarkdown = articleMarkdown;
                 
                 if (sources && sources.length > 0) {
@@ -559,8 +559,23 @@
                     });
                 }
                 
-                currentArticleIdInput.value = ""; // It's a new/modified article, not from DB
+                // Only clear the ID for a brand new article generation.
+                // If it's a rewrite/paraphrase, we're modifying the existing article, so we keep the ID.
+                if (!promptModifier) {
+                    currentArticleIdInput.value = "";
+                }
+
                 articleOutput.innerHTML = processMarkdownToHtml(finalMarkdown);
+
+                // After a rewrite, update the topic field with the new H1 title
+                if (promptModifier) {
+                    const lines = finalMarkdown.split('\n');
+                    if (lines.length > 0 && lines[0].startsWith('# ')) {
+                        const newTitle = lines[0].substring(2).trim();
+                        document.getElementById('topic').value = newTitle;
+                    }
+                }
+
                 outputContainer.style.display = 'block';
                 editorControls.classList.remove('hidden');
                 editorControls.classList.add('flex');
@@ -600,21 +615,22 @@
             const modificationInstruction = document.getElementById('rewrite-extra-prompt').value;
 
             let stylePrompt = "";
+            const titleInstruction = "\n\nPENTING: Hasilnya harus selalu menyertakan satu judul utama (H1) yang relevan untuk artikel yang ditulis ulang. Judul harus dalam format '# Judul Artikel'.";
             switch (style) {
                 case "Gaya Penulisan Formal":
-                    stylePrompt = "Tulis ulang artikel berikut dengan Gaya Penulisan Formal. Gunakan bahasa Indonesia yang baku, struktur kalimat yang jelas, dan nada yang objektif serta profesional. Hindari penggunaan bahasa gaul atau kiasan yang tidak umum.";
+                    stylePrompt = "Tulis ulang artikel berikut dengan Gaya Penulisan Formal. Gunakan bahasa Indonesia yang baku, struktur kalimat yang jelas, dan nada yang objektif serta profesional. Hindari penggunaan bahasa gaul atau kiasan yang tidak umum." + titleInstruction;
                     break;
                 case "Gaya Penulisan Semi Formal":
-                    stylePrompt = "Tulis ulang artikel berikut dengan Gaya Penulisan Semi Formal. Gunakan bahasa yang sopan dan profesional, namun tetap mudah diakses dan sedikit lebih luwes daripada gaya formal. Boleh menggunakan sapaan yang ramah namun tetap profesional.";
+                    stylePrompt = "Tulis ulang artikel berikut dengan Gaya Penulisan Semi Formal. Gunakan bahasa yang sopan dan profesional, namun tetap mudah diakses dan sedikit lebih luwes daripada gaya formal. Boleh menggunakan sapaan yang ramah namun tetap profesional." + titleInstruction;
                     break;
                 case "Gaya Penulisan Casual (Awam)":
-                    stylePrompt = "Tulis ulang artikel berikut dengan Gaya Penulisan Casual (Awam). Gunakan bahasa sehari-hari yang sederhana, ringan, dan mudah dipahami oleh orang awam. Buat seolah-olah sedang menjelaskan kepada teman.";
+                    stylePrompt = "Tulis ulang artikel berikut dengan Gaya Penulisan Casual (Awam). Gunakan bahasa sehari-hari yang sederhana, ringan, dan mudah dipahami oleh orang awam. Buat seolah-olah sedang menjelaskan kepada teman." + titleInstruction;
                     break;
                 case "Gaya Penulisan Bercerita":
-                    stylePrompt = "Tulis ulang artikel berikut dengan Gaya Penulisan Bercerita (Storytelling). Gunakan alur naratif, contoh-contoh, atau analogi untuk membuat konten lebih menarik dan hidup. Bangun koneksi emosional dengan pembaca melalui cerita.";
+                    stylePrompt = "Tulis ulang artikel berikut dengan Gaya Penulisan Bercerita (Storytelling). Gunakan alur naratif, contoh-contoh, atau analogi untuk membuat konten lebih menarik dan hidup. Bangun koneksi emosional dengan pembaca melalui cerita." + titleInstruction;
                     break;
                 default:
-                    stylePrompt = `Tulis ulang artikel berikut dengan '${style}'.`;
+                    stylePrompt = `Tulis ulang artikel berikut dengan '${style}'.` + titleInstruction;
             }
 
             let fullPrompt = stylePrompt;
@@ -790,6 +806,13 @@
                 const article = event.target.result;
                 articleOutput.innerHTML = article.content;
                 currentArticleIdInput.value = article.id;
+
+                // Populate the topic field from the article's H1 title to ensure it persists
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = article.content;
+                const titleElement = tempDiv.querySelector('h1');
+                document.getElementById('topic').value = titleElement ? titleElement.innerText.trim() : '';
+
                 outputContainer.style.display = 'block';
                 editorControls.classList.remove('hidden');
                 editorControls.classList.add('flex');
@@ -985,7 +1008,7 @@
                 const systemPrompt = "Anda adalah seorang ahli dalam membuat prompt untuk generator gambar AI. Tugas Anda adalah membuat prompt yang detail dan deskriptif berdasarkan topik dan tipe gambar yang diberikan oleh pengguna.";
                 const userQuery = `Buatkan saya sebuah prompt gambar yang detail dalam Bahasa Indonesia untuk topik: "${topic}". Gaya gambar yang diinginkan adalah: "${imageType}". Jelaskan subjek utama, latar belakang, dan komposisi dalam Bahasa Indonesia, namun pertahankan istilah-istilah teknis fotografi dan seni (seperti 'hyper-realistic', 'cinematic lighting', '4K resolution', 'low angle shot') dalam Bahasa Inggris untuk hasil terbaik.`;
 
-                const { text: generatedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
+                const { text: generatedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
 
                 promptText.value = generatedPrompt.trim();
 
@@ -1033,7 +1056,7 @@
                 Tujuan Anda adalah memberikan prompt yang sangat detail sehingga AI generator gambar dapat menciptakan hasil yang kaya, kompleks, dan sesuai dengan visi yang diperluas. Balas HANYA dengan prompt yang sudah disempurnakan, tanpa kata pengantar atau penjelasan apa pun.`;
                 const userQuery = `Sempurnakan prompt ini: "${currentPrompt}"`;
 
-                const { text: refinedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
+                const { text: refinedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
 
                 promptText.value = refinedPrompt.trim();
 
@@ -1086,7 +1109,7 @@
                 const systemPrompt = "Anda adalah generator ide konten yang kreatif. Berdasarkan topik yang diberikan, hasilkan 5 ide judul artikel blog yang menarik dan SEO-friendly. Setiap ide harus berada di baris baru, diawali dengan '- ' (tanda hubung dan spasi).";
                 const userQuery = `Topik: "${topic}"`;
 
-                const { text: ideasText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
+                const { text: ideasText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
 
                 const ideas = ideasText.split('\n').filter(idea => idea.trim().startsWith('- ')).map(idea => idea.trim().substring(2).trim());
 
@@ -1142,7 +1165,7 @@
                 const systemPrompt = "Anda adalah seorang spesialis SEO. Berdasarkan topik yang diberikan, hasilkan daftar maksimal 10 kata kunci yang paling relevan. Pisahkan setiap kata kunci dengan koma. Berikan hanya daftar kata kunci, tanpa teks tambahan.";
                 const userQuery = `Topik: "${topic}"`;
 
-                const { text: keywordsText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
+                const { text: keywordsText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
 
                 document.getElementById('keywords').value = keywordsText.trim();
 
