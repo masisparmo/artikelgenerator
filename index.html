@@ -6,7 +6,8 @@
     <title>Generator Artikel SEO-Friendly berbasis AI - Oleh Isparmo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -1316,41 +1317,7 @@
             return name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').substring(0, 50) || "artikel";
         }
 
-        function htmlToDocx(htmlString) {
-            const { Document, Packer, Paragraph, TextRun, HeadingLevel } = window.docx;
-
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = htmlString;
-            const nodes = Array.from(tempDiv.childNodes);
-
-            const docxElements = [];
-
-            nodes.forEach(node => {
-                if (node.nodeName === 'H1') {
-                    docxElements.push(new Paragraph({ text: node.innerText, heading: HeadingLevel.HEADING_1, spacing: { after: 200 } }));
-                } else if (node.nodeName === 'H2') {
-                    docxElements.push(new Paragraph({ text: node.innerText, heading: HeadingLevel.HEADING_2, spacing: { after: 200 } }));
-                } else if (node.nodeName === 'H3') {
-                    docxElements.push(new Paragraph({ text: node.innerText, heading: HeadingLevel.HEADING_3, spacing: { after: 200 } }));
-                } else if (node.nodeName === 'P') {
-                    docxElements.push(new Paragraph({ children: [new TextRun(node.innerText)], spacing: { after: 100 } }));
-                } else if (node.nodeName === 'UL') {
-                    Array.from(node.children).forEach(li => {
-                        docxElements.push(new Paragraph({ text: li.innerText, bullet: { level: 0 } }));
-                    });
-                } else if (node.nodeName === 'OL') {
-                     Array.from(node.children).forEach(li => {
-                        docxElements.push(new Paragraph({ text: li.innerText, numbering: { reference: "number-format", level: 0 } }));
-                    });
-                }
-            });
-
-            return docxElements;
-        }
-
         downloadDocxBtn.addEventListener('click', () => {
-            const { Document, Packer, Paragraph, TextRun, HeadingLevel } = window.docx;
-
             const topic = document.getElementById('topic').value.trim();
             const keywords = document.getElementById('keywords').value.trim();
             const articleContent = articleOutput.innerHTML;
@@ -1360,49 +1327,28 @@
                 return;
             }
 
-            const doc = new Document({
-                 numbering: {
-                    config: [
-                        {
-                            reference: "number-format",
-                            levels: [
-                                {
-                                    level: 0,
-                                    format: "decimal",
-                                    text: "%1.",
-                                    alignment: "start",
-                                },
-                            ],
-                        },
-                    ],
-                },
-                sections: [{
-                    properties: {},
-                    children: [
-                        new Paragraph({ text: topic, heading: HeadingLevel.TITLE }),
-                        new Paragraph({ text: "" }), // Spacer
-                        new Paragraph({
-                            children: [
-                                new TextRun({ text: "Keywords: ", bold: true }),
-                                new TextRun(keywords),
-                            ],
-                        }),
-                        new Paragraph({ text: "" }), // Spacer
-                        ...htmlToDocx(articleContent)
-                    ],
-                }],
-            });
+            // Construct the full HTML content for the DOCX file
+            const fullHtml = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>${topic}</title>
+                </head>
+                <body>
+                    <h1>${topic}</h1>
+                    <p><strong>Keywords:</strong> ${keywords}</p>
+                    <br>
+                    ${articleContent}
+                </body>
+                </html>
+            `;
 
-            Packer.toBlob(doc).then(blob => {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `${sanitizeFilename(topic)}.docx`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-            });
+            // Convert the HTML string to a DOCX blob using html-docx-js
+            const converted = htmlDocx.asBlob(fullHtml);
+
+            // Use FileSaver to trigger the download
+            saveAs(converted, `${sanitizeFilename(topic)}.docx`);
         });
 
         downloadPdfBtn.addEventListener('click', () => {
