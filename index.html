@@ -199,7 +199,7 @@
     <div class="container mx-auto p-4 md:p-8 max-w-4xl">
         <header class="text-center mb-8">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Generator Artikel SEO Friendly</h1>
-            <p class="mt-2 text-gray-600">Aplikasi Pembuat Artikel SEO Friendly Powered by AI.</p>
+            <p class="mt-2 text-gray-600">Buat, edit, dan salin konten berkualitas tinggi yang disukai Google dan pembaca Anda.</p>
         </header>
 
         <div class="bg-white rounded-lg shadow-lg">
@@ -283,86 +283,6 @@
                     </div>
                 </div>
 
-                <!-- Image Prompt Generator -->
-                <div id="image-generator-container" class="mt-10 hidden">
-                    <h3 class="text-lg font-medium text-gray-800 border-b pb-2 mb-3">Buat Prompt Gambar Ilustrasi</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-1 gap-6 max-w-xl mx-auto">
-                        <!-- Controls -->
-                        <div class="space-y-4">
-                            <div>
-                                <label for="image-type" class="block text-sm font-medium text-gray-700">Tipe Gambar</label>
-                                <select id="image-type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50">
-                                    <option>Foto Realistis</option>
-                                    <option>Gambar 2D</option>
-                                    <option>Gambar 3D</option>
-                                    <option>Abstrak</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Aspek Rasio Gambar</label>
-                                <div id="aspect-ratio-selector" class="mt-1 flex items-center space-x-2 flex-wrap">
-                                    <div class="text-center">
-                                        <button data-ratio="1:1" class="aspect-btn border-2 border-indigo-500 p-2 rounded-md text-indigo-600">
-                                            <svg class="w-6 h-6" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" fill="currentColor"></rect></svg>
-                                        </button>
-                                        <span class="text-xs text-gray-500">1:1</span>
-                                    </div>
-                                    <div class="text-center">
-                                        <button data-ratio="4:3" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
-                                            <svg class="w-8 h-6" viewBox="0 0 32 24"><rect x="0" y="0" width="32" height="24" fill="currentColor"></rect></svg>
-                                        </button>
-                                        <span class="text-xs text-gray-500">4:3</span>
-                                    </div>
-                                    <div class="text-center">
-                                        <button data-ratio="3:4" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
-                                            <svg class="w-6 h-8" viewBox="0 0 24 32"><rect x="0" y="0" width="24" height="32" fill="currentColor"></rect></svg>
-                                        </button>
-                                         <span class="text-xs text-gray-500">3:4</span>
-                                    </div>
-                                    <div class="text-center">
-                                        <button data-ratio="16:9" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
-                                            <svg class="w-10 h-6" viewBox="0 0 48 27"><rect x="0" y="0" width="48" height="27" fill="currentColor"></rect></svg>
-                                        </button>
-                                         <span class="text-xs text-gray-500">16:9</span>
-                                    </div>
-                                     <div class="text-center">
-                                         <button data-ratio="9:16" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
-                                            <svg class="w-6 h-10" viewBox="0 0 27 48"><rect x="0" y="0" width="27" height="48" fill="currentColor"></rect></svg>
-                                        </button>
-                                         <span class="text-xs text-gray-500">9:16</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="flex justify-between items-center">
-                                    <label for="prompt-text" class="block text-sm font-medium text-gray-700">Prompt (Teks)</label>
-                                    <div class="space-x-2">
-                                        <button id="copy-prompt-text-btn" class="text-xs text-indigo-600 hover:underline uppercase">SALIN</button>
-                                        <button id="to-json-btn" class="text-xs text-indigo-600 hover:underline uppercase">Ubah ke JSON</button>
-                                    </div>
-                                </div>
-                                <textarea id="prompt-text" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Jelaskan gambar yang ingin Anda buat..."></textarea>
-                            </div>
-
-                            <div>
-                                <div class="flex justify-between items-center">
-                                    <label for="prompt-json" class="block text-sm font-medium text-gray-700">Prompt (JSON)</label>
-                                    <button id="copy-prompt-json-btn" class="text-xs text-indigo-600 hover:underline uppercase">SALIN</button>
-                                </div>
-                                <textarea id="prompt-json" rows="4" readonly class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm bg-blue-50 cursor-not-allowed" placeholder="Format JSON akan muncul di sini..."></textarea>
-                            </div>
-
-                            <div class="flex flex-wrap gap-2">
-                                <button id="generate-prompt-btn" class="flex-1 py-2 px-4 text-sm font-medium rounded-md text-white bg-slate-600 hover:bg-slate-700 uppercase">Generate Prompt</button>
-                                <button id="refine-prompt-btn" class="flex-1 py-2 px-4 text-sm font-medium rounded-md text-white bg-slate-600 hover:bg-slate-700 uppercase">Sempurnakan Prompt</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
                 <div id="output-container" class="mt-8" style="display: none;">
                      <input type="hidden" id="current-article-id">
                     <!-- Editor Controls -->
@@ -412,6 +332,85 @@
                          <button id="rewrite-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 uppercase">Re-Write</button>
                          <button id="paraphrase-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 uppercase">Parafrase</button>
                          <button id="save-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-sky-600 hover:bg-sky-700 uppercase">Simpan</button>
+                    </div>
+
+                    <!-- Image Prompt Generator -->
+                    <div id="image-generator-container" class="mt-10 hidden">
+                        <h3 class="text-lg font-medium text-gray-800 border-b pb-2 mb-3">Buat Prompt Gambar Ilustrasi</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-1 gap-6 max-w-xl mx-auto">
+                            <!-- Controls -->
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="image-type" class="block text-sm font-medium text-gray-700">Tipe Gambar</label>
+                                    <select id="image-type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50">
+                                        <option>Foto Realistis</option>
+                                        <option>Gambar 2D</option>
+                                        <option>Gambar 3D</option>
+                                        <option>Abstrak</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Aspek Rasio Gambar</label>
+                                    <div id="aspect-ratio-selector" class="mt-1 flex items-center space-x-2 flex-wrap">
+                                        <div class="text-center">
+                                            <button data-ratio="1:1" class="aspect-btn border-2 border-indigo-500 p-2 rounded-md text-indigo-600">
+                                                <svg class="w-6 h-6" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" fill="currentColor"></rect></svg>
+                                            </button>
+                                            <span class="text-xs text-gray-500">1:1</span>
+                                        </div>
+                                        <div class="text-center">
+                                            <button data-ratio="4:3" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
+                                                <svg class="w-8 h-6" viewBox="0 0 32 24"><rect x="0" y="0" width="32" height="24" fill="currentColor"></rect></svg>
+                                            </button>
+                                            <span class="text-xs text-gray-500">4:3</span>
+                                        </div>
+                                        <div class="text-center">
+                                            <button data-ratio="3:4" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
+                                                <svg class="w-6 h-8" viewBox="0 0 24 32"><rect x="0" y="0" width="24" height="32" fill="currentColor"></rect></svg>
+                                            </button>
+                                             <span class="text-xs text-gray-500">3:4</span>
+                                        </div>
+                                        <div class="text-center">
+                                            <button data-ratio="16:9" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
+                                                <svg class="w-10 h-6" viewBox="0 0 48 27"><rect x="0" y="0" width="48" height="27" fill="currentColor"></rect></svg>
+                                            </button>
+                                             <span class="text-xs text-gray-500">16:9</span>
+                                        </div>
+                                         <div class="text-center">
+                                             <button data-ratio="9:16" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
+                                                <svg class="w-6 h-10" viewBox="0 0 27 48"><rect x="0" y="0" width="27" height="48" fill="currentColor"></rect></svg>
+                                            </button>
+                                             <span class="text-xs text-gray-500">9:16</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between items-center">
+                                        <label for="prompt-text" class="block text-sm font-medium text-gray-700">Prompt (Teks)</label>
+                                        <div class="space-x-2">
+                                            <button id="copy-prompt-text-btn" class="text-xs text-indigo-600 hover:underline uppercase">SALIN</button>
+                                            <button id="to-json-btn" class="text-xs text-indigo-600 hover:underline uppercase">Ubah ke JSON</button>
+                                        </div>
+                                    </div>
+                                    <textarea id="prompt-text" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Jelaskan gambar yang ingin Anda buat..."></textarea>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between items-center">
+                                        <label for="prompt-json" class="block text-sm font-medium text-gray-700">Prompt (JSON)</label>
+                                        <button id="copy-prompt-json-btn" class="text-xs text-indigo-600 hover:underline uppercase">SALIN</button>
+                                    </div>
+                                    <textarea id="prompt-json" rows="4" readonly class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm bg-blue-50 cursor-not-allowed" placeholder="Format JSON akan muncul di sini..."></textarea>
+                                </div>
+
+                                <div class="flex flex-wrap gap-2">
+                                    <button id="generate-prompt-btn" class="flex-1 py-2 px-4 text-sm font-medium rounded-md text-white bg-slate-600 hover:bg-slate-700 uppercase">Generate Prompt</button>
+                                    <button id="refine-prompt-btn" class="flex-1 py-2 px-4 text-sm font-medium rounded-md text-white bg-slate-600 hover:bg-slate-700 uppercase">Sempurnakan Prompt</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -550,7 +549,7 @@
             outputContainer.style.display = 'none';
             
             try {
-                const { text: articleMarkdown, sources } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash', true);
+                const { text: articleMarkdown, sources } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash', true);
                 let finalMarkdown = articleMarkdown;
                 
                 if (sources && sources.length > 0) {
@@ -970,14 +969,32 @@
             }
         });
 
-        generatePromptBtn.addEventListener('click', () => {
+        generatePromptBtn.addEventListener('click', async () => {
             const topic = document.getElementById('topic').value;
-            const keywords = document.getElementById('keywords').value;
+            const imageType = document.getElementById('image-type').value;
+
             if (!topic.trim()) {
-                alert("Silakan masukkan topik artikel terlebih dahulu.");
+                alert("Silakan masukkan topik artikel terlebih dahulu untuk membuat prompt gambar.");
                 return;
             }
-            promptText.value = `Sebuah gambar ilustrasi untuk artikel tentang "${topic}". Fokus pada kata kunci: ${keywords}.`;
+
+            loadingModalOverlay.classList.remove('hidden');
+            promptText.value = ''; // Clear previous prompt
+
+            try {
+                const systemPrompt = "Anda adalah seorang ahli dalam membuat prompt untuk generator gambar AI. Tugas Anda adalah membuat prompt yang detail dan deskriptif berdasarkan topik dan tipe gambar yang diberikan oleh pengguna.";
+                const userQuery = `Buatkan saya sebuah prompt gambar yang detail untuk topik: "${topic}". Gaya gambar yang diinginkan adalah: "${imageType}". Jelaskan subjek utama, latar belakang, pencahayaan, dan komposisi secara kreatif.`;
+
+                const { text: generatedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
+
+                promptText.value = generatedPrompt.trim();
+
+            } catch (error) {
+                console.error("Error generating image prompt:", error);
+                alert(`Gagal membuat prompt gambar: ${error.message}`);
+            } finally {
+                loadingModalOverlay.classList.add('hidden');
+            }
         });
 
         toJsonBtn.addEventListener('click', () => {
@@ -1016,7 +1033,7 @@
                 Tujuan Anda adalah memberikan prompt yang sangat detail sehingga AI generator gambar dapat menciptakan hasil yang kaya, kompleks, dan sesuai dengan visi yang diperluas. Balas HANYA dengan prompt yang sudah disempurnakan, tanpa kata pengantar atau penjelasan apa pun.`;
                 const userQuery = `Sempurnakan prompt ini: "${currentPrompt}"`;
 
-                const { text: refinedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
+                const { text: refinedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
 
                 promptText.value = refinedPrompt.trim();
 
@@ -1069,7 +1086,7 @@
                 const systemPrompt = "Anda adalah generator ide konten yang kreatif. Berdasarkan topik yang diberikan, hasilkan 5 ide judul artikel blog yang menarik dan SEO-friendly. Setiap ide harus berada di baris baru, diawali dengan '- ' (tanda hubung dan spasi).";
                 const userQuery = `Topik: "${topic}"`;
 
-                const { text: ideasText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
+                const { text: ideasText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
 
                 const ideas = ideasText.split('\n').filter(idea => idea.trim().startsWith('- ')).map(idea => idea.trim().substring(2).trim());
 
@@ -1125,7 +1142,7 @@
                 const systemPrompt = "Anda adalah seorang spesialis SEO. Berdasarkan topik yang diberikan, hasilkan daftar maksimal 10 kata kunci yang paling relevan. Pisahkan setiap kata kunci dengan koma. Berikan hanya daftar kata kunci, tanpa teks tambahan.";
                 const userQuery = `Topik: "${topic}"`;
 
-                const { text: keywordsText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
+                const { text: keywordsText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
 
                 document.getElementById('keywords').value = keywordsText.trim();
 
