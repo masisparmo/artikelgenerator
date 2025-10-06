@@ -199,7 +199,7 @@
     <div class="container mx-auto p-4 md:p-8 max-w-4xl">
         <header class="text-center mb-8">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Generator Artikel SEO Friendly</h1>
-            <p class="mt-2 text-gray-600">Si Pintar Pembuat Artikel Yang Disukai Google. Powered by Gemini AI</p>
+            <p class="mt-2 text-gray-600">Buat, edit, dan salin konten berkualitas tinggi yang disukai Google dan pembaca Anda.</p>
         </header>
 
         <div class="bg-white rounded-lg shadow-lg">
@@ -390,9 +390,9 @@
                                 <div>
                                     <div class="flex justify-between items-center">
                                         <label for="prompt-text" class="block text-sm font-medium text-gray-700">Prompt (Teks)</label>
-                                        <div class="space-x-2">
-                                            <button id="copy-prompt-text-btn" class="text-xs text-indigo-600 hover:underline uppercase">SALIN</button>
-                                            <button id="to-json-btn" class="text-xs text-indigo-600 hover:underline uppercase">Ubah ke JSON</button>
+                                    <div class="flex items-center space-x-2">
+                                        <button id="to-json-btn" class="px-3 py-1 text-xs font-medium rounded-md text-white bg-slate-600 hover:bg-slate-700 uppercase">Ubah ke JSON</button>
+                                        <button id="copy-prompt-text-btn" class="px-3 py-1 text-xs font-medium rounded-md text-white bg-slate-600 hover:bg-slate-700 uppercase">SALIN</button>
                                         </div>
                                     </div>
                                     <textarea id="prompt-text" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Jelaskan gambar yang ingin Anda buat..."></textarea>
@@ -401,7 +401,7 @@
                                 <div>
                                     <div class="flex justify-between items-center">
                                         <label for="prompt-json" class="block text-sm font-medium text-gray-700">Prompt (JSON)</label>
-                                        <button id="copy-prompt-json-btn" class="text-xs text-indigo-600 hover:underline uppercase">SALIN</button>
+                                    <button id="copy-prompt-json-btn" class="px-3 py-1 text-xs font-medium rounded-md text-white bg-slate-600 hover:bg-slate-700 uppercase">SALIN</button>
                                     </div>
                                     <textarea id="prompt-json" rows="4" readonly class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm bg-blue-50 cursor-not-allowed" placeholder="Format JSON akan muncul di sini..."></textarea>
                                 </div>
@@ -517,6 +517,7 @@
         const copyBtn = document.getElementById('copy-btn');
         const copyOptions = document.getElementById('copy-options');
         const currentArticleIdInput = document.getElementById('current-article-id');
+        let isNewVersion = false;
 
 
         async function handleArticleGeneration(promptModifier = "") {
@@ -553,7 +554,7 @@
             const keywordsToPreserve = document.getElementById('keywords').value;
 
             try {
-                const { text: articleMarkdown, sources } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash', true);
+                const { text: articleMarkdown, sources } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash', true);
                 let finalMarkdown = articleMarkdown;
                 
                 if (sources && sources.length > 0) {
@@ -563,9 +564,8 @@
                     });
                 }
                 
-                // After any generation (new or rewrite), we are dealing with a new piece of content
-                // that hasn't been saved yet. Clear the ID to ensure it saves as a new entry.
-                currentArticleIdInput.value = "";
+                // The state (isNewVersion or empty ID) is now set by the calling button.
+                // No need to clear the ID here anymore.
 
                 articleOutput.innerHTML = processMarkdownToHtml(finalMarkdown);
 
@@ -593,7 +593,11 @@
             }
         }
 
-        generateBtn.addEventListener('click', () => handleArticleGeneration());
+        generateBtn.addEventListener('click', () => {
+            currentArticleIdInput.value = ''; // A new article from scratch has no ID
+            isNewVersion = false; // It's not a "version" of anything, just new.
+            handleArticleGeneration();
+        });
 
         const rewriteBtn = document.getElementById('rewrite-btn');
         const rewriteModalOverlay = document.getElementById('rewrite-modal-overlay');
@@ -641,11 +645,15 @@
                 fullPrompt += `\n\nSelanjutnya, modifikasi artikel berdasarkan instruksi berikut: "${modificationInstruction}"`;
             }
 
+            isNewVersion = true; // Set flag: this is a new version of an existing article
             handleArticleGeneration(fullPrompt);
             rewriteModalOverlay.classList.add('hidden');
         });
 
-        document.getElementById('paraphrase-btn').addEventListener('click', () => handleArticleGeneration("Parafrasekan artikel berikut kalimat per kalimat. Gunakan sinonim dan ubah struktur kalimat agar unik, namun jangan mengubah makna aslinya."));
+        document.getElementById('paraphrase-btn').addEventListener('click', () => {
+            isNewVersion = true; // Set flag: this is a new version of an existing article
+            handleArticleGeneration("Parafrasekan artikel berikut kalimat per kalimat. Gunakan sinonim dan ubah struktur kalimat agar unik, namun jangan mengubah makna aslinya.");
+        });
 
 
         async function callGenerationAPI(systemPrompt, userQuery, model, useSearchTool = false) {
@@ -725,12 +733,12 @@
         document.getElementById('save-btn').addEventListener('click', () => {
             const content = articleOutput.innerHTML;
             const titleElement = articleOutput.querySelector('h1');
-            let title = titleElement ? titleElement.innerText : document.getElementById('topic').value.trim();
+            let title = titleElement ? titleElement.innerText.trim() : document.getElementById('topic').value.trim();
             if (!title) {
                 title = "Artikel Tanpa Judul";
             }
             const id = currentArticleIdInput.value ? parseInt(currentArticleIdInput.value) : null;
-            const keywords = document.getElementById('keywords').value; // Get keywords
+            const keywords = document.getElementById('keywords').value;
 
             if (!content.trim()) {
                 alert("Tidak ada konten untuk disimpan.");
@@ -740,24 +748,50 @@
             const transaction = db.transaction(["articles"], "readwrite");
             const objectStore = transaction.objectStore("articles");
             
-            const article = { title, content, keywords }; // Add keywords to object
-            if (id) {
-                article.id = id;
+            const shouldAddNew = isNewVersion || !id;
+
+            if (shouldAddNew) {
+                // ADD a new article (either from scratch, or as a rewrite/paraphrase)
+                const article = { title, content, keywords };
+                const request = objectStore.add(article);
+
+                request.onsuccess = () => {
+                    alert("Artikel baru berhasil disimpan!");
+                    displayArticles();
+                    currentArticleIdInput.value = request.result; // Set ID to the new article's ID
+                    isNewVersion = false; // Reset the flag
+                };
+                request.onerror = (event) => {
+                    console.error("Gagal menyimpan artikel baru:", event.target.errorCode);
+                    alert("Gagal menyimpan artikel baru.");
+                };
+
+            } else {
+                // UPDATE an existing article
+                const request = objectStore.get(id);
+                request.onsuccess = () => {
+                    const articleToUpdate = request.result || {};
+                    articleToUpdate.id = id;
+                    articleToUpdate.title = title;
+                    articleToUpdate.content = content;
+                    articleToUpdate.keywords = keywords;
+
+                    const updateRequest = objectStore.put(articleToUpdate);
+                    updateRequest.onsuccess = () => {
+                        alert("Artikel berhasil diperbarui!");
+                        displayArticles();
+                        isNewVersion = false; // Should be false already, but reset for safety
+                    };
+                    updateRequest.onerror = (event) => {
+                        console.error("Gagal memperbarui artikel:", event.target.errorCode);
+                        alert("Gagal memperbarui artikel.");
+                    };
+                };
+                 request.onerror = (event) => {
+                    console.error("Gagal mengambil artikel untuk pembaruan:", event.target.errorCode);
+                    alert("Gagal memperbarui artikel.");
+                };
             }
-
-            const request = id ? objectStore.put(article) : objectStore.add(article);
-
-            request.onsuccess = () => {
-                alert("Artikel berhasil disimpan!");
-                displayArticles();
-                if (!id) {
-                   currentArticleIdInput.value = request.result;
-                }
-            };
-            request.onerror = (event) => {
-                console.error("Gagal menyimpan artikel:", event.target.errorCode);
-                alert("Gagal menyimpan artikel.");
-            };
         });
 
         function displayArticles() {
@@ -808,16 +842,17 @@
             const request = db.transaction("articles").objectStore("articles").get(id);
             request.onsuccess = (event) => {
                 const article = event.target.result;
+                if (!article) {
+                    console.error("Attempted to load a non-existent article.");
+                    return;
+                }
+
                 articleOutput.innerHTML = article.content;
                 currentArticleIdInput.value = article.id;
+                isNewVersion = false; // CRITICAL: Reset state flag when loading an existing article.
 
-                // Populate the topic field from the article's H1 title
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = article.content;
-                const titleElement = tempDiv.querySelector('h1');
-                document.getElementById('topic').value = titleElement ? titleElement.innerText.trim() : '';
-
-                // Load and populate the keywords field
+                // CRITICAL: Populate input fields directly from the database object.
+                document.getElementById('topic').value = article.title || '';
                 document.getElementById('keywords').value = article.keywords || '';
 
                 outputContainer.style.display = 'block';
@@ -1033,9 +1068,9 @@
 
             try {
                 const systemPrompt = "Anda adalah seorang ahli dalam membuat prompt untuk generator gambar AI. Tugas Anda adalah membuat prompt yang detail dan deskriptif berdasarkan topik dan tipe gambar yang diberikan oleh pengguna.";
-                const userQuery = `Buatkan saya sebuah prompt gambar yang detail dalam Bahasa Indonesia untuk topik: "${topic}". Gaya gambar yang diinginkan adalah: "${imageType}". Jelaskan subjek utama, latar belakang, dan komposisi dalam Bahasa Indonesia, namun pertahankan istilah-istilah teknis fotografi dan seni (seperti 'hyper-realistic', 'cinematic lighting', '4K resolution', 'low angle shot') dalam Bahasa Inggris untuk hasil terbaik.`;
+                const userQuery = `Buatkan saya sebuah prompt gambar yang detail dalam Bahasa Indonesia untuk topik: "${topic}". Gaya gambar yang diinginkan adalah: "${imageType}". Jelaskan subjek utama, latar belakang, dan komposisi dalam Bahasa Indonesia, namun pertahankan istilah-istilah teknis fotografi dan seni (seperti 'hyper-realistic', 'cinematic lighting', '4K resolution', 'low angle shot') dalam Bahasa Inggris untuk hasil terbaik. Balas HANYA dengan teks prompt gambar, tanpa kata pengantar atau penjelasan apa pun.`;
 
-                const { text: generatedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
+                const { text: generatedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
 
                 promptText.value = generatedPrompt.trim();
 
@@ -1083,7 +1118,7 @@
                 Tujuan Anda adalah memberikan prompt yang sangat detail sehingga AI generator gambar dapat menciptakan hasil yang kaya, kompleks, dan sesuai dengan visi yang diperluas. Balas HANYA dengan prompt yang sudah disempurnakan, tanpa kata pengantar atau penjelasan apa pun.`;
                 const userQuery = `Sempurnakan prompt ini: "${currentPrompt}"`;
 
-                const { text: refinedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
+                const { text: refinedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
 
                 promptText.value = refinedPrompt.trim();
 
@@ -1136,7 +1171,7 @@
                 const systemPrompt = "Anda adalah generator ide konten yang kreatif. Berdasarkan topik yang diberikan, hasilkan 5 ide judul artikel blog yang menarik dan SEO-friendly. Setiap ide harus berada di baris baru, diawali dengan '- ' (tanda hubung dan spasi).";
                 const userQuery = `Topik: "${topic}"`;
 
-                const { text: ideasText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
+                const { text: ideasText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
 
                 const ideas = ideasText.split('\n').filter(idea => idea.trim().startsWith('- ')).map(idea => idea.trim().substring(2).trim());
 
@@ -1192,7 +1227,7 @@
                 const systemPrompt = "Anda adalah seorang spesialis SEO. Berdasarkan topik yang diberikan, hasilkan daftar maksimal 10 kata kunci yang paling relevan. Pisahkan setiap kata kunci dengan koma. Berikan hanya daftar kata kunci, tanpa teks tambahan.";
                 const userQuery = `Topik: "${topic}"`;
 
-                const { text: keywordsText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
+                const { text: keywordsText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
 
                 document.getElementById('keywords').value = keywordsText.trim();
 
