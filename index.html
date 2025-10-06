@@ -169,6 +169,7 @@
                         <option>Gaya Penulisan Semi Formal</option>
                         <option>Gaya Penulisan Casual (Awam)</option>
                         <option>Gaya Penulisan Bercerita</option>
+                        <option>Skrip Dialog Podcast</option>
                     </select>
                 </div>
                 <div>
@@ -628,6 +629,9 @@
                     break;
                 case "Gaya Penulisan Bercerita":
                     stylePrompt = "Tulis ulang artikel berikut dengan Gaya Penulisan Bercerita (Storytelling). Gunakan alur naratif, contoh-contoh, atau analogi untuk membuat konten lebih menarik dan hidup. Bangun koneksi emosional dengan pembaca melalui cerita." + titleInstruction;
+                    break;
+                case "Skrip Dialog Podcast":
+                    stylePrompt = "Tulis ulang artikel berikut menjadi format skrip dialog podcast. Buat kalimat pembukaan yang menarik dan membuat penasaran pendengar. Kemudian, buat dialog tanya jawab antara host dan narasumber yang dinamis dan interaktif. Jangan lupa sisipkan candaan yang segar agar tidak membosankan. Gunakan format yang jelas untuk membedakan pembicara, misalnya 'HOST:' dan 'NARASUMBER:'." + titleInstruction;
                     break;
                 default:
                     stylePrompt = `Tulis ulang artikel berikut dengan '${style}'.` + titleInstruction;
