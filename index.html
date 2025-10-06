@@ -324,6 +324,7 @@
                                     <a href="#" id="copy-html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 uppercase">Salin sebagai Rich Text (HTML)</a>
                                 </div>
                             </div>
+                            <button id="cancel-edit-btn" class="hidden py-2 px-3 text-sm font-medium rounded-md text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 uppercase">BATAL</button>
                             <button id="edit-btn" class="py-2 px-3 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 uppercase">Edit Artikel</button>
                         </div>
                     </div>
@@ -548,8 +549,11 @@
             loadingModalOverlay.classList.remove('hidden');
             outputContainer.style.display = 'none';
             
+            // Preserve keywords during rewrite
+            const keywordsToPreserve = document.getElementById('keywords').value;
+
             try {
-                const { text: articleMarkdown, sources } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash', true);
+                const { text: articleMarkdown, sources } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash', true);
                 let finalMarkdown = articleMarkdown;
                 
                 if (sources && sources.length > 0) {
@@ -567,13 +571,14 @@
 
                 articleOutput.innerHTML = processMarkdownToHtml(finalMarkdown);
 
-                // After a rewrite, update the topic field with the new H1 title
+                // After a rewrite, update the topic field with the new H1 title and restore keywords
                 if (promptModifier) {
                     const lines = finalMarkdown.split('\n');
                     if (lines.length > 0 && lines[0].startsWith('# ')) {
                         const newTitle = lines[0].substring(2).trim();
                         document.getElementById('topic').value = newTitle;
                     }
+                    document.getElementById('keywords').value = keywordsToPreserve;
                 }
 
                 outputContainer.style.display = 'block';
@@ -727,6 +732,7 @@
                 title = "Artikel Tanpa Judul";
             }
             const id = currentArticleIdInput.value ? parseInt(currentArticleIdInput.value) : null;
+            const keywords = document.getElementById('keywords').value; // Get keywords
 
             if (!content.trim()) {
                 alert("Tidak ada konten untuk disimpan.");
@@ -736,7 +742,7 @@
             const transaction = db.transaction(["articles"], "readwrite");
             const objectStore = transaction.objectStore("articles");
             
-            const article = { title, content };
+            const article = { title, content, keywords }; // Add keywords to object
             if (id) {
                 article.id = id;
             }
@@ -807,11 +813,14 @@
                 articleOutput.innerHTML = article.content;
                 currentArticleIdInput.value = article.id;
 
-                // Populate the topic field from the article's H1 title to ensure it persists
+                // Populate the topic field from the article's H1 title
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = article.content;
                 const titleElement = tempDiv.querySelector('h1');
                 document.getElementById('topic').value = titleElement ? titleElement.innerText.trim() : '';
+
+                // Load and populate the keywords field
+                document.getElementById('keywords').value = article.keywords || '';
 
                 outputContainer.style.display = 'block';
                 editorControls.classList.remove('hidden');
@@ -908,23 +917,43 @@
                 .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
         }
 
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+        let originalArticleContent = '';
+
+        const exitEditMode = (restoreContent = false) => {
+            if (restoreContent) {
+                articleOutput.innerHTML = originalArticleContent;
+            }
+            const toolbarElements = editorControls.querySelectorAll('button.editor-btn, select.editor-select');
+            articleOutput.contentEditable = 'false';
+            editBtn.textContent = 'Edit Artikel';
+            cancelEditBtn.classList.add('hidden');
+            articleOutput.classList.remove('border-2', 'border-indigo-300', 'p-4', 'rounded-b-md', '-mt-px');
+            editorControls.classList.add('rounded-b-lg');
+            toolbarElements.forEach(el => el.disabled = true);
+        };
+
         editBtn.addEventListener('click', () => {
             const isEditable = articleOutput.isContentEditable;
-            const toolbarElements = editorControls.querySelectorAll('button.editor-btn, select.editor-select');
             if (isEditable) {
-                articleOutput.contentEditable = 'false';
-                editBtn.textContent = 'Edit Artikel';
-                articleOutput.classList.remove('border-2', 'border-indigo-300', 'p-4', 'rounded-b-md', '-mt-px');
-                editorControls.classList.add('rounded-b-lg');
-                toolbarElements.forEach(el => el.disabled = true);
+                // This is the "SELESAI" action, which just exits edit mode without restoring content
+                exitEditMode(false);
             } else {
+                // This is the "EDIT ARTIKEL" action
+                originalArticleContent = articleOutput.innerHTML; // Save original content
+                const toolbarElements = editorControls.querySelectorAll('button.editor-btn, select.editor-select');
                 articleOutput.contentEditable = 'true';
                 editBtn.textContent = 'Selesai';
+                cancelEditBtn.classList.remove('hidden'); // Show the cancel button
                 articleOutput.classList.add('border-2', 'border-indigo-300', 'p-4', 'rounded-b-md', '-mt-px');
                 editorControls.classList.remove('rounded-b-lg');
                 toolbarElements.forEach(el => el.disabled = false);
                 articleOutput.focus();
             }
+        });
+
+        cancelEditBtn.addEventListener('click', () => {
+            exitEditMode(true); // Exit and restore original content
         });
 
         function formatDoc(command, value = null) {
@@ -1008,7 +1037,7 @@
                 const systemPrompt = "Anda adalah seorang ahli dalam membuat prompt untuk generator gambar AI. Tugas Anda adalah membuat prompt yang detail dan deskriptif berdasarkan topik dan tipe gambar yang diberikan oleh pengguna.";
                 const userQuery = `Buatkan saya sebuah prompt gambar yang detail dalam Bahasa Indonesia untuk topik: "${topic}". Gaya gambar yang diinginkan adalah: "${imageType}". Jelaskan subjek utama, latar belakang, dan komposisi dalam Bahasa Indonesia, namun pertahankan istilah-istilah teknis fotografi dan seni (seperti 'hyper-realistic', 'cinematic lighting', '4K resolution', 'low angle shot') dalam Bahasa Inggris untuk hasil terbaik.`;
 
-                const { text: generatedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
+                const { text: generatedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
 
                 promptText.value = generatedPrompt.trim();
 
@@ -1056,7 +1085,7 @@
                 Tujuan Anda adalah memberikan prompt yang sangat detail sehingga AI generator gambar dapat menciptakan hasil yang kaya, kompleks, dan sesuai dengan visi yang diperluas. Balas HANYA dengan prompt yang sudah disempurnakan, tanpa kata pengantar atau penjelasan apa pun.`;
                 const userQuery = `Sempurnakan prompt ini: "${currentPrompt}"`;
 
-                const { text: refinedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
+                const { text: refinedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
 
                 promptText.value = refinedPrompt.trim();
 
@@ -1109,7 +1138,7 @@
                 const systemPrompt = "Anda adalah generator ide konten yang kreatif. Berdasarkan topik yang diberikan, hasilkan 5 ide judul artikel blog yang menarik dan SEO-friendly. Setiap ide harus berada di baris baru, diawali dengan '- ' (tanda hubung dan spasi).";
                 const userQuery = `Topik: "${topic}"`;
 
-                const { text: ideasText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
+                const { text: ideasText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
 
                 const ideas = ideasText.split('\n').filter(idea => idea.trim().startsWith('- ')).map(idea => idea.trim().substring(2).trim());
 
@@ -1165,7 +1194,7 @@
                 const systemPrompt = "Anda adalah seorang spesialis SEO. Berdasarkan topik yang diberikan, hasilkan daftar maksimal 10 kata kunci yang paling relevan. Pisahkan setiap kata kunci dengan koma. Berikan hanya daftar kata kunci, tanpa teks tambahan.";
                 const userQuery = `Topik: "${topic}"`;
 
-                const { text: keywordsText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
+                const { text: keywordsText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
 
                 document.getElementById('keywords').value = keywordsText.trim();
 
