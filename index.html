@@ -1248,7 +1248,7 @@
                     ideaDbContainer.style.display = 'block';
                     ideas.forEach(idea => {
                         const item = document.createElement('div');
-                        item.className = 'flex items-center p-2 bg-gray-50 rounded hover:bg-gray-100';
+                        item.className = 'idea-item flex items-center p-2 bg-gray-50 rounded hover:bg-gray-100';
                         item.innerHTML = `
                             <div class="flex-shrink-0 flex items-center space-x-2 mr-3">
                                 <svg data-id="${idea.id}" data-action="use" class="w-5 h-5 text-gray-400 hover:text-green-600 cursor-pointer" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
@@ -1270,7 +1270,9 @@
             if (!target) return;
             const id = parseInt(target.dataset.id);
             const action = target.dataset.action;
-            const ideaText = target.closest('.flex').querySelector('span').textContent;
+            const ideaItem = target.closest('.idea-item');
+            if (!ideaItem) return;
+            const ideaText = ideaItem.querySelector('span').textContent;
 
             if (action === 'use') {
                 document.getElementById('topic').value = ideaText;
