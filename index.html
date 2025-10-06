@@ -163,14 +163,15 @@
                 <div>
                     <label for="rewrite-style" class="block text-sm font-medium text-gray-700">Gaya Penulisan</label>
                     <select id="rewrite-style" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50">
-                        <option>Gaya Penulisan Awam</option>
+                        <option>Gaya Penulisan Formal</option>
                         <option>Gaya Penulisan Semi Formal</option>
-                        <option>Gaya Penulisan Casual</option>
+                        <option>Gaya Penulisan Casual (Awam)</option>
+                        <option>Gaya Penulisan Bercerita</option>
                     </select>
                 </div>
                 <div>
-                    <label for="rewrite-extra-prompt" class="block text-sm font-medium text-gray-700">Penambahan Pembahasan</label>
-                    <textarea id="rewrite-extra-prompt" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Masukkan topik atau poin tambahan untuk dibahas dalam artikel yang ditulis ulang..."></textarea>
+                    <label for="rewrite-extra-prompt" class="block text-sm font-medium text-gray-700">Modifikasi Pembahasan</label>
+                    <textarea id="rewrite-extra-prompt" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Instruksi bisa berupa penambahan, pengurangan, penyederhanaan, atau perubahan konten lainnya"></textarea>
                 </div>
             </div>
 
@@ -597,14 +598,32 @@
 
         confirmRewriteBtn.addEventListener('click', () => {
             const style = document.getElementById('rewrite-style').value;
-            const extraPrompt = document.getElementById('rewrite-extra-prompt').value;
+            const modificationInstruction = document.getElementById('rewrite-extra-prompt').value;
 
-            let prompt = `Tulis ulang artikel berikut dengan '${style}'.`;
-            if (extraPrompt.trim()) {
-                prompt += `\n\nSertakan juga pembahasan tambahan mengenai: "${extraPrompt}"`;
+            let stylePrompt = "";
+            switch (style) {
+                case "Gaya Penulisan Formal":
+                    stylePrompt = "Tulis ulang artikel berikut dengan Gaya Penulisan Formal. Gunakan bahasa Indonesia yang baku, struktur kalimat yang jelas, dan nada yang objektif serta profesional. Hindari penggunaan bahasa gaul atau kiasan yang tidak umum.";
+                    break;
+                case "Gaya Penulisan Semi Formal":
+                    stylePrompt = "Tulis ulang artikel berikut dengan Gaya Penulisan Semi Formal. Gunakan bahasa yang sopan dan profesional, namun tetap mudah diakses dan sedikit lebih luwes daripada gaya formal. Boleh menggunakan sapaan yang ramah namun tetap profesional.";
+                    break;
+                case "Gaya Penulisan Casual (Awam)":
+                    stylePrompt = "Tulis ulang artikel berikut dengan Gaya Penulisan Casual (Awam). Gunakan bahasa sehari-hari yang sederhana, ringan, dan mudah dipahami oleh orang awam. Buat seolah-olah sedang menjelaskan kepada teman.";
+                    break;
+                case "Gaya Penulisan Bercerita":
+                    stylePrompt = "Tulis ulang artikel berikut dengan Gaya Penulisan Bercerita (Storytelling). Gunakan alur naratif, contoh-contoh, atau analogi untuk membuat konten lebih menarik dan hidup. Bangun koneksi emosional dengan pembaca melalui cerita.";
+                    break;
+                default:
+                    stylePrompt = `Tulis ulang artikel berikut dengan '${style}'.`;
             }
 
-            handleArticleGeneration(prompt);
+            let fullPrompt = stylePrompt;
+            if (modificationInstruction.trim()) {
+                fullPrompt += `\n\nSelanjutnya, modifikasi artikel berdasarkan instruksi berikut: "${modificationInstruction}"`;
+            }
+
+            handleArticleGeneration(fullPrompt);
             rewriteModalOverlay.classList.add('hidden');
         });
 
