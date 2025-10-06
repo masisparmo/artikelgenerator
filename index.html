@@ -6,6 +6,8 @@
     <title>Generator Artikel SEO-Friendly berbasis AI - Oleh Isparmo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -333,6 +335,8 @@
                          <button id="rewrite-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 uppercase">Re-Write</button>
                          <button id="paraphrase-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 uppercase">Parafrase</button>
                          <button id="save-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-sky-600 hover:bg-sky-700 uppercase">Simpan</button>
+                         <button id="download-docx-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 uppercase">Unduh DOCX</button>
+                         <button id="download-pdf-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 uppercase">Unduh PDF</button>
                     </div>
 
                     <!-- Image Prompt Generator -->
@@ -1301,6 +1305,147 @@
                     displayIdeas();
                 };
             };
+        });
+
+        // --- Download Logic ---
+        const downloadDocxBtn = document.getElementById('download-docx-btn');
+        const downloadPdfBtn = document.getElementById('download-pdf-btn');
+
+        function sanitizeFilename(name) {
+            return name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').substring(0, 50) || "artikel";
+        }
+
+        function htmlToDocx(htmlString) {
+            const { Document, Packer, Paragraph, TextRun, HeadingLevel } = docx;
+
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = htmlString;
+            const nodes = Array.from(tempDiv.childNodes);
+
+            const docxElements = [];
+
+            nodes.forEach(node => {
+                if (node.nodeName === 'H1') {
+                    docxElements.push(new Paragraph({ text: node.innerText, heading: HeadingLevel.HEADING_1, spacing: { after: 200 } }));
+                } else if (node.nodeName === 'H2') {
+                    docxElements.push(new Paragraph({ text: node.innerText, heading: HeadingLevel.HEADING_2, spacing: { after: 200 } }));
+                } else if (node.nodeName === 'H3') {
+                    docxElements.push(new Paragraph({ text: node.innerText, heading: HeadingLevel.HEADING_3, spacing: { after: 200 } }));
+                } else if (node.nodeName === 'P') {
+                    docxElements.push(new Paragraph({ children: [new TextRun(node.innerText)], spacing: { after: 100 } }));
+                } else if (node.nodeName === 'UL') {
+                    Array.from(node.children).forEach(li => {
+                        docxElements.push(new Paragraph({ text: li.innerText, bullet: { level: 0 } }));
+                    });
+                } else if (node.nodeName === 'OL') {
+                     Array.from(node.children).forEach(li => {
+                        docxElements.push(new Paragraph({ text: li.innerText, numbering: { reference: "number-format", level: 0 } }));
+                    });
+                }
+            });
+
+            return docxElements;
+        }
+
+        downloadDocxBtn.addEventListener('click', () => {
+            const { Document, Packer, Paragraph, TextRun, HeadingLevel } = docx;
+
+            const topic = document.getElementById('topic').value.trim();
+            const keywords = document.getElementById('keywords').value.trim();
+            const articleContent = articleOutput.innerHTML;
+
+            if (!topic && !articleContent.trim()) {
+                alert("Tidak ada konten untuk diunduh.");
+                return;
+            }
+
+            const doc = new Document({
+                 numbering: {
+                    config: [
+                        {
+                            reference: "number-format",
+                            levels: [
+                                {
+                                    level: 0,
+                                    format: "decimal",
+                                    text: "%1.",
+                                    alignment: "start",
+                                },
+                            ],
+                        },
+                    ],
+                },
+                sections: [{
+                    properties: {},
+                    children: [
+                        new Paragraph({ text: topic, heading: HeadingLevel.TITLE }),
+                        new Paragraph({ text: "" }), // Spacer
+                        new Paragraph({
+                            children: [
+                                new TextRun({ text: "Keywords: ", bold: true }),
+                                new TextRun(keywords),
+                            ],
+                        }),
+                        new Paragraph({ text: "" }), // Spacer
+                        ...htmlToDocx(articleContent)
+                    ],
+                }],
+            });
+
+            Packer.toBlob(doc).then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `${sanitizeFilename(topic)}.docx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            });
+        });
+
+        downloadPdfBtn.addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const topic = document.getElementById('topic').value.trim();
+            const keywords = document.getElementById('keywords').value.trim();
+            const articleContent = articleOutput.innerHTML;
+
+            if (!topic && !articleContent.trim()) {
+                alert("Tidak ada konten untuk diunduh.");
+                return;
+            }
+
+            const doc = new jsPDF({
+                orientation: 'p',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            const tempContainer = document.createElement('div');
+
+            const titleElement = document.createElement('h1');
+            titleElement.textContent = topic;
+            tempContainer.appendChild(titleElement);
+
+            const keywordsElement = document.createElement('p');
+            keywordsElement.textContent = `Keywords: ${keywords}`;
+            tempContainer.appendChild(keywordsElement);
+
+            const articleElement = document.createElement('div');
+            articleElement.innerHTML = articleContent;
+            tempContainer.appendChild(articleElement);
+
+
+            doc.html(tempContainer, {
+                callback: function (doc) {
+                    doc.save(`${sanitizeFilename(topic)}.pdf`);
+                },
+                x: 15,
+                y: 15,
+                width: 170,
+                windowWidth: 650,
+                autoPaging: 'text'
+            });
         });
     </script>
 </body>
