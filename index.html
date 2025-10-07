@@ -81,6 +81,10 @@
         .editor-select {
              @apply text-sm px-2 py-1.5 rounded bg-transparent hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-indigo-400 border-0;
         }
+        #article-output {
+            max-height: 50vh;
+            overflow-y: auto;
+        }
         #article-output[contenteditable="true"] {
             @apply border-2 border-indigo-300 p-4 rounded-b-md focus:outline-none -mt-px;
         }
