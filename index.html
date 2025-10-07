@@ -624,16 +624,60 @@
         const currentArticleIdInput = document.getElementById('current-article-id');
         const fileUploadInput = document.getElementById('file_upload');
         let isNewVersion = false;
-        let uploadedFileNames = [];
+        let uploadedFileStore = [];
 
-        fileUploadInput.addEventListener('change', () => {
-            uploadedFileNames = Array.from(fileUploadInput.files).map(file => file.name);
+        function renderUploadedFiles() {
             const feedbackContainer = document.getElementById('file-upload-feedback');
-            if (uploadedFileNames.length > 0) {
-                feedbackContainer.innerHTML = `<span class="font-medium">File yang dipilih:</span><ul class="list-disc list-inside mt-1">${uploadedFileNames.map(name => `<li>${name}</li>`).join('')}</ul>`;
-            } else {
-                feedbackContainer.innerHTML = ''; // Clear feedback if no files are selected
+            feedbackContainer.innerHTML = ''; // Clear the container first
+
+            if (uploadedFileStore.length > 0) {
+                const list = document.createElement('ul');
+                list.className = 'list-disc list-inside mt-1 space-y-1';
+
+                uploadedFileStore.forEach((file, index) => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'flex items-center justify-between bg-gray-50 p-2 rounded';
+
+                    const fileNameSpan = document.createElement('span');
+                    fileNameSpan.textContent = file.name;
+                    fileNameSpan.className = 'truncate text-sm';
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.type = 'button';
+                    removeBtn.className = 'remove-btn flex-shrink-0 flex items-center justify-center w-6 h-6 bg-red-500 text-white rounded-full hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ml-2';
+                    removeBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 15L15 9M9 9l6 6"></path></svg>';
+                    removeBtn.onclick = () => removeUploadedFile(index);
+
+                    listItem.appendChild(fileNameSpan);
+                    listItem.appendChild(removeBtn);
+                    list.appendChild(listItem);
+                });
+
+                const title = document.createElement('span');
+                title.className = 'font-medium';
+                title.textContent = 'File yang dipilih:';
+
+                feedbackContainer.appendChild(title);
+                feedbackContainer.appendChild(list);
             }
+        }
+
+        function removeUploadedFile(index) {
+            uploadedFileStore.splice(index, 1);
+            renderUploadedFiles();
+        }
+
+        fileUploadInput.addEventListener('change', (event) => {
+            const newFiles = Array.from(event.target.files);
+            newFiles.forEach(newFile => {
+                // Prevent duplicates by checking name and size
+                if (!uploadedFileStore.some(existingFile => existingFile.name === newFile.name && existingFile.size === newFile.size)) {
+                    uploadedFileStore.push(newFile);
+                }
+            });
+            renderUploadedFiles();
+            // Clear the input value to allow selecting the same file again after removing it
+            event.target.value = '';
         });
 
         async function handleArticleGeneration(promptModifier = "") {
@@ -683,6 +727,7 @@
                 if (pastedTexts.length > 0) {
                     referencePrompt += `\n\nTeks yang Ditempel sebagai Referensi:\n${pastedTexts.join('\n---\n')}`;
                 }
+                const uploadedFileNames = uploadedFileStore.map(file => file.name);
                 if (uploadedFileNames.length > 0) {
                     const fileReferences = uploadedFileNames.join(', ');
                      referencePrompt += `\n\nFile yang Diunggah sebagai Referensi: ${fileReferences}.`;
