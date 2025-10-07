@@ -1445,7 +1445,7 @@
                     if (pastedTexts.length > 0) referencePrompt += `\nTeks Ditempel:\n${pastedTexts.join('\n---\n')}`;
                     if (hasUploadedFiles) referencePrompt += `\nFile Diunggah: ${uploadedFileStore.map(f => f.name).join(', ')}`;
 
-                    const { text: generatedTopic } = await callGenerationAPI(systemPrompt, referencePrompt, 'gemini-1.5-flash');
+                    const { text: generatedTopic } = await callGenerationAPI(systemPrompt, referencePrompt, 'gemini-2.5-flash');
 
                     topicInput.value = generatedTopic.trim();
                     // Proses berhenti di sini, menunggu pengguna menekan tombol lagi.
@@ -1468,7 +1468,7 @@
                 const systemPrompt = "Anda adalah generator ide konten yang kreatif. Berdasarkan topik yang diberikan, hasilkan 5 ide judul artikel blog yang menarik dan SEO-friendly. Setiap ide harus berada di baris baru, diawali dengan '- ' (tanda hubung dan spasi).";
                 const userQuery = `Topik: "${topic}"`;
 
-                const { text: ideasText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
+                const { text: ideasText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
 
                 const ideas = ideasText.split('\n').filter(idea => idea.trim().startsWith('- ')).map(idea => idea.trim().substring(2).trim());
 
