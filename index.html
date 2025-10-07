@@ -250,24 +250,54 @@
 
                     <h3 class="text-lg font-medium text-gray-800 border-t pt-6">Sumber Referensi (Opsional)</h3>
 
-                    <div>
-                        <label for="url_website" class="block text-sm font-medium text-gray-700">URL Website</label>
-                        <input type="url" id="url_website" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="https://contoh-website.com/artikel">
+                    <!-- URL Website Container -->
+                    <div id="website-url-container" class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-sm font-medium text-gray-700">URL Website</label>
+                            <button type="button" onclick="addReferenceInput('website-url-container', 'url')" class="add-btn flex items-center justify-center w-6 h-6 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                            </button>
+                        </div>
+                        <div class="reference-input-group flex items-center space-x-2">
+                            <input type="url" name="url_website" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="https://contoh-website.com/artikel">
+                            <!-- Remove button will be added here by JS -->
+                        </div>
                     </div>
 
-                    <div>
-                        <label for="url_youtube" class="block text-sm font-medium text-gray-700">URL YouTube</label>
-                        <input type="url" id="url_youtube" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="https://www.youtube.com/watch?v=...">
+                    <!-- URL YouTube Container -->
+                    <div id="youtube-url-container" class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-sm font-medium text-gray-700">URL YouTube</label>
+                             <button type="button" onclick="addReferenceInput('youtube-url-container', 'url')" class="add-btn flex items-center justify-center w-6 h-6 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                            </button>
+                        </div>
+                        <div class="reference-input-group flex items-center space-x-2">
+                            <input type="url" name="url_youtube" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="https://www.youtube.com/watch?v=...">
+                            <!-- Remove button will be added here by JS -->
+                        </div>
                     </div>
 
-                    <div>
-                         <label for="text_paste" class="block text-sm font-medium text-gray-700">Tempel Teks</label>
-                         <textarea id="text_paste" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Tempelkan teks referensi di sini..."></textarea>
+                    <!-- Tempel Teks Container -->
+                    <div id="paste-text-container" class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-sm font-medium text-gray-700">Tempel Teks</label>
+                             <button type="button" onclick="addReferenceInput('paste-text-container', 'textarea')" class="add-btn flex items-center justify-center w-6 h-6 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                            </button>
+                        </div>
+                        <div class="reference-input-group flex items-start space-x-2">
+                            <textarea name="text_paste" rows="4" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Tempelkan teks referensi di sini..."></textarea>
+                            <!-- Remove button will be added here by JS -->
+                        </div>
                     </div>
 
                     <div>
                         <label for="file_upload" class="block text-sm font-medium text-gray-700">Unggah File (.pdf, .docx, .pptx, .xlsx, .epub)</label>
-                        <input type="file" id="file_upload" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 uppercase" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.epub">
+                        <div class="mt-1">
+                            <input type="file" id="file_upload" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 uppercase" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.epub">
+                            <div id="file-upload-feedback" class="mt-2 text-sm text-gray-500"></div>
+                        </div>
                     </div>
 
                     <div>
@@ -474,12 +504,83 @@
             };
         }
 
+        // --- Dynamic Reference Inputs ---
+        function addReferenceInput(containerId, inputType) {
+            const container = document.getElementById(containerId);
+            const newGroup = document.createElement('div');
+            newGroup.className = 'reference-input-group flex items-start space-x-2 mt-2'; // Use items-start for textareas
+
+            let newElement;
+            const name = container.querySelector('[name]').name; // Get name from the first input in the container
+            const placeholder = container.querySelector('[placeholder]').placeholder;
+
+            if (inputType === 'textarea') {
+                newElement = document.createElement('textarea');
+                newElement.rows = "4";
+                newElement.className = "block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50";
+            } else { // 'url' or other input types
+                newElement = document.createElement('input');
+                newElement.type = inputType;
+                newElement.className = "block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50";
+            }
+            newElement.name = name;
+            newElement.placeholder = placeholder;
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'remove-btn flex-shrink-0 flex items-center justify-center w-8 h-8 bg-red-500 text-white rounded-full hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500';
+            removeBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+            removeBtn.onclick = function() { removeReferenceInput(this); };
+
+            newGroup.appendChild(newElement);
+            newGroup.appendChild(removeBtn);
+
+            // Align button vertically for inputs
+            if (inputType !== 'textarea') {
+                newGroup.classList.remove('items-start');
+                newGroup.classList.add('items-center');
+            }
+
+            container.appendChild(newGroup);
+        }
+
+        function removeReferenceInput(buttonElement) {
+            const group = buttonElement.closest('.reference-input-group');
+            if (group) {
+                group.remove();
+            }
+        }
+
+        function addInitialRemoveButtons() {
+            document.querySelectorAll('.reference-input-group').forEach(group => {
+                 // Don't add a button if one already exists
+                if (group.querySelector('.remove-btn')) {
+                    return;
+                }
+
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'remove-btn flex-shrink-0 flex items-center justify-center w-8 h-8 bg-red-500 text-white rounded-full hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500';
+                removeBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+                removeBtn.onclick = function() { removeReferenceInput(this); };
+
+                // For textareas, the button should align to the top
+                if (group.querySelector('textarea')) {
+                     group.classList.add('items-start');
+                }
+
+                group.appendChild(removeBtn);
+            });
+        }
+
+
         window.addEventListener('DOMContentLoaded', () => {
             initDB();
             userApiKey = localStorage.getItem('geminiApiKey');
             if (!userApiKey) {
                 apiKeyModalOverlay.classList.remove('hidden');
             }
+            addInitialRemoveButtons();
         });
 
         saveApiKeyBtn.addEventListener('click', () => {
@@ -527,6 +628,12 @@
 
         fileUploadInput.addEventListener('change', () => {
             uploadedFileNames = Array.from(fileUploadInput.files).map(file => file.name);
+            const feedbackContainer = document.getElementById('file-upload-feedback');
+            if (uploadedFileNames.length > 0) {
+                feedbackContainer.innerHTML = `<span class="font-medium">File yang dipilih:</span><ul class="list-disc list-inside mt-1">${uploadedFileNames.map(name => `<li>${name}</li>`).join('')}</ul>`;
+            } else {
+                feedbackContainer.innerHTML = ''; // Clear feedback if no files are selected
+            }
         });
 
         async function handleArticleGeneration(promptModifier = "") {
@@ -553,7 +660,40 @@
                     alert("Silakan masukkan topik artikel.");
                     return;
                 }
-                userQuery = `Topik Artikel: "${topic}"\nKata Kunci: "${keywords}"\n\nBuat artikel blog yang komprehensif (minimal 1500 kata). Artikel harus menyertakan '## Resume Artikel', '## Daftar Isi' dengan placeholder '[Daftar Isi]', dan konten utama. PENTING: Anda harus menggunakan alat pencarian untuk menemukan dan merujuk pada minimal 3 sumber online yang kredibel (artikel web atau video YouTube). Di akhir artikel, buat bagian berjudul '## Daftar Pustaka'. Untuk setiap sumber online, formatlah dalam gaya sitasi APA, tetapi buatlah judul artikel atau video menjadi hyperlink markdown. Contoh untuk artikel web: 'Nama Penulis. (Tahun, Tanggal). [Judul Artikel](URL). Nama Situs Web.'. Contoh untuk YouTube: 'Nama Kanal. (Tahun, Tanggal Publikasi). [Judul Video [Video]](URL). YouTube.'.`;
+                userQuery = `Topik Artikel: "${topic}"\nKata Kunci: "${keywords}"`;
+
+                // --- New Data Collection Logic ---
+                const websiteUrls = Array.from(document.querySelectorAll('input[name="url_website"]'))
+                                       .map(input => input.value.trim())
+                                       .filter(url => url);
+                const youtubeUrls = Array.from(document.querySelectorAll('input[name="url_youtube"]'))
+                                       .map(input => input.value.trim())
+                                       .filter(url => url);
+                const pastedTexts = Array.from(document.querySelectorAll('textarea[name="text_paste"]'))
+                                      .map(textarea => textarea.value.trim())
+                                      .filter(text => text);
+
+                let referencePrompt = "";
+                if (websiteUrls.length > 0) {
+                    referencePrompt += `\n\nURL Website sebagai Referensi:\n${websiteUrls.join('\n')}`;
+                }
+                if (youtubeUrls.length > 0) {
+                    referencePrompt += `\n\nURL YouTube sebagai Referensi:\n${youtubeUrls.join('\n')}`;
+                }
+                if (pastedTexts.length > 0) {
+                    referencePrompt += `\n\nTeks yang Ditempel sebagai Referensi:\n${pastedTexts.join('\n---\n')}`;
+                }
+                if (uploadedFileNames.length > 0) {
+                    const fileReferences = uploadedFileNames.join(', ');
+                     referencePrompt += `\n\nFile yang Diunggah sebagai Referensi: ${fileReferences}.`;
+                }
+
+                if (referencePrompt) {
+                     userQuery += `\n\nGunakan sumber-sumber berikut sebagai referensi utama saat menulis artikel:\n${referencePrompt}`;
+                }
+                // --- End New Data Collection Logic ---
+
+                userQuery += `\n\nInstruksi Penulisan:\nBuat artikel blog yang komprehensif (minimal 1500 kata). Artikel harus menyertakan '## Resume Artikel', '## Daftar Isi' dengan placeholder '[Daftar Isi]', dan konten utama. PENTING: Anda harus menggunakan alat pencarian untuk menemukan dan merujuk pada minimal 3 sumber online yang kredibel (artikel web atau video YouTube). Di akhir artikel, buat bagian berjudul '## Daftar Pustaka'. Untuk setiap sumber online, formatlah dalam gaya sitasi APA, tetapi buatlah judul artikel atau video menjadi hyperlink markdown. Contoh untuk artikel web: 'Nama Penulis. (Tahun, Tanggal). [Judul Artikel](URL). Nama Situs Web.'. Contoh untuk YouTube: 'Nama Kanal. (Tahun, Tanggal Publikasi). [Judul Video [Video]](URL). YouTube.'.`;
 
                 if (uploadedFileNames.length > 0) {
                     const fileReferences = uploadedFileNames.join(', ');
