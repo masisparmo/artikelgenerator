@@ -521,8 +521,13 @@
         const copyBtn = document.getElementById('copy-btn');
         const copyOptions = document.getElementById('copy-options');
         const currentArticleIdInput = document.getElementById('current-article-id');
+        const fileUploadInput = document.getElementById('file_upload');
         let isNewVersion = false;
+        let uploadedFileNames = [];
 
+        fileUploadInput.addEventListener('change', () => {
+            uploadedFileNames = Array.from(fileUploadInput.files).map(file => file.name);
+        });
 
         async function handleArticleGeneration(promptModifier = "") {
             if (!userApiKey) {
@@ -548,7 +553,12 @@
                     alert("Silakan masukkan topik artikel.");
                     return;
                 }
-                userQuery = `Topik Artikel: "${topic}"\nKata Kunci: "${keywords}"\n\n Tulis artikel blog yang komprehensif (minimal 1500 kata). Sertakan '## Resume Artikel', '## Daftar Isi' dengan placeholder '[Daftar Isi]', dan bagian utama artikel.`;
+                userQuery = `Topik Artikel: "${topic}"\nKata Kunci: "${keywords}"\n\nBuat artikel blog yang komprehensif (minimal 1500 kata). Artikel harus menyertakan '## Resume Artikel', '## Daftar Isi' dengan placeholder '[Daftar Isi]', dan konten utama. PENTING: Anda harus menggunakan alat pencarian untuk menemukan dan merujuk pada minimal 3 sumber online yang kredibel (artikel web atau video YouTube). Di akhir artikel, buat bagian berjudul '## Daftar Pustaka'. Untuk setiap sumber online, formatlah dalam gaya sitasi APA, tetapi buatlah judul artikel atau video menjadi hyperlink markdown. Contoh untuk artikel web: 'Nama Penulis. (Tahun, Tanggal). [Judul Artikel](URL). Nama Situs Web.'. Contoh untuk YouTube: 'Nama Kanal. (Tahun, Tanggal Publikasi). [Judul Video [Video]](URL). YouTube.'.`;
+
+                if (uploadedFileNames.length > 0) {
+                    const fileReferences = uploadedFileNames.join(', ');
+                    userQuery += `\n\nSelain sumber online, sertakan juga referensi dari dokumen yang diunggah berikut di dalam 'Daftar Pustaka': ${fileReferences}. Asumsikan ini adalah Ebook atau dokumen, dan formatlah sitasinya dengan benar, misalnya: 'Nama File (sebagai Judul). (Tahun). Dokumen Pribadi.'`;
+                }
             }
 
             loadingModalOverlay.classList.remove('hidden');
@@ -560,14 +570,7 @@
             try {
                 const { text: articleMarkdown, sources } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash', true);
                 let finalMarkdown = articleMarkdown;
-                
-                if (sources && sources.length > 0) {
-                    finalMarkdown += `\n\n## Referensi\n`;
-                    sources.forEach(source => {
-                       if(source.uri) finalMarkdown += `* [${source.title}](${source.uri})\n`;
-                    });
-                }
-                
+
                 // The state (isNewVersion or empty ID) is now set by the calling button.
                 // No need to clear the ID here anymore.
 
