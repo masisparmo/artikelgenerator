@@ -328,6 +328,10 @@
                     <!-- Article Database -->
                     <div id="article-db-container" class="hidden">
                          <h3 class="text-lg font-medium text-gray-800 border-b pb-2 mb-3">Database Artikel</h3>
+                         <div class="mb-3 flex space-x-2">
+                            <input type="text" id="search-article-input" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Cari judul artikel...">
+                            <button id="search-article-btn" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 uppercase">CARI</button>
+                         </div>
                          <div id="article-list" class="space-y-2 max-h-48 overflow-y-auto pr-2">
                              <!-- Saved articles will be listed here -->
                          </div>
@@ -598,6 +602,22 @@
                 apiKeyModalOverlay.classList.remove('hidden');
             }
             addInitialRemoveButtons();
+
+            // Search functionality
+            const searchInput = document.getElementById('search-article-input');
+            const searchBtn = document.getElementById('search-article-btn');
+
+            searchBtn.addEventListener('click', () => {
+                displayArticles(searchInput.value);
+            });
+
+            searchInput.addEventListener('keyup', (event) => {
+                if (event.key === 'Enter') {
+                    displayArticles(searchInput.value);
+                } else if (searchInput.value === '') {
+                    displayArticles();
+                }
+            });
         });
 
         saveApiKeyBtn.addEventListener('click', () => {
@@ -961,7 +981,7 @@
 
             if (shouldAddNew) {
                 // ADD a new article (either from scratch, or as a rewrite/paraphrase)
-                const article = { title, content, keywords };
+                const article = { title, content, keywords, createdAt: new Date() };
                 const request = objectStore.add(article);
 
                 request.onsuccess = () => {
@@ -1003,7 +1023,7 @@
             }
         });
 
-        function displayArticles() {
+        function displayArticles(filter = '') {
             const articleList = document.getElementById('article-list');
             const dbContainer = document.getElementById('article-db-container');
             articleList.innerHTML = '';
@@ -1012,23 +1032,54 @@
             const request = objectStore.getAll();
             
             request.onsuccess = (event) => {
-                const articles = event.target.result;
+                let articles = event.target.result.reverse();
+
+                if (filter) {
+                    const lowercasedFilter = filter.toLowerCase();
+                    articles = articles.filter(article =>
+                        (article.title || '').toLowerCase().includes(lowercasedFilter)
+                    );
+                }
+
                 if (articles && articles.length > 0) {
                     dbContainer.classList.remove('hidden');
                     articles.forEach(article => {
                         const item = document.createElement('div');
-                        item.className = 'flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-gray-100';
+                        item.className = 'p-2 bg-gray-50 rounded hover:bg-gray-100';
+
+                        let dateHtml = '';
+                        if (article.createdAt) {
+                            const date = new Date(article.createdAt);
+                            const day = String(date.getDate()).padStart(2, '0');
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const year = date.getFullYear();
+                            dateHtml = `<span class="text-xs text-gray-500">${day}/${month}/${year}</span>`;
+                        }
+
+                        const articleTitle = article.title || 'Artikel Tanpa Judul';
+                        const escapedTitle = articleTitle.replace(/"/g, '&quot;');
+
                         item.innerHTML = `
-                            <div class="flex items-center space-x-2 flex-grow overflow-hidden">
-                                <svg class="w-5 h-5 text-gray-500 hover:text-indigo-600 cursor-pointer flex-shrink-0" data-id="${article.id}" data-action="edit" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path></svg>
-                                <svg class="w-5 h-5 text-red-400 hover:text-red-600 cursor-pointer flex-shrink-0" data-id="${article.id}" data-action="delete" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>
-                                <span class="truncate text-sm text-gray-700 ml-2">${article.title}</span>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2 flex-grow overflow-hidden">
+                                    <svg class="w-5 h-5 text-gray-500 hover:text-indigo-600 cursor-pointer flex-shrink-0" data-id="${article.id}" data-action="edit" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path></svg>
+                                    <svg class="w-5 h-5 text-red-400 hover:text-red-600 cursor-pointer flex-shrink-0" data-id="${article.id}" data-action="delete" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>
+                                    <div class="flex flex-col ml-2 overflow-hidden">
+                                        <span class="truncate text-sm text-gray-700" title="${escapedTitle}">${articleTitle}</span>
+                                        ${dateHtml}
+                                    </div>
+                                </div>
                             </div>
                         `;
                         articleList.appendChild(item);
                     });
                 } else {
-                    dbContainer.classList.add('hidden');
+                    if (filter) {
+                        articleList.innerHTML = `<p class="text-sm text-gray-500 p-2">Tidak ada artikel yang cocok dengan pencarian Anda.</p>`;
+                        dbContainer.classList.remove('hidden');
+                    } else {
+                        dbContainer.classList.add('hidden');
+                    }
                 }
             };
         }
