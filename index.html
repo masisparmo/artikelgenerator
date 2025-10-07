@@ -1349,12 +1349,49 @@
         });
 
         generateIdeasBtn.addEventListener('click', async () => {
-            const topic = document.getElementById('topic').value;
+            const topicInput = document.getElementById('topic');
+            let topic = topicInput.value;
+
+            // Jika topik kosong, coba generate dari referensi
             if (!topic.trim()) {
-                alert("Silakan masukkan topik artikel terlebih dahulu untuk mendapatkan ide.");
-                return;
+                const websiteUrls = Array.from(document.querySelectorAll('input[name="url_website"]')).map(input => input.value.trim()).filter(url => url);
+                const youtubeUrls = Array.from(document.querySelectorAll('input[name="url_youtube"]')).map(input => input.value.trim()).filter(url => url);
+                const pastedTexts = Array.from(document.querySelectorAll('textarea[name="text_paste"]')).map(textarea => textarea.value.trim()).filter(text => text);
+                const hasUploadedFiles = uploadedFileStore.length > 0;
+
+                const hasReferences = websiteUrls.length > 0 || youtubeUrls.length > 0 || pastedTexts.length > 0 || hasUploadedFiles;
+
+                if (!hasReferences) {
+                    alert("Silakan isi Topik Artikel atau berikan Sumber Referensi.");
+                    return;
+                }
+
+                loadingModalOverlay.classList.remove('hidden');
+
+                try {
+                    const systemPrompt = "Anda adalah seorang ahli strategi konten yang cerdas. Tugas Anda adalah menganalisis sumber referensi yang diberikan dan menghasilkan SATU topik artikel yang paling menarik dan relevan dari sumber tersebut. Balas HANYA dengan topik artikelnya, tanpa penjelasan atau kata pengantar.";
+
+                    let referencePrompt = "Berikut adalah sumber referensi yang tersedia:\n";
+                    if (websiteUrls.length > 0) referencePrompt += `\nURL Website:\n${websiteUrls.join('\n')}`;
+                    if (youtubeUrls.length > 0) referencePrompt += `\nURL YouTube:\n${youtubeUrls.join('\n')}`;
+                    if (pastedTexts.length > 0) referencePrompt += `\nTeks Ditempel:\n${pastedTexts.join('\n---\n')}`;
+                    if (hasUploadedFiles) referencePrompt += `\nFile Diunggah: ${uploadedFileStore.map(f => f.name).join(', ')}`;
+
+                    const { text: generatedTopic } = await callGenerationAPI(systemPrompt, referencePrompt, 'gemini-1.5-flash');
+
+                    topicInput.value = generatedTopic.trim();
+                    // Proses berhenti di sini, menunggu pengguna menekan tombol lagi.
+
+                } catch (error) {
+                    console.error("Error generating topic from references:", error);
+                    alert(`Gagal menghasilkan topik dari referensi: ${error.message}`);
+                } finally {
+                    loadingModalOverlay.classList.add('hidden');
+                }
+                return; // Stop execution after generating the topic
             }
 
+            // Jika topik sudah ada (atau baru saja di-generate), lanjutkan untuk membuat ide
             loadingModalOverlay.classList.remove('hidden');
             ideaSuggestionContainer.innerHTML = '';
             ideaSuggestionContainer.classList.add('hidden');
@@ -1363,7 +1400,7 @@
                 const systemPrompt = "Anda adalah generator ide konten yang kreatif. Berdasarkan topik yang diberikan, hasilkan 5 ide judul artikel blog yang menarik dan SEO-friendly. Setiap ide harus berada di baris baru, diawali dengan '- ' (tanda hubung dan spasi).";
                 const userQuery = `Topik: "${topic}"`;
 
-                const { text: ideasText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
+                const { text: ideasText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
 
                 const ideas = ideasText.split('\n').filter(idea => idea.trim().startsWith('- ')).map(idea => idea.trim().substring(2).trim());
 
