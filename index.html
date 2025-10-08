@@ -142,9 +142,35 @@
         .resize-handle.top-right { top: -5px; right: -5px; cursor: nesw-resize; }
         .resize-handle.bottom-left { bottom: -5px; left: -5px; cursor: nesw-resize; }
         .resize-handle.bottom-right { bottom: -5px; right: -5px; cursor: nwse-resize; }
+        #image-context-menu {
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
+
+    <!-- Image Context Menu -->
+    <div id="image-context-menu" class="hidden absolute z-20 bg-white rounded-md shadow-lg border text-sm">
+        <button data-action="link" class="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center space-x-2"><svg class="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20"><path d="M12.232 4.232a2.5 2.5 0 013.536 3.536l-1.225 1.224a.75.75 0 001.061 1.06l1.224-1.224a4 4 0 00-5.656-5.656l-3 3a4 4 0 00.225 5.865.75.75 0 00.977-1.138 2.5 2.5 0 01-.142-3.665l3-3z"></path><path d="M8.603 14.25a2.5 2.5 0 01-3.536-3.536l1.225-1.224a.75.75 0 00-1.061-1.06l-1.224 1.224a4 4 0 005.656 5.656l3-3a4 4 0 00-.225-5.865.75.75 0 00-.977 1.138 2.5 2.5 0 01.142 3.665l-3 3z"></path></svg><span>Sisipkan Link</span></button>
+        <button data-action="alt" class="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center space-x-2"><svg class="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M15.28 16.72a.75.75 0 01-1.06 0l-4-4a.75.75 0 010-1.06l4-4a.75.75 0 111.06 1.06L11.81 12l3.47 3.47a.75.75 0 010 1.25zm-8.56-0a.75.75 0 01-1.06 0l-4-4a.75.75 0 010-1.06l4-4a.75.75 0 111.06 1.06L3.81 12l3.47 3.47a.75.75 0 010 1.25z" clip-rule="evenodd"></path></svg><span>Edit Alt Text</span></button>
+        <div class="border-t border-gray-200"></div>
+        <button data-action="delete" class="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600 flex items-center space-x-2"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.58.22-2.365.468a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193v-.443A2.75 2.75 0 0011.25 1H8.75zM10 4.5a.75.75 0 01.75.75v8.5a.75.75 0 01-1.5 0v-8.5A.75.75 0 0110 4.5zM7.5 3.75A1.25 1.25 0 018.75 2.5h2.5A1.25 1.25 0 0112.5 3.75v.443c-.621.048-1.25.12-1.875.215a.75.75 0 01-.375 0c-.625-.095-1.254-.167-1.875-.215v-.443z" clip-rule="evenodd"></path></svg><span>Hapus Gambar</span></button>
+    </div>
+
+    <!-- Edit Alt Text Modal -->
+    <div id="alt-text-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full">
+            <h3 class="text-lg font-medium text-gray-900 uppercase">Edit Alternate Text</h3>
+            <div class="mt-4">
+                <label for="alt-text-input" class="block text-sm font-medium text-gray-700">Teks Alternatif (alt)</label>
+                <input type="text" id="alt-text-input" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50">
+            </div>
+            <div class="mt-4 flex justify-end space-x-2">
+                <button id="cancel-alt-text-btn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 uppercase">Batal</button>
+                <button id="confirm-alt-text-btn" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 uppercase">Simpan</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Loading Modal -->
     <div id="loading-modal-overlay" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 hidden">
@@ -458,6 +484,7 @@
                              <button class="editor-btn" onclick="formatDoc('justifyLeft')" title="Rata Kiri" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M15 15H3v2h12v-2zm0-8H3v2h12V7zM3 13h18v-2H3v2zm0 8h18v-2H3v2zM3 3v2h18V3H3z"></path></svg></button>
                             <button class="editor-btn" onclick="formatDoc('justifyCenter')" title="Rata Tengah" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M7 15v2h10v-2H7zm-4 6h18v-2H3v2zm0-8h18v-2H3v2zm4-6v2h10V7H7zM3 3v2h18V3H3z"></path></svg></button>
                             <button class="editor-btn" onclick="formatDoc('justifyRight')" title="Rata Kanan" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3 21h18v-2H3v2zm6-4h12v-2H9v2zm-6-4h18v-2H3v2zm6-4h12V7H9v2zM3 3v2h18V3H3z"></path></svg></button>
+                            <button class="editor-btn" onclick="formatDoc('justifyFull')" title="Rata Kanan-Kiri" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3 21h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18v-2H3v2z"></path></svg></button>
                         </div>
                         <div class="toolbar-group">
                             <button class="editor-btn" onclick="formatDoc('removeFormat')" title="Hapus Format" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3.27 5L2 6.27l6.97 6.97L6.5 19h3l1.57-3.66L16.73 21 18 19.73 3.55 5.27 3.27 5zM6 5v.18L8.82 8h2.4l-.72 1.68 2.1 2.1L14.21 8h2.4L19 5H6z"></path></svg></button>
@@ -1467,6 +1494,42 @@
         const cancelEditBtn = document.getElementById('cancel-edit-btn');
         let originalArticleContent = '';
 
+        // --- Context Menu and Alt Text Modal ---
+        const imageContextMenu = document.getElementById('image-context-menu');
+        const altTextModalOverlay = document.getElementById('alt-text-modal-overlay');
+        const altTextInput = document.getElementById('alt-text-input');
+        const confirmAltTextBtn = document.getElementById('confirm-alt-text-btn');
+        const cancelAltTextBtn = document.getElementById('cancel-alt-text-btn');
+
+        cancelAltTextBtn.addEventListener('click', () => altTextModalOverlay.classList.add('hidden'));
+
+        confirmAltTextBtn.addEventListener('click', () => {
+            if (currentlySelectedImage) {
+                currentlySelectedImage.alt = altTextInput.value;
+            }
+            altTextModalOverlay.classList.add('hidden');
+        });
+
+        imageContextMenu.addEventListener('click', (e) => {
+            const action = e.target.closest('button').dataset.action;
+            if (!action || !currentlySelectedImage) return;
+
+            switch (action) {
+                case 'link':
+                    insertLink();
+                    break;
+                case 'alt':
+                    altTextInput.value = currentlySelectedImage.alt;
+                    altTextModalOverlay.classList.remove('hidden');
+                    break;
+                case 'delete':
+                    deleteImageModalOverlay.classList.remove('hidden');
+                    break;
+            }
+            imageContextMenu.classList.add('hidden');
+        });
+
+
         // --- Image Deletion Modal ---
         const deleteImageModalOverlay = document.getElementById('delete-image-modal-overlay');
         const cancelDeleteImageBtn = document.getElementById('cancel-delete-image-btn');
@@ -1506,11 +1569,30 @@
             }
         }
 
+        function handleImageDblClick(event) {
+            if (event.target.tagName === 'IMG') {
+                event.preventDefault();
+                event.stopPropagation();
+
+                // Select the image using the single-click logic first
+                event.target.click();
+
+                // Position and show the context menu
+                const rect = event.target.getBoundingClientRect();
+                imageContextMenu.style.top = `${window.scrollY + rect.top}px`;
+                imageContextMenu.style.left = `${window.scrollX + rect.right + 5}px`;
+                imageContextMenu.classList.remove('hidden');
+            }
+        }
+
         function handleEditorClickForResize(event) {
             const target = event.target;
             const wrapper = target.closest('.resize-wrapper');
 
-            if (target.classList.contains('resize-handle')) return;
+            if (target.classList.contains('resize-handle') || imageContextMenu.contains(target)) return;
+
+            // Always hide context menu on single click
+            imageContextMenu.classList.add('hidden');
 
             const currentlySelectedWrapper = articleOutput.querySelector('.resize-wrapper.selected');
 
@@ -1597,6 +1679,7 @@
             document.removeEventListener('selectionchange', handleSelectionChange);
             articleOutput.removeEventListener('click', handleEditorClickForResize);
             articleOutput.removeEventListener('keydown', handleEditorKeyDown);
+            articleOutput.removeEventListener('dblclick', handleImageDblClick);
         };
 
         editBtn.addEventListener('click', () => {
@@ -1618,6 +1701,7 @@
                 document.addEventListener('selectionchange', handleSelectionChange);
                 articleOutput.addEventListener('click', handleEditorClickForResize);
                 articleOutput.addEventListener('keydown', handleEditorKeyDown);
+                articleOutput.addEventListener('dblclick', handleImageDblClick);
                 articleOutput.focus();
             }
         });
@@ -1627,7 +1711,40 @@
         });
 
         function formatDoc(command, value = null) {
-            document.execCommand(command, false, value);
+            // Custom handling for image alignment
+            if (['justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'].includes(command) && currentlySelectedImage) {
+                const wrapper = currentlySelectedImage.closest('.resize-wrapper');
+                if (wrapper) {
+                    // Get the parent block-level element to apply text-align
+                    let parentBlock = wrapper.parentElement;
+                    // Traverse up if the parent is a link
+                    if (parentBlock.tagName === 'A') {
+                        parentBlock = parentBlock.parentElement;
+                    }
+
+                    if (parentBlock && parentBlock.isContentEditable) {
+                        // Clear previous alignments and apply the new one
+                        parentBlock.style.textAlign = '';
+                        switch (command) {
+                            case 'justifyLeft':
+                                parentBlock.style.textAlign = 'left';
+                                break;
+                            case 'justifyCenter':
+                                parentBlock.style.textAlign = 'center';
+                                break;
+                            case 'justifyRight':
+                                parentBlock.style.textAlign = 'right';
+                                break;
+                            case 'justifyFull':
+                                parentBlock.style.textAlign = 'justify';
+                                break;
+                        }
+                    }
+                }
+            } else {
+                // Default behavior for text
+                document.execCommand(command, false, value);
+            }
             articleOutput.focus();
         }
 
