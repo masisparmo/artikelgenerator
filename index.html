@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generator Artikel SEO-Friendly berbasis AI - Oleh Isparmo</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mozilla/readability@0.5.0/Readability.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -136,7 +137,12 @@
             <h2 class="text-2xl font-bold mb-4 text-gray-800">Masukkan Kunci API Gemini Anda</h2>
             <p class="text-gray-600 mb-6">Aplikasi ini memerlukan Kunci API Google Gemini untuk berfungsi. Kunci Anda akan disimpan dengan aman di browser Anda dan tidak akan dibagikan.</p>
             
-            <input type="password" id="api-key-input" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4 bg-blue-50" placeholder="AIza...">
+            <label for="api-key-input" class="block text-sm font-medium text-gray-700 mb-1">Kunci API Google Gemini</label>
+            <input type="password" id="api-key-input" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4 bg-blue-50" placeholder="Kunci API Gemini Anda (AIza...)">
+
+            <label for="scrapingdog-api-key-input" class="block text-sm font-medium text-gray-700 mb-1 mt-4">Kunci API Scrapingdog (Opsional)</label>
+            <input type="password" id="scrapingdog-api-key-input" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4 bg-blue-50" placeholder="Kunci API Scrapingdog untuk transkrip YouTube">
+
             <button id="save-api-key" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 font-medium uppercase">
                 Simpan dan Lanjutkan
             </button>
@@ -493,9 +499,11 @@
     <script>
         // --- API Key Modal Logic ---
         let userApiKey = '';
+        let scrapingDogApiKey = '';
         const apiKeyModalOverlay = document.getElementById('api-modal-overlay');
         const saveApiKeyBtn = document.getElementById('save-api-key');
         const apiKeyInput = document.getElementById('api-key-input');
+        const scrapingDogApiKeyInput = document.getElementById('scrapingdog-api-key-input');
         const apiKeyError = document.getElementById('api-key-error');
 
         // --- IndexedDB Logic ---
@@ -598,6 +606,11 @@
         window.addEventListener('DOMContentLoaded', () => {
             initDB();
             userApiKey = localStorage.getItem('geminiApiKey');
+            scrapingDogApiKey = localStorage.getItem('scrapingDogApiKey') || '';
+
+            apiKeyInput.value = userApiKey;
+            scrapingDogApiKeyInput.value = scrapingDogApiKey;
+
             if (!userApiKey) {
                 apiKeyModalOverlay.classList.remove('hidden');
             }
@@ -621,10 +634,16 @@
         });
 
         saveApiKeyBtn.addEventListener('click', () => {
-            const key = apiKeyInput.value.trim();
-            if (key) {
-                localStorage.setItem('geminiApiKey', key);
-                userApiKey = key;
+            const geminiKey = apiKeyInput.value.trim();
+            const dogKey = scrapingDogApiKeyInput.value.trim();
+
+            if (geminiKey) {
+                localStorage.setItem('geminiApiKey', geminiKey);
+                userApiKey = geminiKey;
+
+                localStorage.setItem('scrapingDogApiKey', dogKey);
+                scrapingDogApiKey = dogKey;
+
                 apiKeyModalOverlay.classList.add('hidden');
                 apiKeyError.classList.add('hidden');
             } else {
@@ -723,6 +742,9 @@
                 alert("Silakan masukkan Kunci API Gemini Anda untuk melanjutkan.");
                 return;
             }
+
+            loadingModalOverlay.classList.remove('hidden');
+            outputContainer.style.display = 'none';
             
             let userQuery;
             const systemPrompt = `Anda adalah seorang penulis konten ahli dan spesialis SEO. Tugas Anda adalah memproses teks yang diberikan sesuai instruksi. Gunakan format Markdown yang bersih. Untuk heading, gunakan HANYA format '# Judul H1', '## Judul H2', dan '### Judul H3'. Jangan gunakan format '####' atau heading yang lebih dalam.`;
@@ -743,48 +765,40 @@
                 }
                 userQuery = `Topik Artikel: "${topic}"\nKata Kunci: "${keywords}"`;
 
-                // --- New Data Collection Logic ---
-                const websiteUrls = Array.from(document.querySelectorAll('input[name="url_website"]'))
-                                       .map(input => input.value.trim())
-                                       .filter(url => url);
-                const youtubeUrls = Array.from(document.querySelectorAll('input[name="url_youtube"]'))
-                                       .map(input => input.value.trim())
-                                       .filter(url => url);
-                const pastedTexts = Array.from(document.querySelectorAll('textarea[name="text_paste"]'))
-                                      .map(textarea => textarea.value.trim())
-                                      .filter(text => text);
+                // --- New Data Collection and Extraction Logic ---
+
+                const websiteUrls = Array.from(document.querySelectorAll('input[name="url_website"]')).map(input => input.value.trim()).filter(url => url);
+                const youtubeUrls = Array.from(document.querySelectorAll('input[name="url_youtube"]')).map(input => input.value.trim()).filter(url => url);
+                const pastedTexts = Array.from(document.querySelectorAll('textarea[name="text_paste"]')).map(textarea => textarea.value.trim()).filter(text => text);
+                const uploadedFileNames = uploadedFileStore.map(file => file.name);
+
+                // Start extraction
+                const extractedText = await extractContentFromUrls(websiteUrls, youtubeUrls);
 
                 let referencePrompt = "";
-                if (websiteUrls.length > 0) {
-                    referencePrompt += `\n\nURL Website sebagai Referensi:\n${websiteUrls.join('\n')}`;
+                if (extractedText) {
+                    referencePrompt += `\n\nBerikut adalah konten yang diekstrak dari URL yang Anda berikan. Gunakan ini sebagai referensi utama:\n${extractedText}`;
                 }
-                if (youtubeUrls.length > 0) {
-                    referencePrompt += `\n\nURL YouTube sebagai Referensi:\n${youtubeUrls.join('\n')}`;
-                }
-                if (pastedTexts.length > 0) {
+                 if (pastedTexts.length > 0) {
                     referencePrompt += `\n\nTeks yang Ditempel sebagai Referensi:\n${pastedTexts.join('\n---\n')}`;
                 }
-                const uploadedFileNames = uploadedFileStore.map(file => file.name);
                 if (uploadedFileNames.length > 0) {
                     const fileReferences = uploadedFileNames.join(', ');
                      referencePrompt += `\n\nFile yang Diunggah sebagai Referensi: ${fileReferences}.`;
                 }
 
                 if (referencePrompt) {
-                     userQuery += `\n\nGunakan sumber-sumber berikut sebagai referensi utama saat menulis artikel:\n${referencePrompt}`;
+                    userQuery += `\n\n--- SUMBER REFERENSI PENGGUNA ---\n${referencePrompt}\n--- AKHIR SUMBER REFERENSI ---`;
                 }
-                // --- End New Data Collection Logic ---
+                // --- End New Logic ---
 
-                userQuery += `\n\nInstruksi Penulisan:\nBuat artikel blog yang komprehensif (minimal 1500 kata). Artikel harus menyertakan '## Resume Artikel', '## Daftar Isi' dengan placeholder '[Daftar Isi]', dan konten utama. PENTING: Anda harus menggunakan alat pencarian untuk menemukan dan merujuk pada minimal 3 sumber online yang kredibel (artikel web atau video YouTube). Di akhir artikel, buat bagian berjudul '## Daftar Pustaka'. Untuk setiap sumber online, formatlah dalam gaya sitasi APA, tetapi buatlah judul artikel atau video menjadi hyperlink markdown. Contoh untuk artikel web: 'Nama Penulis. (Tahun, Tanggal). [Judul Artikel](URL). Nama Situs Web.'. Contoh untuk YouTube: 'Nama Kanal. (Tahun, Tanggal Publikasi). [Judul Video [Video]](URL). YouTube.'.`;
+                userQuery += `\n\nInstruksi Penulisan:\nBuat artikel blog yang komprehensif (minimal 1500 kata). Artikel harus menyertakan '## Resume Artikel', '## Daftar Isi' dengan placeholder '[Daftar Isi]', dan konten utama. PENTING: Jika diberikan "SUMBER REFERENSI PENGGUNA", utamakan konten tersebut sebagai dasar penulisan. Setelah itu, Anda harus menggunakan alat pencarian untuk menemukan dan merujuk pada minimal 3 sumber online tambahan yang kredibel untuk melengkapi artikel. Di akhir artikel, buat bagian berjudul '## Daftar Pustaka'. Untuk setiap sumber online (termasuk yang Anda cari), formatlah dalam gaya sitasi APA, tetapi buatlah judul artikel atau video menjadi hyperlink markdown. Contoh untuk artikel web: 'Nama Penulis. (Tahun, Tanggal). [Judul Artikel](URL). Nama Situs Web.'. Contoh untuk YouTube: 'Nama Kanal. (Tahun, Tanggal Publikasi). [Judul Video [Video]](URL). YouTube.'.`;
 
                 if (uploadedFileNames.length > 0) {
                     const fileReferences = uploadedFileNames.join(', ');
                     userQuery += `\n\nSelain sumber online, sertakan juga referensi dari dokumen yang diunggah berikut di dalam 'Daftar Pustaka': ${fileReferences}. Asumsikan ini adalah Ebook atau dokumen, dan formatlah sitasinya dengan benar, misalnya: 'Nama File (sebagai Judul). (Tahun). Dokumen Pribadi.'`;
                 }
             }
-
-            loadingModalOverlay.classList.remove('hidden');
-            outputContainer.style.display = 'none';
             
             // Preserve keywords during rewrite
             const keywordsToPreserve = document.getElementById('keywords').value;
@@ -820,6 +834,75 @@
             } finally {
                 loadingModalOverlay.classList.add('hidden');
             }
+        }
+
+        async function extractContentFromUrls(websiteUrls, youtubeUrls) {
+            const extractedContents = [];
+            const corsProxy = 'https://api.allorigins.win/get?url=';
+
+            const fetchPromises = [];
+
+            // Promises for website URLs
+            websiteUrls.forEach(url => {
+                const promise = fetch(`${corsProxy}${encodeURIComponent(url)}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error(`Network response was not ok for ${url}`);
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Create a temporary element to parse the HTML and extract text
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(data.contents, 'text/html');
+                        // Attempt to find the main content, or fall back to the body
+                        const readerView = new Readability(doc).parse();
+                        const textContent = readerView ? readerView.textContent : doc.body.innerText;
+
+                        if (textContent && textContent.trim()) {
+                            extractedContents.push(`--- Konten dari ${url} ---\n${textContent.trim()}\n--- Akhir Konten ---\n`);
+                        }
+                    })
+                    .catch(error => {
+                        console.warn(`Gagal mengekstrak konten dari website ${url}:`, error);
+                        // Don't push anything, just log the warning
+                    });
+                fetchPromises.push(promise);
+            });
+
+            // Promises for YouTube URLs
+            youtubeUrls.forEach(url => {
+                const videoIdMatch = url.match(/(?:v=|\/embed\/|\/)([\w-]{11})/);
+                if (videoIdMatch && videoIdMatch[1]) {
+                    if (!scrapingDogApiKey) {
+                        console.warn("Kunci API Scrapingdog tidak tersedia. Melewatkan ekstraksi transkrip YouTube.");
+                        return; // Skip this iteration if the key is missing
+                    }
+                    const videoId = videoIdMatch[1];
+                    const transcriptApiUrl = `https://api.scrapingdog.com/youtube/transcripts?api_key=${scrapingDogApiKey}&v=${videoId}`;
+
+                    const promise = fetch(transcriptApiUrl)
+                        .then(response => {
+                            if (!response.ok) throw new Error(`Scrapingdog API request failed for ${url} with status ${response.status}`);
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data && data.transcripts && data.transcripts.length > 0) {
+                                const transcriptText = data.transcripts.map(item => item.text).join(' ');
+                                extractedContents.push(`--- Transkrip dari YouTube ${url} ---\n${transcriptText}\n--- Akhir Transkrip ---\n`);
+                            } else if (data.transcripts && data.transcripts.length === 0) {
+                                 console.warn(`Tidak ada transkrip yang ditemukan untuk YouTube ${url}.`);
+                            }
+                        })
+                        .catch(error => {
+                            console.warn(`Gagal mendapatkan transkrip untuk YouTube ${url}:`, error);
+                            // This will likely fail due to invalid API key for now, which is expected.
+                        });
+                    fetchPromises.push(promise);
+                }
+            });
+
+            await Promise.allSettled(fetchPromises);
+
+            return extractedContents.join('\n\n');
         }
 
         generateBtn.addEventListener('click', () => {
