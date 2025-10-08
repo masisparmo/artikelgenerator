@@ -247,6 +247,7 @@
                         <option>Gaya Penulisan Semi Formal</option>
                         <option>Gaya Penulisan Casual (Awam)</option>
                         <option>Gaya Penulisan Bercerita</option>
+                        <option>Skrip Dialog Podcast</option>
                     </select>
                 </div>
                 <div>
@@ -1078,6 +1079,16 @@
                     break;
                 case "Gaya Penulisan Bercerita":
                     stylePrompt = "Tulis ulang konten HTML berikut dengan Gaya Penulisan Bercerita (Storytelling). Gunakan alur naratif untuk membuat konten lebih menarik." + htmlInstruction;
+                    break;
+                case "Skrip Dialog Podcast":
+                    stylePrompt = `
+Ubah konten HTML berikut menjadi skrip dialog podcast yang menarik dengan bahasa semi-formal.
+Formatnya harus seperti ini:
+- Dimulai dengan pembukaan oleh **Host**.
+- Dilanjutkan dengan dialog tanya jawab antara **Host** dan **Nara Sumber**. Anda bisa berkreasi dengan nama Host dan Nara Sumber.
+- Sesekali, bumbui dialog dengan candaan atau pantun lucu yang relevan dengan topik untuk menjaga suasana agar tidak membosankan.
+- Pastikan nama pembicara (misalnya, **Host:** atau **Nara Sumber:**) dibuat tebal (menggunakan tag <strong>).
+` + htmlInstruction;
                     break;
             }
 
