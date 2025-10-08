@@ -1258,15 +1258,15 @@
         // --- Markdown & Editor Functions ---
         function cleanHtmlResponse(html) {
             if (!html) return '';
-            // Remove markdown code block fences
+            // Use a regular expression to remove optional ```html at the start and ``` at the end.
+            // This is more robust against whitespace and variations.
             let cleanedHtml = html.trim();
-            if (cleanedHtml.startsWith('```html')) {
-                cleanedHtml = cleanedHtml.substring(7);
-            }
-            if (cleanedHtml.endsWith('```')) {
-                cleanedHtml = cleanedHtml.slice(0, -3);
-            }
+            // Remove the opening fence, e.g., ```html or '''html, with optional whitespace
+            cleanedHtml = cleanedHtml.replace(/^(\s*`{3,}|'{3,})\s*html\s*\n?/, '');
+            // Remove the closing fence, e.g., ``` or ''', with optional whitespace
+            cleanedHtml = cleanedHtml.replace(/(\s*`{3,}|'{3,})\s*$/, '');
             cleanedHtml = cleanedHtml.trim();
+
             // Re-apply inline formatting just in case the AI mixed markdown in
             return applyInlineFormatting(cleanedHtml);
         }
