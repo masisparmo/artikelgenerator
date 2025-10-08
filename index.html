@@ -799,6 +799,7 @@
         const currentArticleIdInput = document.getElementById('current-article-id');
         const fileUploadInput = document.getElementById('file_upload');
         let isNewVersion = false;
+        let currentArticleStatus = 'Artikel Asli'; // Status default
         let uploadedFileStore = [];
 
         function renderUploadedFiles() {
@@ -1039,6 +1040,7 @@
         generateBtn.addEventListener('click', () => {
             currentArticleIdInput.value = ''; // A new article from scratch has no ID
             isNewVersion = false; // It's not a "version" of anything, just new.
+            currentArticleStatus = 'Artikel Asli'; // Set status for new article
             handleArticleGeneration();
         });
 
@@ -1099,12 +1101,16 @@ Aturan:
             }
 
             isNewVersion = true;
+            // Mengambil nama style yang lebih pendek, misal "Formal" dari "Gaya Penulisan Formal"
+            const styleName = style.replace('Gaya Penulisan ', '');
+            currentArticleStatus = `Re-Write: ${styleName}`;
             handleArticleGeneration(fullPrompt);
             rewriteModalOverlay.classList.add('hidden');
         });
 
         document.getElementById('paraphrase-btn').addEventListener('click', () => {
             isNewVersion = true;
+            currentArticleStatus = 'Parafrase'; // Set status for paraphrase
             const paraphrasePrompt = "Parafrasekan konten HTML berikut kalimat per kalimat. Gunakan sinonim dan ubah struktur kalimat agar unik, namun jangan mengubah makna atau maksud aslinya.\n\nPENTING: Pertahankan SEMUA tag HTML, terutama tag <a> untuk hyperlink. Balas HANYA dengan konten HTML mentah, tanpa menyertakan blok kode Markdown seperti ```html. Hasil akhir harus berupa HTML yang valid.";
             handleArticleGeneration(paraphrasePrompt);
         });
@@ -1212,7 +1218,7 @@ Aturan:
 
             if (shouldAddNew) {
                 // ADD a new article (either from scratch, or as a rewrite/paraphrase)
-                const article = { title, content, keywords, createdAt: new Date() };
+                const article = { title, content, keywords, createdAt: new Date(), articleType: currentArticleStatus };
                 const request = objectStore.add(article);
 
                 request.onsuccess = () => {
@@ -1235,6 +1241,7 @@ Aturan:
                     articleToUpdate.title = title;
                     articleToUpdate.content = content;
                     articleToUpdate.keywords = keywords;
+                    articleToUpdate.articleType = currentArticleStatus; // Save status on update too
 
                     const updateRequest = objectStore.put(articleToUpdate);
                     updateRequest.onsuccess = () => {
@@ -1278,13 +1285,14 @@ Aturan:
                         const item = document.createElement('div');
                         item.className = 'p-2 bg-gray-50 rounded hover:bg-gray-100';
 
-                        let dateHtml = '';
+                        let infoHtml = '';
                         if (article.createdAt) {
                             const date = new Date(article.createdAt);
                             const day = String(date.getDate()).padStart(2, '0');
                             const month = String(date.getMonth() + 1).padStart(2, '0');
                             const year = date.getFullYear();
-                            dateHtml = `<span class="text-xs text-gray-500">${day}/${month}/${year}</span>`;
+                            const statusText = article.articleType || 'Artikel Asli'; // Default to 'Artikel Asli' if not present
+                            infoHtml = `<span class="text-xs text-gray-500">${day}/${month}/${year} - ${statusText}</span>`;
                         }
 
                         const articleTitle = article.title || 'Artikel Tanpa Judul';
@@ -1297,7 +1305,7 @@ Aturan:
                                     <svg class="w-5 h-5 text-red-400 hover:text-red-600 cursor-pointer flex-shrink-0" data-id="${article.id}" data-action="delete" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>
                                     <div class="flex flex-col ml-2 overflow-hidden">
                                         <span class="truncate text-sm text-gray-700" title="${escapedTitle}">${articleTitle}</span>
-                                        ${dateHtml}
+                                        ${infoHtml}
                                     </div>
                                 </div>
                             </div>
@@ -1345,6 +1353,9 @@ Aturan:
                 // CRITICAL: Populate input fields directly from the database object.
                 document.getElementById('topic').value = article.title || '';
                 document.getElementById('keywords').value = article.keywords || '';
+
+                // Set the status from the loaded article, or default for older articles
+                currentArticleStatus = article.articleType || 'Artikel Asli';
 
                 outputContainer.style.display = 'block';
                 editorControls.classList.remove('hidden');
