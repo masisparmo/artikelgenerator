@@ -1772,19 +1772,33 @@
         function downloadArticleAsDocx() {
             const topic = document.getElementById('topic').value.trim();
             const keywords = document.getElementById('keywords').value.trim();
-            const articleContent = document.getElementById('article-output').innerHTML;
+            const articleOutput = document.getElementById('article-output');
 
-            if (!articleContent.trim()) {
+            if (!articleOutput.innerHTML.trim()) {
                 alert("Tidak ada konten artikel untuk diunduh.");
                 return;
             }
 
+            // Create a temporary container to manipulate the content
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = articleOutput.innerHTML;
+
+            // Remove the H1 element from the temporary container, if it exists
+            const h1Element = tempDiv.querySelector('h1');
+            if (h1Element) {
+                h1Element.remove();
+            }
+
+            // Get the cleaned content (without the original H1)
+            const cleanedArticleContent = tempDiv.innerHTML;
+
+            // Build the final HTML for the DOCX file
             let contentHtml = `<h1>${topic || 'Artikel Tanpa Judul'}</h1>`;
             if (keywords) {
                 contentHtml += `<p><strong>Kata Kunci:</strong> ${keywords}</p>`;
             }
             contentHtml += `<br>`; // Add a line break for spacing
-            contentHtml += articleContent;
+            contentHtml += cleanedArticleContent;
 
             const blob = htmlDocx.asBlob(contentHtml);
             const fileName = sanitizeFilename(topic) + '.docx';
