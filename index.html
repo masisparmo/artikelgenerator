@@ -172,6 +172,18 @@
         </div>
     </div>
 
+    <!-- Import Progress Modal -->
+    <div id="import-progress-modal-overlay" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 text-center max-w-sm w-full">
+            <svg class="animate-spin h-10 w-10 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p id="import-progress-message" class="mt-4 text-gray-700 font-medium">Mengimpor database...</p>
+            <p id="import-progress-counter" class="text-sm text-gray-500 mt-1">Memproses artikel 0 dari 0</p>
+        </div>
+    </div>
+
     <!-- Loading Modal -->
     <div id="loading-modal-overlay" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-lg shadow-xl p-8 text-center">
@@ -443,7 +455,14 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
                     <!-- Article Database -->
                     <div id="article-db-container" class="hidden">
-                         <h3 class="text-lg font-medium text-gray-800 border-b pb-2 mb-3">Database Artikel</h3>
+                        <div class="flex justify-between items-center border-b pb-2 mb-3">
+                            <h3 class="text-lg font-medium text-gray-800">Database Artikel</h3>
+                            <div class="flex space-x-2">
+                                <button id="import-db-btn" class="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700 uppercase">IMPORT DATABASE</button>
+                                <button id="export-db-btn" class="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 uppercase">EXPORT DATABASE</button>
+                                <input type="file" id="import-db-input" class="hidden" accept=".dbar">
+                            </div>
+                        </div>
                          <div class="mb-3 flex space-x-2">
                             <input type="text" id="search-article-input" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Cari judul artikel...">
                             <button id="search-article-btn" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 uppercase">CARI</button>
@@ -2206,6 +2225,140 @@ Aturan:
         }
 
         document.getElementById('download-docx-btn').addEventListener('click', downloadArticleAsDocx);
+
+        // --- Database Import/Export Logic ---
+        const exportDbBtn = document.getElementById('export-db-btn');
+        const importDbBtn = document.getElementById('import-db-btn');
+        const importDbInput = document.getElementById('import-db-input');
+        const importProgressModal = document.getElementById('import-progress-modal-overlay');
+        const importProgressMessage = document.getElementById('import-progress-message');
+        const importProgressCounter = document.getElementById('import-progress-counter');
+
+        function exportDatabase() {
+            if (!db) {
+                alert("Database belum siap. Silakan coba lagi sebentar.");
+                return;
+            }
+
+            const transaction = db.transaction(["articles"], "readonly");
+            const objectStore = transaction.objectStore("articles");
+            const request = objectStore.getAll();
+
+            request.onerror = (event) => {
+                console.error("Gagal mengambil data untuk ekspor:", event.target.errorCode);
+                alert("Gagal mengekspor database.");
+            };
+
+            request.onsuccess = (event) => {
+                const articles = event.target.result;
+                if (articles.length === 0) {
+                    alert("Database artikel kosong. Tidak ada yang bisa diekspor.");
+                    return;
+                }
+
+                const dataToExport = JSON.stringify(articles, null, 2);
+                const blob = new Blob([dataToExport], { type: "application/json" });
+
+                const today = new Date();
+                const day = String(today.getDate()).padStart(2, '0');
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const year = today.getFullYear();
+                const fileName = `database-artikel-${day}${month}${year}.dbar`;
+
+                try {
+                    saveAs(blob, fileName);
+                } catch (e) {
+                    console.error("Error saat menyimpan file ekspor:", e);
+                    alert("Maaf, terjadi kesalahan saat mencoba menyimpan file database.");
+                }
+            };
+        }
+
+        exportDbBtn.addEventListener('click', exportDatabase);
+
+        importDbBtn.addEventListener('click', () => {
+            importDbInput.click(); // Trigger the hidden file input
+        });
+
+        importDbInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            if (!file.name.endsWith('.dbar')) {
+                alert("Harap pilih file database yang valid dengan ekstensi .dbar");
+                importDbInput.value = ''; // Reset input
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                try {
+                    const articles = JSON.parse(e.target.result);
+                    if (!Array.isArray(articles)) {
+                        throw new Error("Format file tidak valid.");
+                    }
+
+                    if (articles.length === 0) {
+                        alert("File database yang diimpor kosong.");
+                        return;
+                    }
+
+                    importProgressModal.classList.remove('hidden');
+                    importProgressMessage.textContent = "Mengimpor database...";
+                    importProgressCounter.textContent = `Memproses artikel 0 dari ${articles.length}`;
+
+                    const transaction = db.transaction(["articles"], "readwrite");
+                    const objectStore = transaction.objectStore("articles");
+                    let importedCount = 0;
+
+                    articles.forEach((article, index) => {
+                        // Hapus ID lama agar IndexedDB membuat ID baru (sesuai aturan duplikasi)
+                        delete article.id;
+                        // Pastikan tanggal tetap dalam format yang benar jika di-parse dari JSON
+                        if (article.createdAt) {
+                            article.createdAt = new Date(article.createdAt);
+                        }
+
+                        const request = objectStore.add(article);
+                        request.onsuccess = () => {
+                            importedCount++;
+                            importProgressCounter.textContent = `Memproses artikel ${index + 1} dari ${articles.length}`;
+                        };
+                    });
+
+                    transaction.oncomplete = () => {
+                        setTimeout(() => { // Beri sedikit jeda agar user bisa lihat proses selesai
+                            importProgressModal.classList.add('hidden');
+                            alert(`${importedCount} artikel berhasil diimpor!`);
+                            displayArticles();
+                        }, 500);
+                    };
+
+                    transaction.onerror = (event) => {
+                        importProgressModal.classList.add('hidden');
+                        console.error("Gagal mengimpor database:", event.target.errorCode);
+                        alert("Terjadi kesalahan saat mengimpor database.");
+                    };
+
+                } catch (error) {
+                    importProgressModal.classList.add('hidden');
+                    alert(`Gagal memproses file: ${error.message}`);
+                } finally {
+                     importDbInput.value = ''; // Reset input agar bisa pilih file yang sama lagi
+                }
+            };
+
+            reader.onerror = () => {
+                 alert("Gagal membaca file.");
+                 importDbInput.value = ''; // Reset input
+            };
+
+            reader.readAsText(file);
+        });
+
 
         // --- Add Image Modal Logic ---
         const insertImageBtn = document.getElementById('insert-image-btn');
