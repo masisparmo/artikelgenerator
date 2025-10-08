@@ -475,6 +475,28 @@
 
                 <div id="output-container" class="mt-8" style="display: none;">
                      <input type="hidden" id="current-article-id">
+                    <!-- TTS Player -->
+                    <div id="tts-player-container" class="hidden p-3 bg-gray-50 border border-gray-300 rounded-t-lg -mb-px">
+                        <div class="flex items-center space-x-3">
+                            <!-- Player Controls -->
+                            <button id="tts-play-btn" class="p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"></path></svg>
+                            </button>
+                            <button id="tts-pause-btn" class="hidden p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75A.75.75 0 007.25 3h-1.5zM12.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75A.75.75 0 0014.25 3h-1.5z"></path></svg>
+                            </button>
+                            <button id="tts-stop-btn" class="p-2 rounded-full bg-gray-600 text-white hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2H5z"></path></svg>
+                            </button>
+                            <!-- Status Message -->
+                            <div id="tts-status-message" class="text-sm text-gray-600 flex-grow">
+                                Siap untuk mengonversi teks ke suara.
+                            </div>
+                            <!-- Save Button -->
+                            <button id="tts-save-btn" class="py-1 px-3 text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed uppercase">Simpan</button>
+                        </div>
+                        <audio id="tts-audio-player" class="hidden"></audio>
+                    </div>
                     <!-- Editor Controls -->
                      <div id="editor-controls" class="hidden flex items-center p-1 bg-gray-100 rounded-t-lg border-x border-t border-gray-300 flex-wrap gap-y-1">
                         <div class="toolbar-group">
@@ -503,6 +525,11 @@
                         </div>
                         <div class="toolbar-group">
                             <button id="insert-image-btn" class="editor-btn" title="Tambah Gambar" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"></path></svg></button>
+                        </div>
+                        <div class="toolbar-group">
+                            <button id="tts-btn" class="editor-btn" title="Text to Speech" disabled>
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>
+                            </button>
                         </div>
                         <div class="toolbar-group">
                              <button class="editor-btn" onclick="formatDoc('justifyLeft')" title="Rata Kiri" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M15 15H3v2h12v-2zm0-8H3v2h12V7zM3 13h18v-2H3v2zm0 8h18v-2H3v2zM3 3v2h18V3H3z"></path></svg></button>
@@ -821,6 +848,208 @@
         let currentArticleStatus = 'Artikel Asli'; // Status default
         let uploadedFileStore = [];
 
+        // --- TTS (Text-to-Speech) Logic ---
+        const ttsBtn = document.getElementById('tts-btn');
+        const ttsPlayerContainer = document.getElementById('tts-player-container');
+        const ttsPlayBtn = document.getElementById('tts-play-btn');
+        const ttsPauseBtn = document.getElementById('tts-pause-btn');
+        const ttsStopBtn = document.getElementById('tts-stop-btn');
+        const ttsSaveBtn = document.getElementById('tts-save-btn');
+        const ttsStatusMessage = document.getElementById('tts-status-message');
+        const ttsAudioPlayer = document.getElementById('tts-audio-player');
+
+        let currentAudioBlobUrl = null;
+        let isGeneratingAudio = false;
+        let lastGeneratedArticleContent = '';
+
+        function updateTtsPlayerState(state, message = '') {
+            const isLoading = state === 'loading';
+            const isPlaying = state === 'playing';
+            const isPaused = state === 'paused';
+            const hasAudio = !!currentAudioBlobUrl;
+
+            // Main TTS button in editor toolbar is handled by the general editor state logic
+            // Player controls
+            ttsPlayBtn.disabled = isLoading || isPlaying || !hasAudio;
+            ttsPauseBtn.disabled = isLoading || !isPlaying;
+            ttsStopBtn.disabled = isLoading || (!isPlaying && !isPaused) || !hasAudio;
+            ttsSaveBtn.disabled = isLoading || !hasAudio;
+
+            // Toggle visibility of Play/Pause
+            ttsPlayBtn.classList.toggle('hidden', isPlaying);
+            ttsPauseBtn.classList.toggle('hidden', !isPlaying);
+
+            // Status message
+            if (message) {
+                ttsStatusMessage.textContent = message;
+            } else {
+                switch (state) {
+                    case 'loading': ttsStatusMessage.textContent = 'Mengonversi teks ke suara...'; break;
+                    case 'ready': ttsStatusMessage.textContent = 'Audio siap diputar.'; break;
+                    case 'playing': ttsStatusMessage.textContent = 'Memutar audio...'; break;
+                    case 'paused': ttsStatusMessage.textContent = 'Audio dijeda.'; break;
+                    case 'stopped': ttsStatusMessage.textContent = 'Audio dihentikan.'; break;
+                    case 'error': ttsStatusMessage.textContent = 'Gagal membuat audio.'; break;
+                    default: ttsStatusMessage.textContent = 'Siap untuk mengonversi teks ke suara.';
+                }
+            }
+        }
+
+        async function callTtsAPI(text) {
+            if (!userApiKey) {
+                apiKeyModalOverlay.classList.remove('hidden');
+                throw new Error("Silakan masukkan Kunci API Gemini Anda untuk melanjutkan.");
+            }
+            // Using the Gemini endpoint as requested, though this is a speculative implementation
+            // based on how Gemini API generally works.
+            const modelName = 'gemini-2.5-flash-preview-tts';
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${userApiKey}`;
+
+            const payload = {
+                contents: [{
+                    parts: [{ text: text }]
+                }],
+                generationConfig: {
+                    responseMimeType: "audio/mp3"
+                }
+            };
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorResult = await response.json();
+                console.error('TTS API Error:', JSON.stringify(errorResult, null, 2));
+                let errorMessage = errorResult.error?.message || 'Terjadi kesalahan tidak diketahui.';
+                if (errorResult.error?.status === 'NOT_FOUND') {
+                     errorMessage = `Model '${modelName}' tidak ditemukan. Pastikan Anda memiliki akses ke model ini.`;
+                } else if (response.status === 400) {
+                    errorMessage = `Permintaan tidak valid (400). Model ini mungkin tidak mendukung text-to-speech.`;
+                }
+                throw new Error(`API Gagal: ${errorMessage}`);
+            }
+
+            const result = await response.json();
+            const audioPart = result.candidates?.[0]?.content?.parts?.[0];
+
+            if (audioPart && audioPart.inlineData?.data) {
+                return audioPart.inlineData.data; // This is the base64 encoded string
+            } else {
+                console.error("Invalid API response structure for audio:", result);
+                throw new Error("Respons API tidak berisi konten audio yang valid.");
+            }
+        }
+
+        async function generateAndPlayAudio() {
+            // Use innerText to get a clean text representation of the article
+            const currentContent = articleOutput.innerText.trim();
+            if (!currentContent) {
+                alert("Tidak ada teks di dalam artikel untuk diubah menjadi suara.");
+                return;
+            }
+
+            isGeneratingAudio = true;
+            ttsPlayerContainer.classList.remove('hidden');
+            editorControls.classList.remove('rounded-t-lg');
+            updateTtsPlayerState('loading');
+
+            // Invalidate previous audio
+            if (currentAudioBlobUrl) {
+                URL.revokeObjectURL(currentAudioBlobUrl);
+                currentAudioBlobUrl = null;
+            }
+
+            try {
+                const audioBase64 = await callTtsAPI(currentContent);
+                const audioBytes = atob(audioBase64);
+                const audioBytesArray = new Uint8Array(audioBytes.length);
+                for (let i = 0; i < audioBytes.length; i++) {
+                    audioBytesArray[i] = audioBytes.charCodeAt(i);
+                }
+                const audioBlob = new Blob([audioBytesArray], { type: 'audio/mp3' });
+                currentAudioBlobUrl = URL.createObjectURL(audioBlob);
+
+                ttsAudioPlayer.src = currentAudioBlobUrl;
+                lastGeneratedArticleContent = currentContent;
+                updateTtsPlayerState('ready');
+
+            } catch (error) {
+                console.error("Gagal membuat audio:", error);
+                updateTtsPlayerState('error', error.message);
+                currentAudioBlobUrl = null;
+            } finally {
+                isGeneratingAudio = false;
+            }
+        }
+
+        ttsBtn.addEventListener('click', () => {
+            if (isGeneratingAudio) return;
+
+            const currentContent = articleOutput.innerText.trim();
+            const hasContentChanged = currentContent !== lastGeneratedArticleContent;
+
+            // If player is hidden, or content has changed, generate.
+            if (ttsPlayerContainer.classList.contains('hidden') || hasContentChanged || !currentAudioBlobUrl) {
+                generateAndPlayAudio();
+            } else {
+                // If player is visible and content is the same, just hide it.
+                ttsPlayerContainer.classList.add('hidden');
+                editorControls.classList.add('rounded-t-lg'); // Restore rounded corners
+            }
+        });
+
+        // --- TTS Player Controls ---
+        ttsPlayBtn.addEventListener('click', () => {
+            if (ttsAudioPlayer.src) {
+                ttsAudioPlayer.play();
+            }
+        });
+
+        ttsPauseBtn.addEventListener('click', () => {
+            ttsAudioPlayer.pause();
+        });
+
+        ttsStopBtn.addEventListener('click', () => {
+            ttsAudioPlayer.pause();
+            ttsAudioPlayer.currentTime = 0;
+            updateTtsPlayerState('stopped');
+            ttsPlayerContainer.classList.add('hidden');
+            editorControls.classList.add('rounded-t-lg'); // Restore rounded corners
+        });
+
+        ttsSaveBtn.addEventListener('click', () => {
+            if (!currentAudioBlobUrl) {
+                alert("Tidak ada audio untuk disimpan.");
+                return;
+            }
+            const title = document.getElementById('topic').value.trim() || "artikel-tanpa-judul";
+            const sanitized = sanitizeFilename(title);
+            const fileName = `${sanitized}.mp3`;
+
+            const a = document.createElement('a');
+            a.href = currentAudioBlobUrl;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+
+        // --- TTS Audio Element Events ---
+        ttsAudioPlayer.addEventListener('play', () => updateTtsPlayerState('playing'));
+        ttsAudioPlayer.addEventListener('pause', () => {
+             // Only update to 'paused' if it's not at the end (which would be 'stopped')
+            if (ttsAudioPlayer.currentTime < ttsAudioPlayer.duration) {
+                updateTtsPlayerState('paused');
+            }
+        });
+        ttsAudioPlayer.addEventListener('ended', () => {
+            updateTtsPlayerState('stopped');
+            ttsAudioPlayer.currentTime = 0;
+        });
+
         function renderUploadedFiles() {
             const feedbackContainer = document.getElementById('file-upload-feedback');
             feedbackContainer.innerHTML = ''; // Clear the container first
@@ -977,6 +1206,7 @@
                 editorControls.classList.remove('hidden');
                 editorControls.classList.add('flex');
                 document.getElementById('image-generator-container').classList.remove('hidden');
+                ttsBtn.disabled = false; // Enable TTS button now that there's content
 
             } catch (error) {
                 console.error("Error processing article:", error);
@@ -1380,6 +1610,7 @@ Aturan:
                 editorControls.classList.remove('hidden');
                 editorControls.classList.add('flex');
                 document.getElementById('image-generator-container').classList.remove('hidden');
+                ttsBtn.disabled = false; // Also enable TTS button when loading an article
                 window.scrollTo({ top: outputContainer.offsetTop, behavior: 'smooth' });
             };
         }
@@ -1718,7 +1949,8 @@ Aturan:
             cancelEditBtn.classList.add('hidden');
             articleOutput.classList.remove('border-2', 'border-indigo-300', 'p-4', 'rounded-b-md', '-mt-px');
             editorControls.classList.add('rounded-b-lg');
-            editorControls.querySelectorAll('button.editor-btn, select.editor-select').forEach(el => el.disabled = true);
+            // Disable all editor buttons EXCEPT the TTS button
+            editorControls.querySelectorAll('button.editor-btn:not(#tts-btn), select.editor-select').forEach(el => el.disabled = true);
             document.removeEventListener('selectionchange', handleSelectionChange);
             articleOutput.removeEventListener('click', handleEditorClick);
             articleOutput.removeEventListener('keydown', handleEditorKeyDown);
@@ -1734,7 +1966,8 @@ Aturan:
                 cancelEditBtn.classList.remove('hidden');
                 articleOutput.classList.add('border-2', 'border-indigo-300', 'p-4', 'rounded-b-md', '-mt-px');
                 editorControls.classList.remove('rounded-b-lg');
-                editorControls.querySelectorAll('button.editor-btn, select.editor-select').forEach(el => el.disabled = false);
+                // Enable all editor buttons EXCEPT the TTS button (which is handled separately)
+                editorControls.querySelectorAll('button.editor-btn:not(#tts-btn), select.editor-select').forEach(el => el.disabled = false);
                 insertLinkBtn.disabled = true; // Initially disabled
                 document.addEventListener('selectionchange', handleSelectionChange);
                 articleOutput.addEventListener('click', handleEditorClick);
