@@ -818,7 +818,7 @@
             const keywordsToPreserve = document.getElementById('keywords').value;
 
             try {
-                const { text: generatedContent } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash', !isHtmlRewrite);
+                const { text: generatedContent } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash', !isHtmlRewrite);
 
                 if (isHtmlRewrite) {
                     const cleanedContent = cleanHtmlResponse(generatedContent);
@@ -1500,7 +1500,7 @@
                 const systemPrompt = "Anda adalah seorang ahli dalam membuat prompt untuk generator gambar AI. Tugas Anda adalah membuat prompt yang detail dan deskriptif berdasarkan topik dan tipe gambar yang diberikan oleh pengguna.";
                 const userQuery = `Buatkan saya sebuah prompt gambar yang detail dalam Bahasa Indonesia untuk topik: "${topic}". Gaya gambar yang diinginkan adalah: "${imageType}". Jelaskan subjek utama, latar belakang, dan komposisi dalam Bahasa Indonesia, namun pertahankan istilah-istilah teknis fotografi dan seni (seperti 'hyper-realistic', 'cinematic lighting', '4K resolution', 'low angle shot') dalam Bahasa Inggris untuk hasil terbaik. Balas HANYA dengan teks prompt gambar, tanpa kata pengantar atau penjelasan apa pun.`;
 
-                const { text: generatedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
+                const { text: generatedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
 
                 promptText.value = generatedPrompt.trim();
 
@@ -1548,7 +1548,7 @@
                 Tujuan Anda adalah memberikan prompt yang sangat detail sehingga AI generator gambar dapat menciptakan hasil yang kaya, kompleks, dan sesuai dengan visi yang diperluas. Balas HANYA dengan prompt yang sudah disempurnakan, tanpa kata pengantar atau penjelasan apa pun.`;
                 const userQuery = `Sempurnakan prompt ini: "${currentPrompt}"`;
 
-                const { text: refinedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
+                const { text: refinedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
 
                 promptText.value = refinedPrompt.trim();
 
@@ -1615,7 +1615,7 @@
                     if (pastedTexts.length > 0) referencePrompt += `\nTeks Ditempel:\n${pastedTexts.join('\n---\n')}`;
                     if (hasUploadedFiles) referencePrompt += `\nFile Diunggah: ${uploadedFileStore.map(f => f.name).join(', ')}`;
 
-                    const { text: generatedTopic } = await callGenerationAPI(systemPrompt, referencePrompt, 'gemini-1.5-flash');
+                    const { text: generatedTopic } = await callGenerationAPI(systemPrompt, referencePrompt, 'gemini-2.5-flash');
 
                     topicInput.value = generatedTopic.trim();
                     // Proses berhenti di sini, menunggu pengguna menekan tombol lagi.
@@ -1638,7 +1638,7 @@
                 const systemPrompt = "Anda adalah generator ide konten yang kreatif. Berdasarkan topik yang diberikan, hasilkan 5 ide judul artikel blog yang menarik dan SEO-friendly. Setiap ide harus berada di baris baru, diawali dengan '- ' (tanda hubung dan spasi).";
                 const userQuery = `Topik: "${topic}"`;
 
-                const { text: ideasText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
+                const { text: ideasText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
 
                 const ideas = ideasText.split('\n').filter(idea => idea.trim().startsWith('- ')).map(idea => idea.trim().substring(2).trim());
 
@@ -1694,7 +1694,7 @@
                 const systemPrompt = "Anda adalah seorang spesialis SEO. Berdasarkan topik yang diberikan, hasilkan daftar maksimal 10 kata kunci yang paling relevan. Pisahkan setiap kata kunci dengan koma. Berikan hanya daftar kata kunci, tanpa teks tambahan.";
                 const userQuery = `Topik: "${topic}"`;
 
-                const { text: keywordsText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
+                const { text: keywordsText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
 
                 document.getElementById('keywords').value = keywordsText.trim();
 
