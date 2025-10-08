@@ -6,6 +6,8 @@
     <title>Generator Artikel SEO-Friendly berbasis AI - Oleh Isparmo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mozilla/readability@0.5.0/Readability.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html-docx-js-version-updated@0.4.0/dist/html-docx.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -394,6 +396,7 @@
                          <button id="rewrite-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 uppercase">Re-Write</button>
                          <button id="paraphrase-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 uppercase">Parafrase</button>
                          <button id="save-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-sky-600 hover:bg-sky-700 uppercase">Simpan</button>
+                         <button id="download-docx-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-slate-600 hover:bg-slate-700 uppercase">Unduh .DOCX</button>
                     </div>
 
                     <!-- Image Prompt Generator -->
@@ -1752,6 +1755,50 @@
                 };
             };
         });
+
+        // --- DOCX Download Logic ---
+        function sanitizeFilename(name) {
+            if (!name) return 'artikel-tanpa-judul';
+            return name
+                .toLowerCase()
+                .replace(/\s+/g, '-') // Replace spaces with -
+                .replace(/[^\w\-]+/g, '') // Remove all non-word chars except -
+                .replace(/\-\-+/g, '-') // Replace multiple - with single -
+                .replace(/^-+/, '') // Trim - from start of text
+                .replace(/-+$/, '') // Trim - from end of text
+                .substring(0, 50); // Truncate to 50 chars
+        }
+
+        function downloadArticleAsDocx() {
+            const topic = document.getElementById('topic').value.trim();
+            const keywords = document.getElementById('keywords').value.trim();
+            const articleContent = document.getElementById('article-output').innerHTML;
+
+            if (!articleContent.trim()) {
+                alert("Tidak ada konten artikel untuk diunduh.");
+                return;
+            }
+
+            let contentHtml = `<h1>${topic || 'Artikel Tanpa Judul'}</h1>`;
+            if (keywords) {
+                contentHtml += `<p><strong>Kata Kunci:</strong> ${keywords}</p>`;
+            }
+            contentHtml += `<br>`; // Add a line break for spacing
+            contentHtml += articleContent;
+
+            const blob = htmlDocx.asBlob(contentHtml);
+            const fileName = sanitizeFilename(topic) + '.docx';
+
+            try {
+                saveAs(blob, fileName);
+            } catch (e) {
+                console.error("Error saat menyimpan file:", e);
+                alert("Maaf, terjadi kesalahan saat mencoba menyimpan file.");
+            }
+        }
+
+        document.getElementById('download-docx-btn').addEventListener('click', downloadArticleAsDocx);
+
     </script>
 </body>
 </html>
