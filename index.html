@@ -1084,7 +1084,7 @@
             }
             const title = document.getElementById('topic').value.trim() || "artikel-tanpa-judul";
             const sanitized = sanitizeFilename(title);
-            const fileName = `${sanitized}.mp3`;
+            const fileName = `${sanitized}.wav`; // Corrected to .wav to match the generated format
 
             const a = document.createElement('a');
             a.href = currentAudioBlobUrl;
