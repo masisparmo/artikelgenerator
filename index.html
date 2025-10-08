@@ -471,6 +471,10 @@
                             <button class="editor-btn" onclick="formatDoc('underline')" title="Underline" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17c3.31 0 6-2.69 6-6V3h-2.5v8c0 1.93-1.57 3.5-3.5 3.5S8.5 12.93 8.5 11V3H6v8c0 3.31 2.69 6 6 6zm-7 2v2h14v-2H5z"></path></svg></button>
                         </div>
                         <div class="toolbar-group">
+                            <button class="editor-btn" onclick="formatDoc('undo')" title="Undo" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"></path></svg></button>
+                            <button class="editor-btn" onclick="formatDoc('redo')" title="Redo" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.96 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"></path></svg></button>
+                        </div>
+                        <div class="toolbar-group">
                             <button class="editor-btn" onclick="formatDoc('insertUnorderedList')" title="Bullet List" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm0-6c-.83 0-1.5.67-1.5 1.5S3.17 7.5 4 7.5 5.5 6.83 5.5 6 4.83 4.5 4 4.5zm0 12c-.83 0-1.5.68-1.5 1.5s.68 1.5 1.5 1.5 1.5-.68 1.5-1.5-.67-1.5-1.5-1.5zM7 19h14v-2H7v2zm0-6h14v-2H7v2zm0-8v2h14V5H7z"></path></svg></button>
                             <button class="editor-btn" onclick="formatDoc('insertOrderedList')" title="Numbered List" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2v1zm1-9h1V4H2v1h1v3zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 11.9V11H2v1zm5-6v2h14V5H7zm0 14h14v-2H7v2zm0-6h14v-2H7v2z"></path></svg></button>
                         </div>
@@ -1494,214 +1498,204 @@
         const cancelEditBtn = document.getElementById('cancel-edit-btn');
         let originalArticleContent = '';
 
-        // --- Context Menu and Alt Text Modal ---
+        // --- Robust Image Editing Logic ---
+        const insertLinkBtn = document.getElementById('insert-link-btn');
         const imageContextMenu = document.getElementById('image-context-menu');
         const altTextModalOverlay = document.getElementById('alt-text-modal-overlay');
         const altTextInput = document.getElementById('alt-text-input');
         const confirmAltTextBtn = document.getElementById('confirm-alt-text-btn');
         const cancelAltTextBtn = document.getElementById('cancel-alt-text-btn');
+        const deleteImageModalOverlay = document.getElementById('delete-image-modal-overlay');
+        const cancelDeleteImageBtn = document.getElementById('cancel-delete-image-btn');
+        const confirmDeleteImageBtn = document.getElementById('confirm-delete-image-btn');
+        const TEMP_IMAGE_ID = 'image-being-edited';
 
-        cancelAltTextBtn.addEventListener('click', () => altTextModalOverlay.classList.add('hidden'));
+        function getSelectedImage() {
+            return articleOutput.querySelector(`#${TEMP_IMAGE_ID}`);
+        }
 
-        confirmAltTextBtn.addEventListener('click', () => {
-            if (currentlySelectedImage) {
-                currentlySelectedImage.alt = altTextInput.value;
+        function createResizeHandles(wrapper) {
+            if (wrapper.querySelector('.resize-handle')) return; // Handles already exist
+            ['top-left', 'top-right', 'bottom-left', 'bottom-right'].forEach(pos => {
+                const handle = document.createElement('div');
+                handle.className = `resize-handle ${pos}`;
+                wrapper.appendChild(handle);
+                handle.addEventListener('mousedown', e => {
+                    e.preventDefault(); e.stopPropagation();
+                    const img = wrapper.querySelector('img');
+                    if (!img) return;
+                    const startX = e.clientX;
+                    const startY = e.clientY;
+                    const startWidth = img.offsetWidth;
+                    const startHeight = img.offsetHeight;
+
+                    const doDrag = (dragEvent) => {
+                        dragEvent.preventDefault();
+                        const dx = dragEvent.clientX - startX;
+                        const dy = dragEvent.clientY - startY;
+
+                        let newWidth = startWidth;
+                        if (pos.includes('right')) newWidth += dx;
+                        if (pos.includes('left')) newWidth -= dx;
+
+                        img.style.width = `${Math.max(30, newWidth)}px`;
+                        img.style.height = 'auto';
+                    };
+                    const stopDrag = () => {
+                        document.documentElement.removeEventListener('mousemove', doDrag);
+                        document.documentElement.removeEventListener('mouseup', stopDrag);
+                    };
+                    document.documentElement.addEventListener('mousemove', doDrag);
+                    document.documentElement.addEventListener('mouseup', stopDrag, { once: true });
+                });
+            });
+        }
+
+        function cleanupImageSelection() {
+            imageContextMenu.classList.add('hidden');
+            const currentSelection = getSelectedImage();
+            if (currentSelection) {
+                const wrapper = currentSelection.closest('.resize-wrapper');
+                if (wrapper) {
+                    wrapper.classList.remove('selected');
+                    wrapper.querySelectorAll('.resize-handle').forEach(h => h.remove());
+                }
+                currentSelection.removeAttribute('id');
             }
-            altTextModalOverlay.classList.add('hidden');
-        });
+            handleSelectionChange(); // Update toolbar state
+        }
+
+        function handleEditorClick(event) {
+            const target = event.target;
+            const clickedImage = target.tagName === 'IMG' ? target : null;
+
+            // If clicking inside the context menu or on a resize handle, do nothing.
+            if (target.closest('#image-context-menu') || target.closest('.resize-handle')) {
+                return;
+            }
+
+            // If a linked image is clicked, prevent navigation and allow selection.
+            if (clickedImage && clickedImage.closest('a')) {
+                event.preventDefault();
+            }
+
+            // Get the currently selected image *before* this click event.
+            const previouslySelectedImage = getSelectedImage();
+
+            // If we clicked on an image:
+            if (clickedImage) {
+                const wrapper = clickedImage.closest('.resize-wrapper');
+                // If it's a new image, clean up the old selection first.
+                if (previouslySelectedImage && previouslySelectedImage !== clickedImage) {
+                    cleanupImageSelection();
+                }
+
+                // Select the new image.
+                clickedImage.id = TEMP_IMAGE_ID;
+                wrapper.classList.add('selected');
+                createResizeHandles(wrapper);
+
+                // Show context menu next to the image.
+                const rect = clickedImage.getBoundingClientRect();
+                imageContextMenu.style.top = `${window.scrollY + rect.top}px`;
+                imageContextMenu.style.left = `${window.scrollX + rect.right + 10}px`;
+                imageContextMenu.classList.remove('hidden');
+
+            } else { // If we clicked somewhere else (not on an image):
+                cleanupImageSelection();
+            }
+
+            handleSelectionChange();
+        }
+
+        function handleSelectionChange() {
+            if (!articleOutput.isContentEditable) return;
+            const selection = window.getSelection();
+            const selectedImage = getSelectedImage();
+            // Enable link button if text is selected OR an image is selected
+            insertLinkBtn.disabled = selection.isCollapsed && !selectedImage;
+        }
+
+        function handleEditorKeyDown(event) {
+            const selectedImage = getSelectedImage();
+            if ((event.key === 'Delete' || event.key === 'Backspace') && selectedImage) {
+                event.preventDefault();
+                deleteImageModalOverlay.classList.remove('hidden');
+            }
+        }
 
         imageContextMenu.addEventListener('click', (e) => {
-            const action = e.target.closest('button').dataset.action;
-            if (!action || !currentlySelectedImage) return;
+            const action = e.target.closest('button')?.dataset.action;
+            const selectedImage = getSelectedImage();
+            if (!action || !selectedImage) return;
 
             switch (action) {
                 case 'link':
                     insertLink();
                     break;
                 case 'alt':
-                    altTextInput.value = currentlySelectedImage.alt;
+                    altTextInput.value = selectedImage.alt;
                     altTextModalOverlay.classList.remove('hidden');
                     break;
                 case 'delete':
                     deleteImageModalOverlay.classList.remove('hidden');
                     break;
             }
-            imageContextMenu.classList.add('hidden');
+            // Don't cleanup here, let the modal logic handle it or user clicks away.
         });
 
-
-        // --- Image Deletion Modal ---
-        const deleteImageModalOverlay = document.getElementById('delete-image-modal-overlay');
-        const cancelDeleteImageBtn = document.getElementById('cancel-delete-image-btn');
-        const confirmDeleteImageBtn = document.getElementById('confirm-delete-image-btn');
+        cancelAltTextBtn.addEventListener('click', () => altTextModalOverlay.classList.add('hidden'));
+        confirmAltTextBtn.addEventListener('click', () => {
+            const selectedImage = getSelectedImage();
+            if (selectedImage) {
+                selectedImage.alt = altTextInput.value;
+            }
+            altTextModalOverlay.classList.add('hidden');
+            cleanupImageSelection();
+        });
 
         cancelDeleteImageBtn.addEventListener('click', () => deleteImageModalOverlay.classList.add('hidden'));
-
         confirmDeleteImageBtn.addEventListener('click', () => {
-            if (currentlySelectedImage) {
-                const wrapper = currentlySelectedImage.closest('.resize-wrapper');
-                if (wrapper) {
-                    // If the wrapper is inside a link, remove the link instead.
-                    if (wrapper.parentElement.tagName === 'A') {
-                        wrapper.parentElement.remove();
-                    } else {
-                        wrapper.remove();
-                    }
-                }
-                cleanupResizeSelection(); // This will also nullify currentlySelectedImage
+            const selectedImage = getSelectedImage();
+            if (selectedImage) {
+                const wrapper = selectedImage.closest('.resize-wrapper');
+                // If image is linked, remove the 'a' tag as well.
+                const elementToRemove = wrapper.parentElement.tagName === 'A' ? wrapper.parentElement : wrapper;
+                elementToRemove.remove();
             }
             deleteImageModalOverlay.classList.add('hidden');
+            cleanupImageSelection();
         });
 
-        // --- Image Resize, Selection, and Linking Logic ---
-        const insertLinkBtn = document.getElementById('insert-link-btn');
-        let currentlySelectedImage = null;
-
-        function cleanupResizeSelection() {
-            const selectedWrappers = articleOutput.querySelectorAll('.resize-wrapper.selected');
-            selectedWrappers.forEach(wrapper => {
-                wrapper.classList.remove('selected');
-                wrapper.querySelectorAll('.resize-handle').forEach(handle => handle.remove());
-            });
-            if (currentlySelectedImage) {
-                currentlySelectedImage = null;
-                handleSelectionChange();
-            }
-        }
-
-        function handleImageDblClick(event) {
-            if (event.target.tagName === 'IMG') {
-                event.preventDefault();
-                event.stopPropagation();
-
-                // Select the image using the single-click logic first
-                event.target.click();
-
-                // Position and show the context menu
-                const rect = event.target.getBoundingClientRect();
-                imageContextMenu.style.top = `${window.scrollY + rect.top}px`;
-                imageContextMenu.style.left = `${window.scrollX + rect.right + 5}px`;
-                imageContextMenu.classList.remove('hidden');
-            }
-        }
-
-        function handleEditorClickForResize(event) {
-            const target = event.target;
-            const wrapper = target.closest('.resize-wrapper');
-
-            if (target.classList.contains('resize-handle') || imageContextMenu.contains(target)) return;
-
-            // Always hide context menu on single click
-            imageContextMenu.classList.add('hidden');
-
-            const currentlySelectedWrapper = articleOutput.querySelector('.resize-wrapper.selected');
-
-            if (!wrapper) {
-                cleanupResizeSelection();
-                return;
-            }
-
-            if (currentlySelectedWrapper && currentlySelectedWrapper !== wrapper) {
-                cleanupResizeSelection();
-            }
-
-            if (!wrapper.classList.contains('selected')) {
-                wrapper.classList.add('selected');
-                currentlySelectedImage = wrapper.querySelector('img');
-
-                ['top-left', 'top-right', 'bottom-left', 'bottom-right'].forEach(pos => {
-                    const handle = document.createElement('div');
-                    handle.className = `resize-handle ${pos}`;
-                    wrapper.appendChild(handle);
-
-                    handle.addEventListener('mousedown', e => {
-                        e.preventDefault();
-                        e.stopPropagation();
-
-                        const img = wrapper.querySelector('img');
-                        const startX = e.clientX;
-                        const startWidth = img.offsetWidth;
-
-                        const doDrag = (dragEvent) => {
-                            dragEvent.preventDefault();
-                            let newWidth = pos.includes('left')
-                                ? startWidth - (dragEvent.clientX - startX)
-                                : startWidth + (dragEvent.clientX - startX);
-                            if (newWidth < 20) newWidth = 20; // Min width
-                            img.style.width = `${newWidth}px`;
-                            img.style.height = 'auto';
-                        };
-
-                        const stopDrag = () => {
-                            document.documentElement.removeEventListener('mousemove', doDrag);
-                            document.documentElement.removeEventListener('mouseup', stopDrag);
-                        };
-
-                        document.documentElement.addEventListener('mousemove', doDrag);
-                        document.documentElement.addEventListener('mouseup', stopDrag);
-                    });
-                });
-            }
-            handleSelectionChange();
-        }
-
-        function handleSelectionChange() {
-            if (!articleOutput.isContentEditable) return;
-            if (currentlySelectedImage) {
-                insertLinkBtn.disabled = false;
-                return;
-            }
-            const selection = window.getSelection();
-            insertLinkBtn.disabled = selection.isCollapsed;
-        }
-
-        function handleEditorKeyDown(event) {
-            if ((event.key === 'Delete' || event.key === 'Backspace') && currentlySelectedImage) {
-                event.preventDefault();
-                deleteImageModalOverlay.classList.remove('hidden');
-            }
-        }
-
         const exitEditMode = (restoreContent = false) => {
-            if (restoreContent) {
-                articleOutput.innerHTML = originalArticleContent;
-            }
-            cleanupResizeSelection();
-
-            const toolbarElements = editorControls.querySelectorAll('button.editor-btn, select.editor-select');
+            if (restoreContent) articleOutput.innerHTML = originalArticleContent;
+            cleanupImageSelection();
             articleOutput.contentEditable = 'false';
             editBtn.textContent = 'Edit Artikel';
             cancelEditBtn.classList.add('hidden');
             articleOutput.classList.remove('border-2', 'border-indigo-300', 'p-4', 'rounded-b-md', '-mt-px');
             editorControls.classList.add('rounded-b-lg');
-            toolbarElements.forEach(el => el.disabled = true);
-
+            editorControls.querySelectorAll('button.editor-btn, select.editor-select').forEach(el => el.disabled = true);
             document.removeEventListener('selectionchange', handleSelectionChange);
-            articleOutput.removeEventListener('click', handleEditorClickForResize);
+            articleOutput.removeEventListener('click', handleEditorClick);
             articleOutput.removeEventListener('keydown', handleEditorKeyDown);
-            articleOutput.removeEventListener('dblclick', handleImageDblClick);
         };
 
         editBtn.addEventListener('click', () => {
-            const isEditable = articleOutput.isContentEditable;
-            if (isEditable) {
+            if (articleOutput.isContentEditable) {
                 exitEditMode(false);
             } else {
                 originalArticleContent = articleOutput.innerHTML;
-                const toolbarElements = editorControls.querySelectorAll('button.editor-btn, select.editor-select');
                 articleOutput.contentEditable = 'true';
                 editBtn.textContent = 'Selesai';
                 cancelEditBtn.classList.remove('hidden');
                 articleOutput.classList.add('border-2', 'border-indigo-300', 'p-4', 'rounded-b-md', '-mt-px');
                 editorControls.classList.remove('rounded-b-lg');
-
-                toolbarElements.forEach(el => el.disabled = false);
-                insertLinkBtn.disabled = true;
-
+                editorControls.querySelectorAll('button.editor-btn, select.editor-select').forEach(el => el.disabled = false);
+                insertLinkBtn.disabled = true; // Initially disabled
                 document.addEventListener('selectionchange', handleSelectionChange);
-                articleOutput.addEventListener('click', handleEditorClickForResize);
+                articleOutput.addEventListener('click', handleEditorClick);
                 articleOutput.addEventListener('keydown', handleEditorKeyDown);
-                articleOutput.addEventListener('dblclick', handleImageDblClick);
                 articleOutput.focus();
             }
         });
@@ -1711,37 +1705,33 @@
         });
 
         function formatDoc(command, value = null) {
-            // Custom handling for image alignment
-            if (['justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'].includes(command) && currentlySelectedImage) {
-                const wrapper = currentlySelectedImage.closest('.resize-wrapper');
-                if (wrapper) {
-                    // Get the parent block-level element to apply text-align
-                    let parentBlock = wrapper.parentElement;
-                    // Traverse up if the parent is a link
-                    if (parentBlock.tagName === 'A') {
-                        parentBlock = parentBlock.parentElement;
-                    }
+            const selectedImage = getSelectedImage();
 
-                    if (parentBlock && parentBlock.isContentEditable) {
-                        // Clear previous alignments and apply the new one
-                        parentBlock.style.textAlign = '';
-                        switch (command) {
+            // --- Robust Image Alignment ---
+            if (['justifyLeft', 'justifyCenter', 'justifyRight'].includes(command) && selectedImage) {
+                const wrapper = selectedImage.closest('.resize-wrapper');
+                if (wrapper) {
+                    const blockToAlign = wrapper.closest('p');
+                    if (blockToAlign) {
+                         switch(command) {
                             case 'justifyLeft':
-                                parentBlock.style.textAlign = 'left';
+                                blockToAlign.style.textAlign = 'left';
                                 break;
                             case 'justifyCenter':
-                                parentBlock.style.textAlign = 'center';
+                                blockToAlign.style.textAlign = 'center';
                                 break;
                             case 'justifyRight':
-                                parentBlock.style.textAlign = 'right';
+                                blockToAlign.style.textAlign = 'right';
                                 break;
-                            case 'justifyFull':
-                                parentBlock.style.textAlign = 'justify';
-                                break;
-                        }
+                         }
                     }
                 }
-            } else {
+            } else if (command === 'justifyFull' && selectedImage) {
+                // Justify full is a text property, doesn't apply well to image blocks.
+                // We can ignore it or center it as a fallback.
+                formatDoc('justifyCenter', null);
+            }
+            else {
                 // Default behavior for text
                 document.execCommand(command, false, value);
             }
@@ -1749,25 +1739,32 @@
         }
 
         function insertLink() {
+            const selectedImage = getSelectedImage();
             const url = prompt("Masukkan URL:", "https://");
             if (!url) return;
 
-            if (currentlySelectedImage) {
-                const wrapper = currentlySelectedImage.closest('.resize-wrapper');
+            if (selectedImage) {
+                const wrapper = selectedImage.closest('.resize-wrapper');
                 if (!wrapper) return;
 
-                const link = document.createElement('a');
-                link.href = url;
-
-                if (wrapper.parentElement.tagName === 'A') {
-                    wrapper.parentElement.href = url;
+                // Check if the image is already linked
+                const existingLink = wrapper.parentElement;
+                if (existingLink.tagName === 'A') {
+                    existingLink.href = url; // Just update the href
                 } else {
-                    const parent = wrapper.parentNode;
-                    parent.insertBefore(link, wrapper);
-                    link.appendChild(wrapper);
+                    const newLink = document.createElement('a');
+                    newLink.href = url;
+                    newLink.target = "_blank";
+                    newLink.rel = "noopener noreferrer";
+
+                    // Wrap the image wrapper with the link
+                    wrapper.parentNode.insertBefore(newLink, wrapper);
+                    newLink.appendChild(wrapper);
                 }
+                cleanupImageSelection();
             } else {
-                formatDoc('createLink', url);
+                // Default behavior for text selection
+                document.execCommand('createLink', false, url);
             }
         }
 
@@ -2252,8 +2249,9 @@
                     // Create a wrapper for resizing capabilities
                     const wrapper = document.createElement('div');
                     wrapper.className = 'resize-wrapper';
-                    wrapper.style.margin = '1em auto'; // Center the block
-                    wrapper.style.width = 'fit-content'; // Shrink-wrap the image initially
+                    // margin and width are handled by the parent <p> alignment
+                    // wrapper.style.margin = '1em auto';
+                    wrapper.style.width = 'fit-content';
 
                     const img = document.createElement('img');
                     img.src = src;
@@ -2263,9 +2261,23 @@
 
                     wrapper.appendChild(img);
 
-                    // Insert the wrapped image into the editor
+                    // **NEW**: Always wrap the image in a <p> for consistent alignment behavior
+                    const p = document.createElement('p');
+                    p.style.textAlign = 'center'; // Default to center alignment
+                    p.appendChild(wrapper);
+
+                    // Insert the paragraph with the wrapped image into the editor
                     articleOutput.focus();
-                    document.execCommand('insertHTML', false, wrapper.outerHTML);
+
+                    const selection = window.getSelection();
+                    if (selection.rangeCount > 0) {
+                        const range = selection.getRangeAt(0);
+                        range.deleteContents();
+                        range.insertNode(p);
+                    } else {
+                        // Fallback for older browsers or edge cases
+                        document.execCommand('insertHTML', false, p.outerHTML);
+                    }
                 }
                 // Close and clear modal
                 cancelImageBtn.click();
