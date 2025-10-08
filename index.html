@@ -1064,7 +1064,7 @@
             const style = document.getElementById('rewrite-style').value;
             const modificationInstruction = document.getElementById('rewrite-extra-prompt').value;
 
-            const htmlInstruction = `\n\nPENTING: Konten yang diberikan adalah dalam format HTML. Tugas Anda adalah memodifikasi teks di dalamnya sambil mempertahankan SEMUA tag HTML, terutama tag <a> untuk hyperlink, <strong>, <em>, <ul>, <ol>, <li>, dan <h2>/<h3>. Jangan mengubah atribut tag apa pun. Balas HANYA dengan konten HTML mentah, tanpa menyertakan blok kode Markdown seperti \`\`\`html atau format Markdown lainnya. Hasil akhir harus berupa HTML yang valid.`;
+            const htmlInstruction = `\n\nPENTING: Konten yang diberikan adalah dalam format HTML. Tugas Anda adalah memodifikasi teks di dalamnya sambil mempertahankan SEMUA tag HTML, terutama tag <a> untuk hyperlink, <img> untuk gambar, <strong>, <em>, <ul>, <ol>, <li>, dan <h2>/<h3>. Jangan mengubah atribut tag apa pun, termasuk 'src' dan 'alt' pada gambar. Balas HANYA dengan konten HTML mentah, tanpa menyertakan blok kode Markdown seperti \`\`\`html atau format Markdown lainnya. Hasil akhir harus berupa HTML yang valid.`;
 
             let stylePrompt = "";
             switch (style) {
@@ -1083,8 +1083,9 @@
                 case "Skrip Dialog Podcast":
                     stylePrompt = `
 Ubah konten HTML berikut menjadi skrip dialog podcast yang menarik dengan bahasa semi-formal.
-Formatnya harus seperti ini:
-- Dimulai dengan pembukaan oleh **Host**.
+Aturan:
+- Buat judul podcast yang menarik dan relevan dalam format <h1> di bagian paling atas skrip.
+- Skrip harus dimulai dengan pembukaan oleh **Host**.
 - Dilanjutkan dengan dialog tanya jawab antara **Host** dan **Nara Sumber**. Anda bisa berkreasi dengan nama Host dan Nara Sumber.
 - Sesekali, bumbui dialog dengan candaan atau pantun lucu yang relevan dengan topik untuk menjaga suasana agar tidak membosankan.
 - Pastikan nama pembicara (misalnya, **Host:** atau **Nara Sumber:**) dibuat tebal (menggunakan tag <strong>).
@@ -1500,9 +1501,10 @@ Formatnya harus seperti ini:
         }
 
         function applyInlineFormatting(text) {
+             // Regex for bold and italic now use negative lookbehind/ahead to avoid matching within words (like in URLs)
             return text
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/(\*|_)(.*?)\1/g, '<em>$2</em>') // Handles both *italic* and _italic_
+                .replace(/(?<!\w)\*\*(.*?)\*\*(?!\w)/g, '<strong>$1</strong>')
+                .replace(/(?<!\w)(\*|_)(.+?)\1(?!\w)/g, '<em>$2</em>')
                 .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
         }
 
