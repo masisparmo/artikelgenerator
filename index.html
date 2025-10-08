@@ -750,32 +750,45 @@
             outputContainer.style.display = 'none';
             
             let userQuery;
-            const systemPrompt = `Anda adalah seorang penulis konten ahli dan spesialis SEO. Tugas Anda adalah memproses teks yang diberikan sesuai instruksi. Gunakan format Markdown yang bersih. Untuk heading, gunakan HANYA format '# Judul H1', '## Judul H2', dan '### Judul H3'. Jangan gunakan format '####' atau heading yang lebih dalam.`;
+            let systemPrompt;
+            let isHtmlRewrite = false;
+
+            const markdownSystemPrompt = `Anda adalah seorang penulis konten ahli dan spesialis SEO. Tugas Anda adalah memproses teks yang diberikan sesuai instruksi. Gunakan format Markdown yang bersih. Untuk heading, gunakan HANYA format '# Judul H1', '## Judul H2', dan '### Judul H3'. Jangan gunakan format '####' atau heading yang lebih dalam.`;
+            const htmlSystemPrompt = `Anda adalah seorang editor ahli yang memproses konten HTML. Tugas Anda adalah menulis ulang atau memodifikasi teks di dalam tag HTML tanpa mengubah struktur tag itu sendiri. Pertahankan semua tag, termasuk <a>, <strong>, <em>, <ul>, <ol>, <li>, <h2>, <h3>, dll. Hasilnya harus berupa HTML yang valid.`;
 
             if (promptModifier) { // For Re-write or Paraphrase
-                const currentContent = articleOutput.innerText;
+                isHtmlRewrite = true;
+                systemPrompt = htmlSystemPrompt;
+                const currentContent = articleOutput.innerHTML;
                 if (!currentContent.trim()) {
                     alert("Tidak ada artikel untuk diproses.");
+                    loadingModalOverlay.classList.add('hidden');
+                    outputContainer.style.display = 'block';
                     return;
                 }
                 userQuery = `${promptModifier}:\n\n---\n${currentContent}\n---`;
             } else { // For new article generation
+                isHtmlRewrite = false;
+                systemPrompt = markdownSystemPrompt;
                 const topic = document.getElementById('topic').value;
                 const keywords = document.getElementById('keywords').value;
+
                 if (!topic.trim()) {
+                    // This logic is now handled by the generate-ideas-btn listener
+                    // which first generates a topic from references if the topic is empty.
+                    // If it still reaches here, it means the user clicked "Buat Artikel Baru"
+                    // with an empty topic and no references.
                     alert("Silakan masukkan topik artikel.");
+                    loadingModalOverlay.classList.add('hidden');
                     return;
                 }
                 userQuery = `Topik Artikel: "${topic}"\nKata Kunci: "${keywords}"`;
-
-                // --- New Data Collection and Extraction Logic ---
 
                 const websiteUrls = Array.from(document.querySelectorAll('input[name="url_website"]')).map(input => input.value.trim()).filter(url => url);
                 const youtubeUrls = Array.from(document.querySelectorAll('input[name="url_youtube"]')).map(input => input.value.trim()).filter(url => url);
                 const pastedTexts = Array.from(document.querySelectorAll('textarea[name="text_paste"]')).map(textarea => textarea.value.trim()).filter(text => text);
                 const uploadedFileNames = uploadedFileStore.map(file => file.name);
 
-                // Start extraction
                 const extractedText = await extractContentFromUrls(websiteUrls, youtubeUrls);
 
                 let referencePrompt = "";
@@ -793,7 +806,6 @@
                 if (referencePrompt) {
                     userQuery += `\n\n--- SUMBER REFERENSI PENGGUNA ---\n${referencePrompt}\n--- AKHIR SUMBER REFERENSI ---`;
                 }
-                // --- End New Logic ---
 
                 userQuery += `\n\nInstruksi Penulisan:\nBuat artikel blog yang komprehensif (minimal 1500 kata). Artikel harus menyertakan '## Resume Artikel', '## Daftar Isi' dengan placeholder '[Daftar Isi]', dan konten utama. PENTING: Jika diberikan "SUMBER REFERENSI PENGGUNA", utamakan konten tersebut sebagai dasar penulisan. Setelah itu, Anda harus menggunakan alat pencarian untuk menemukan dan merujuk pada minimal 3 sumber online tambahan yang kredibel untuk melengkapi artikel. Di akhir artikel, buat bagian berjudul '## Daftar Pustaka'. Untuk setiap sumber online (termasuk yang Anda cari), formatlah dalam gaya sitasi APA, tetapi buatlah judul artikel atau video menjadi hyperlink markdown. Contoh untuk artikel web: 'Nama Penulis. (Tahun, Tanggal). [Judul Artikel](URL). Nama Situs Web.'. Contoh untuk YouTube: 'Nama Kanal. (Tahun, Tanggal Publikasi). [Judul Video [Video]](URL). YouTube.'.`;
 
@@ -803,26 +815,25 @@
                 }
             }
             
-            // Preserve keywords during rewrite
             const keywordsToPreserve = document.getElementById('keywords').value;
 
             try {
-                const { text: articleMarkdown, sources } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash', true);
-                let finalMarkdown = articleMarkdown;
+                const { text: generatedContent } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash', !isHtmlRewrite);
 
-                // The state (isNewVersion or empty ID) is now set by the calling button.
-                // No need to clear the ID here anymore.
+                if (isHtmlRewrite) {
+                    articleOutput.innerHTML = generatedContent;
 
-                articleOutput.innerHTML = processMarkdownToHtml(finalMarkdown);
-
-                // After a rewrite, update the topic field with the new H1 title and restore keywords
-                if (promptModifier) {
-                    const lines = finalMarkdown.split('\n');
-                    if (lines.length > 0 && lines[0].startsWith('# ')) {
-                        const newTitle = lines[0].substring(2).trim();
-                        document.getElementById('topic').value = newTitle;
+                    // After a rewrite, update the topic field with the new H1 title from the HTML
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = generatedContent;
+                    const h1Element = tempDiv.querySelector('h1');
+                    if (h1Element) {
+                        document.getElementById('topic').value = h1Element.innerText.trim();
                     }
                     document.getElementById('keywords').value = keywordsToPreserve;
+
+                } else {
+                    articleOutput.innerHTML = processMarkdownToHtml(generatedContent);
                 }
 
                 outputContainer.style.display = 'block';
@@ -936,38 +947,38 @@
             const style = document.getElementById('rewrite-style').value;
             const modificationInstruction = document.getElementById('rewrite-extra-prompt').value;
 
+            const htmlInstruction = `\n\nPENTING: Konten yang diberikan adalah dalam format HTML. Tugas Anda adalah memodifikasi teks di dalamnya sambil mempertahankan SEMUA tag HTML, terutama tag <a> untuk hyperlink, <strong>, <em>, <ul>, <ol>, <li>, dan <h2>/<h3>. Jangan mengubah atribut tag apa pun. Hasil akhir harus berupa HTML yang valid. Jangan gunakan Markdown.`;
+
             let stylePrompt = "";
-            const titleInstruction = "\n\nPENTING: Hasilnya harus selalu menyertakan satu judul utama (H1) yang relevan untuk artikel yang ditulis ulang. Judul harus dalam format '# Judul Artikel'.";
             switch (style) {
                 case "Gaya Penulisan Formal":
-                    stylePrompt = "Tulis ulang artikel berikut dengan Gaya Penulisan Formal. Gunakan bahasa Indonesia yang baku, struktur kalimat yang jelas, dan nada yang objektif serta profesional. Hindari penggunaan bahasa gaul atau kiasan yang tidak umum." + titleInstruction;
+                    stylePrompt = "Tulis ulang konten HTML berikut dengan Gaya Penulisan Formal. Gunakan bahasa Indonesia yang baku, struktur kalimat yang jelas, dan nada yang objektif serta profesional." + htmlInstruction;
                     break;
                 case "Gaya Penulisan Semi Formal":
-                    stylePrompt = "Tulis ulang artikel berikut dengan Gaya Penulisan Semi Formal. Gunakan bahasa yang sopan dan profesional, namun tetap mudah diakses dan sedikit lebih luwes daripada gaya formal. Boleh menggunakan sapaan yang ramah namun tetap profesional." + titleInstruction;
+                    stylePrompt = "Tulis ulang konten HTML berikut dengan Gaya Penulisan Semi Formal. Gunakan bahasa yang sopan dan profesional, namun tetap mudah diakses dan sedikit lebih luwes." + htmlInstruction;
                     break;
                 case "Gaya Penulisan Casual (Awam)":
-                    stylePrompt = "Tulis ulang artikel berikut dengan Gaya Penulisan Casual (Awam). Gunakan bahasa sehari-hari yang sederhana, ringan, dan mudah dipahami oleh orang awam. Buat seolah-olah sedang menjelaskan kepada teman." + titleInstruction;
+                    stylePrompt = "Tulis ulang konten HTML berikut dengan Gaya Penulisan Casual (Awam). Gunakan bahasa sehari-hari yang sederhana dan mudah dipahami." + htmlInstruction;
                     break;
                 case "Gaya Penulisan Bercerita":
-                    stylePrompt = "Tulis ulang artikel berikut dengan Gaya Penulisan Bercerita (Storytelling). Gunakan alur naratif, contoh-contoh, atau analogi untuk membuat konten lebih menarik dan hidup. Bangun koneksi emosional dengan pembaca melalui cerita." + titleInstruction;
+                    stylePrompt = "Tulis ulang konten HTML berikut dengan Gaya Penulisan Bercerita (Storytelling). Gunakan alur naratif untuk membuat konten lebih menarik." + htmlInstruction;
                     break;
-                default:
-                    stylePrompt = `Tulis ulang artikel berikut dengan '${style}'.` + titleInstruction;
             }
 
             let fullPrompt = stylePrompt;
             if (modificationInstruction.trim()) {
-                fullPrompt += `\n\nSelanjutnya, modifikasi artikel berdasarkan instruksi berikut: "${modificationInstruction}"`;
+                fullPrompt += `\n\nSelanjutnya, modifikasi konten berdasarkan instruksi tambahan berikut: "${modificationInstruction}"`;
             }
 
-            isNewVersion = true; // Set flag: this is a new version of an existing article
+            isNewVersion = true;
             handleArticleGeneration(fullPrompt);
             rewriteModalOverlay.classList.add('hidden');
         });
 
         document.getElementById('paraphrase-btn').addEventListener('click', () => {
-            isNewVersion = true; // Set flag: this is a new version of an existing article
-            handleArticleGeneration("Parafrasekan artikel berikut kalimat per kalimat. Gunakan sinonim dan ubah struktur kalimat agar unik, namun jangan mengubah makna aslinya.");
+            isNewVersion = true;
+            const paraphrasePrompt = "Parafrasekan konten HTML berikut kalimat per kalimat. Gunakan sinonim dan ubah struktur kalimat agar unik, namun jangan mengubah makna atau maksud aslinya.\n\nPENTING: Pertahankan SEMUA tag HTML, terutama tag <a> untuk hyperlink. Hasil akhir harus berupa HTML yang valid. Jangan gunakan Markdown.";
+            handleArticleGeneration(paraphrasePrompt);
         });
 
 
@@ -981,12 +992,18 @@
             const payload = {
                 systemInstruction: { parts: [{ text: systemPrompt }] },
                 contents: [{ parts: [{ text: userQuery }] }],
+                generationConfig: {
+                    // Ensure the output is plain text for HTML rewrites, as we don't want JSON objects.
+                    // For markdown generation with search, the API defaults to a compatible mime type.
+                    responseMimeType: "text/plain"
+                }
             };
 
             if (useSearchTool) {
                 payload.tools = [{ "google_search": {} }];
-            } else {
-                payload.generationConfig = { "responseMimeType": "text/plain" };
+                // When using tools, we should not specify responseMimeType in generationConfig
+                // as the model needs to be able to return tool calls.
+                delete payload.generationConfig;
             }
 
             let response;
@@ -1467,7 +1484,7 @@
                 const systemPrompt = "Anda adalah seorang ahli dalam membuat prompt untuk generator gambar AI. Tugas Anda adalah membuat prompt yang detail dan deskriptif berdasarkan topik dan tipe gambar yang diberikan oleh pengguna.";
                 const userQuery = `Buatkan saya sebuah prompt gambar yang detail dalam Bahasa Indonesia untuk topik: "${topic}". Gaya gambar yang diinginkan adalah: "${imageType}". Jelaskan subjek utama, latar belakang, dan komposisi dalam Bahasa Indonesia, namun pertahankan istilah-istilah teknis fotografi dan seni (seperti 'hyper-realistic', 'cinematic lighting', '4K resolution', 'low angle shot') dalam Bahasa Inggris untuk hasil terbaik. Balas HANYA dengan teks prompt gambar, tanpa kata pengantar atau penjelasan apa pun.`;
 
-                const { text: generatedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
+                const { text: generatedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
 
                 promptText.value = generatedPrompt.trim();
 
@@ -1515,7 +1532,7 @@
                 Tujuan Anda adalah memberikan prompt yang sangat detail sehingga AI generator gambar dapat menciptakan hasil yang kaya, kompleks, dan sesuai dengan visi yang diperluas. Balas HANYA dengan prompt yang sudah disempurnakan, tanpa kata pengantar atau penjelasan apa pun.`;
                 const userQuery = `Sempurnakan prompt ini: "${currentPrompt}"`;
 
-                const { text: refinedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
+                const { text: refinedPrompt } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
 
                 promptText.value = refinedPrompt.trim();
 
@@ -1582,7 +1599,7 @@
                     if (pastedTexts.length > 0) referencePrompt += `\nTeks Ditempel:\n${pastedTexts.join('\n---\n')}`;
                     if (hasUploadedFiles) referencePrompt += `\nFile Diunggah: ${uploadedFileStore.map(f => f.name).join(', ')}`;
 
-                    const { text: generatedTopic } = await callGenerationAPI(systemPrompt, referencePrompt, 'gemini-2.5-flash');
+                    const { text: generatedTopic } = await callGenerationAPI(systemPrompt, referencePrompt, 'gemini-1.5-flash');
 
                     topicInput.value = generatedTopic.trim();
                     // Proses berhenti di sini, menunggu pengguna menekan tombol lagi.
@@ -1605,7 +1622,7 @@
                 const systemPrompt = "Anda adalah generator ide konten yang kreatif. Berdasarkan topik yang diberikan, hasilkan 5 ide judul artikel blog yang menarik dan SEO-friendly. Setiap ide harus berada di baris baru, diawali dengan '- ' (tanda hubung dan spasi).";
                 const userQuery = `Topik: "${topic}"`;
 
-                const { text: ideasText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
+                const { text: ideasText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
 
                 const ideas = ideasText.split('\n').filter(idea => idea.trim().startsWith('- ')).map(idea => idea.trim().substring(2).trim());
 
@@ -1661,7 +1678,7 @@
                 const systemPrompt = "Anda adalah seorang spesialis SEO. Berdasarkan topik yang diberikan, hasilkan daftar maksimal 10 kata kunci yang paling relevan. Pisahkan setiap kata kunci dengan koma. Berikan hanya daftar kata kunci, tanpa teks tambahan.";
                 const userQuery = `Topik: "${topic}"`;
 
-                const { text: keywordsText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
+                const { text: keywordsText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-1.5-flash');
 
                 document.getElementById('keywords').value = keywordsText.trim();
 
