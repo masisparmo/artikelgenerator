@@ -224,6 +224,50 @@
         </div>
     </div>
 
+    <!-- Add Image Modal -->
+    <div id="image-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full">
+            <h3 class="text-lg font-medium text-gray-900 uppercase mb-4">Tambah Gambar</h3>
+
+            <!-- Tabs -->
+            <div class="border-b border-gray-200 mb-4">
+                <nav class="-mb-px flex space-x-4" aria-label="Tabs">
+                    <button id="image-tab-url" class="py-2 px-1 text-center border-b-2 font-medium text-sm text-indigo-600 border-indigo-500 uppercase">
+                        Dari URL
+                    </button>
+                    <button id="image-tab-upload" class="py-2 px-1 text-center border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300 uppercase">
+                        Upload File
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Tab Content -->
+            <div id="image-content-url" class="tab-content active space-y-4">
+                <div>
+                    <label for="image-url-input" class="block text-sm font-medium text-gray-700">URL Gambar</label>
+                    <input type="url" id="image-url-input" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="https://...">
+                </div>
+            </div>
+            <div id="image-content-upload" class="tab-content space-y-4">
+                 <div>
+                    <label for="image-file-input" class="block text-sm font-medium text-gray-700">Pilih File Gambar</label>
+                    <input type="file" id="image-file-input" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 uppercase" accept="image/*">
+                </div>
+            </div>
+
+            <!-- Common Fields -->
+            <div class="mt-4">
+                <label for="image-alt-text" class="block text-sm font-medium text-gray-700">Teks Alternatif (alt)</label>
+                <input type="text" id="image-alt-text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Deskripsi singkat gambar untuk SEO">
+            </div>
+
+            <div class="mt-6 flex justify-end space-x-2">
+                <button id="cancel-image-btn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 uppercase">BATAL</button>
+                <button id="confirm-image-btn" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 uppercase">SISIPKAN</button>
+            </div>
+        </div>
+    </div>
+
 
     <div class="container mx-auto p-4 md:p-8 max-w-4xl">
         <header class="text-center mb-8">
@@ -369,6 +413,9 @@
                         </div>
                         <div class="toolbar-group">
                             <button class="editor-btn" onclick="insertLink()" title="Insert Link" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"></path></svg></button>
+                        </div>
+                        <div class="toolbar-group">
+                            <button id="insert-image-btn" class="editor-btn" title="Tambah Gambar" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"></path></svg></button>
                         </div>
                         <div class="toolbar-group">
                              <button class="editor-btn" onclick="formatDoc('justifyLeft')" title="Rata Kiri" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M15 15H3v2h12v-2zm0-8H3v2h12V7zM3 13h18v-2H3v2zm0 8h18v-2H3v2zM3 3v2h18V3H3z"></path></svg></button>
@@ -1845,6 +1892,128 @@
         }
 
         document.getElementById('download-docx-btn').addEventListener('click', downloadArticleAsDocx);
+
+        // --- Add Image Modal Logic ---
+        const insertImageBtn = document.getElementById('insert-image-btn');
+        const imageModalOverlay = document.getElementById('image-modal-overlay');
+        const cancelImageBtn = document.getElementById('cancel-image-btn');
+        const confirmImageBtn = document.getElementById('confirm-image-btn');
+        const imageTabUrl = document.getElementById('image-tab-url');
+        const imageTabUpload = document.getElementById('image-tab-upload');
+        const imageContentUrl = document.getElementById('image-content-url');
+        const imageContentUpload = document.getElementById('image-content-upload');
+        const imageUrlInput = document.getElementById('image-url-input');
+        const imageFileInput = document.getElementById('image-file-input');
+        const imageAltTextInput = document.getElementById('image-alt-text');
+
+        let activeImageTab = 'url'; // 'url' or 'upload'
+
+        function switchImageTab(tabName) {
+            activeImageTab = tabName;
+            if (tabName === 'url') {
+                imageTabUrl.classList.add('text-indigo-600', 'border-indigo-500');
+                imageTabUrl.classList.remove('text-gray-500', 'border-transparent');
+                imageContentUrl.classList.add('active');
+
+                imageTabUpload.classList.remove('text-indigo-600', 'border-indigo-500');
+                imageTabUpload.classList.add('text-gray-500', 'border-transparent');
+                imageContentUpload.classList.remove('active');
+            } else { // upload
+                imageTabUpload.classList.add('text-indigo-600', 'border-indigo-500');
+                imageTabUpload.classList.remove('text-gray-500', 'border-transparent');
+                imageContentUpload.classList.add('active');
+
+                imageTabUrl.classList.remove('text-indigo-600', 'border-indigo-500');
+                imageTabUrl.classList.add('text-gray-500', 'border-transparent');
+                imageContentUrl.classList.remove('active');
+            }
+        }
+
+        imageTabUrl.addEventListener('click', () => switchImageTab('url'));
+        imageTabUpload.addEventListener('click', () => switchImageTab('upload'));
+
+        insertImageBtn.addEventListener('click', () => {
+            if (insertImageBtn.disabled) return;
+            // Auto-fill alt text with article topic
+            const topic = document.getElementById('topic').value;
+            imageAltTextInput.value = topic.trim();
+
+            imageModalOverlay.classList.remove('hidden');
+        });
+
+        cancelImageBtn.addEventListener('click', () => {
+            imageModalOverlay.classList.add('hidden');
+            // Clear inputs
+            imageUrlInput.value = '';
+            imageFileInput.value = '';
+            imageAltTextInput.value = '';
+        });
+
+        confirmImageBtn.addEventListener('click', () => {
+            const altText = imageAltTextInput.value.trim();
+
+            const insertImage = (src) => {
+                if (src) {
+                    // Sanitize alt text by escaping double quotes
+                    const sanitizedAlt = altText.replace(/"/g, '&quot;');
+
+                    // Create element programmatically to ensure style is applied correctly
+                    const img = document.createElement('img');
+                    img.src = src;
+                    img.alt = sanitizedAlt;
+                    img.style.maxWidth = '100%';
+                    img.style.height = 'auto';
+                    img.style.display = 'block';
+                    img.style.margin = '1em auto';
+
+                    articleOutput.focus();
+                    document.execCommand('insertHTML', false, img.outerHTML);
+                }
+                // Close and clear modal
+                cancelImageBtn.click();
+            };
+
+            if (activeImageTab === 'url') {
+                const imageUrl = imageUrlInput.value.trim();
+                if (imageUrl) {
+                    insertImage(imageUrl);
+                } else {
+                    alert('Silakan masukkan URL gambar.');
+                }
+            } else { // upload
+                const file = imageFileInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const base64Src = e.target.result;
+                        insertImage(base64Src);
+                    };
+                    reader.onerror = () => {
+                        alert('Gagal membaca file gambar.');
+                        cancelImageBtn.click();
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    alert('Silakan pilih file gambar untuk diunggah.');
+                }
+            }
+        });
+
+        // Enable image button when editing
+        const originalExitEditMode = exitEditMode;
+        exitEditMode = (restoreContent = false) => {
+            originalExitEditMode(restoreContent);
+            insertImageBtn.disabled = true;
+        };
+
+        const originalEditBtnClickHandler = editBtn.onclick;
+        editBtn.addEventListener('click', () => {
+            const isEditable = articleOutput.isContentEditable;
+            // This logic runs *before* the state changes.
+            // If it's currently editable, it's about to be disabled.
+            // If it's not editable, it's about to be enabled.
+            insertImageBtn.disabled = isEditable; // isEditable is true when switching to 'Selesai'
+        });
 
     </script>
 </body>
