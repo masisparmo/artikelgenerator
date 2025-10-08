@@ -121,12 +121,27 @@
         #article-output img {
             cursor: pointer;
         }
-        #article-output img.selected-for-resize {
-            resize: both;
-            overflow: hidden;
-            outline: 2px solid #4f46e5;
-            outline-offset: 2px;
+        /* Styles for Image Resizing Wrapper and Handles */
+        .resize-wrapper {
+            position: relative;
+            display: inline-block; /* To wrap the image tightly */
+            line-height: 0; /* Remove extra space below image */
         }
+        .resize-wrapper.selected {
+            outline: 2px solid #4f46e5;
+        }
+        .resize-handle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #4f46e5;
+            border: 1px solid #ffffff;
+            z-index: 10;
+        }
+        .resize-handle.top-left { top: -5px; left: -5px; cursor: nwse-resize; }
+        .resize-handle.top-right { top: -5px; right: -5px; cursor: nesw-resize; }
+        .resize-handle.bottom-left { bottom: -5px; left: -5px; cursor: nesw-resize; }
+        .resize-handle.bottom-right { bottom: -5px; right: -5px; cursor: nwse-resize; }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -230,6 +245,18 @@
             <div class="mt-4 flex justify-end space-x-2">
                 <button id="cancel-edit-idea-btn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 uppercase">Batal</button>
                 <button id="confirm-edit-idea-btn" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 uppercase">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Image Confirmation Modal -->
+    <div id="delete-image-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full">
+            <h3 class="text-lg font-medium text-gray-900 uppercase">Konfirmasi Hapus Gambar</h3>
+            <p class="mt-2 text-sm text-gray-500">Apakah Anda yakin ingin menghapus gambar ini dari artikel?</p>
+            <div class="mt-4 flex justify-end space-x-2">
+                <button id="cancel-delete-image-btn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 uppercase">Batal</button>
+                <button id="confirm-delete-image-btn" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 uppercase">Hapus</button>
             </div>
         </div>
     </div>
@@ -1440,68 +1467,124 @@
         const cancelEditBtn = document.getElementById('cancel-edit-btn');
         let originalArticleContent = '';
 
+        // --- Image Deletion Modal ---
+        const deleteImageModalOverlay = document.getElementById('delete-image-modal-overlay');
+        const cancelDeleteImageBtn = document.getElementById('cancel-delete-image-btn');
+        const confirmDeleteImageBtn = document.getElementById('confirm-delete-image-btn');
+
+        cancelDeleteImageBtn.addEventListener('click', () => deleteImageModalOverlay.classList.add('hidden'));
+
+        confirmDeleteImageBtn.addEventListener('click', () => {
+            if (currentlySelectedImage) {
+                const wrapper = currentlySelectedImage.closest('.resize-wrapper');
+                if (wrapper) {
+                    // If the wrapper is inside a link, remove the link instead.
+                    if (wrapper.parentElement.tagName === 'A') {
+                        wrapper.parentElement.remove();
+                    } else {
+                        wrapper.remove();
+                    }
+                }
+                cleanupResizeSelection(); // This will also nullify currentlySelectedImage
+            }
+            deleteImageModalOverlay.classList.add('hidden');
+        });
+
+        // --- Image Resize, Selection, and Linking Logic ---
         const insertLinkBtn = document.getElementById('insert-link-btn');
         let currentlySelectedImage = null;
 
+        function cleanupResizeSelection() {
+            const selectedWrappers = articleOutput.querySelectorAll('.resize-wrapper.selected');
+            selectedWrappers.forEach(wrapper => {
+                wrapper.classList.remove('selected');
+                wrapper.querySelectorAll('.resize-handle').forEach(handle => handle.remove());
+            });
+            if (currentlySelectedImage) {
+                currentlySelectedImage = null;
+                handleSelectionChange();
+            }
+        }
+
+        function handleEditorClickForResize(event) {
+            const target = event.target;
+            const wrapper = target.closest('.resize-wrapper');
+
+            if (target.classList.contains('resize-handle')) return;
+
+            const currentlySelectedWrapper = articleOutput.querySelector('.resize-wrapper.selected');
+
+            if (!wrapper) {
+                cleanupResizeSelection();
+                return;
+            }
+
+            if (currentlySelectedWrapper && currentlySelectedWrapper !== wrapper) {
+                cleanupResizeSelection();
+            }
+
+            if (!wrapper.classList.contains('selected')) {
+                wrapper.classList.add('selected');
+                currentlySelectedImage = wrapper.querySelector('img');
+
+                ['top-left', 'top-right', 'bottom-left', 'bottom-right'].forEach(pos => {
+                    const handle = document.createElement('div');
+                    handle.className = `resize-handle ${pos}`;
+                    wrapper.appendChild(handle);
+
+                    handle.addEventListener('mousedown', e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const img = wrapper.querySelector('img');
+                        const startX = e.clientX;
+                        const startWidth = img.offsetWidth;
+
+                        const doDrag = (dragEvent) => {
+                            dragEvent.preventDefault();
+                            let newWidth = pos.includes('left')
+                                ? startWidth - (dragEvent.clientX - startX)
+                                : startWidth + (dragEvent.clientX - startX);
+                            if (newWidth < 20) newWidth = 20; // Min width
+                            img.style.width = `${newWidth}px`;
+                            img.style.height = 'auto';
+                        };
+
+                        const stopDrag = () => {
+                            document.documentElement.removeEventListener('mousemove', doDrag);
+                            document.documentElement.removeEventListener('mouseup', stopDrag);
+                        };
+
+                        document.documentElement.addEventListener('mousemove', doDrag);
+                        document.documentElement.addEventListener('mouseup', stopDrag);
+                    });
+                });
+            }
+            handleSelectionChange();
+        }
+
         function handleSelectionChange() {
             if (!articleOutput.isContentEditable) return;
-
-            // Check if an image is selected via our custom click logic
             if (currentlySelectedImage) {
                 insertLinkBtn.disabled = false;
                 return;
             }
-
-            // If no custom-selected image, check for text selection
             const selection = window.getSelection();
-            if (selection.isCollapsed) {
-                insertLinkBtn.disabled = true;
-            } else {
-                // Enable if the selection is not collapsed (i.e., text is highlighted)
-                insertLinkBtn.disabled = false;
-            }
+            insertLinkBtn.disabled = selection.isCollapsed;
         }
 
-        function handleImageSelectionForResize(event) {
-            const previouslySelected = articleOutput.querySelector('img.selected-for-resize');
-
-            if (event.target.tagName === 'IMG') {
-                // If another image was already selected, deselect it and clear the global tracker
-                if (previouslySelected && previouslySelected !== event.target) {
-                    previouslySelected.classList.remove('selected-for-resize');
-                    currentlySelectedImage = null;
-                }
-                // Toggle the class on the clicked image
-                event.target.classList.toggle('selected-for-resize');
-
-                // Update the global tracker based on the new state
-                if (event.target.classList.contains('selected-for-resize')) {
-                    currentlySelectedImage = event.target;
-                } else {
-                    currentlySelectedImage = null;
-                }
-
-            } else {
-                // If the click is outside an image, deselect any selected image and clear the tracker
-                if (previouslySelected) {
-                    previouslySelected.classList.remove('selected-for-resize');
-                }
-                currentlySelectedImage = null;
+        function handleEditorKeyDown(event) {
+            if ((event.key === 'Delete' || event.key === 'Backspace') && currentlySelectedImage) {
+                event.preventDefault();
+                deleteImageModalOverlay.classList.remove('hidden');
             }
-            // Manually trigger a selection change check to update the link button state
-            handleSelectionChange();
         }
 
         const exitEditMode = (restoreContent = false) => {
             if (restoreContent) {
                 articleOutput.innerHTML = originalArticleContent;
             }
-            // Deselect any image being resized and clear the tracker
-            const selectedImage = articleOutput.querySelector('img.selected-for-resize');
-            if (selectedImage) {
-                selectedImage.classList.remove('selected-for-resize');
-            }
-            currentlySelectedImage = null;
+            cleanupResizeSelection();
 
             const toolbarElements = editorControls.querySelectorAll('button.editor-btn, select.editor-select');
             articleOutput.contentEditable = 'false';
@@ -1510,8 +1593,10 @@
             articleOutput.classList.remove('border-2', 'border-indigo-300', 'p-4', 'rounded-b-md', '-mt-px');
             editorControls.classList.add('rounded-b-lg');
             toolbarElements.forEach(el => el.disabled = true);
+
             document.removeEventListener('selectionchange', handleSelectionChange);
-            articleOutput.removeEventListener('click', handleImageSelectionForResize);
+            articleOutput.removeEventListener('click', handleEditorClickForResize);
+            articleOutput.removeEventListener('keydown', handleEditorKeyDown);
         };
 
         editBtn.addEventListener('click', () => {
@@ -1526,12 +1611,13 @@
                 cancelEditBtn.classList.remove('hidden');
                 articleOutput.classList.add('border-2', 'border-indigo-300', 'p-4', 'rounded-b-md', '-mt-px');
                 editorControls.classList.remove('rounded-b-lg');
-                toolbarElements.forEach(el => {
-                    el.disabled = false;
-                });
+
+                toolbarElements.forEach(el => el.disabled = false);
                 insertLinkBtn.disabled = true;
+
                 document.addEventListener('selectionchange', handleSelectionChange);
-                articleOutput.addEventListener('click', handleImageSelectionForResize);
+                articleOutput.addEventListener('click', handleEditorClickForResize);
+                articleOutput.addEventListener('keydown', handleEditorKeyDown);
                 articleOutput.focus();
             }
         });
@@ -1549,22 +1635,21 @@
             const url = prompt("Masukkan URL:", "https://");
             if (!url) return;
 
-            // Prioritize the globally tracked image
             if (currentlySelectedImage) {
+                const wrapper = currentlySelectedImage.closest('.resize-wrapper');
+                if (!wrapper) return;
+
                 const link = document.createElement('a');
                 link.href = url;
 
-                // If the image is already inside a link, update the existing link's href
-                if (currentlySelectedImage.parentElement.tagName === 'A') {
-                    currentlySelectedImage.parentElement.href = url;
+                if (wrapper.parentElement.tagName === 'A') {
+                    wrapper.parentElement.href = url;
                 } else {
-                    // Otherwise, wrap the image with a new link
-                    const parent = currentlySelectedImage.parentNode;
-                    parent.insertBefore(link, currentlySelectedImage);
-                    link.appendChild(currentlySelectedImage);
+                    const parent = wrapper.parentNode;
+                    parent.insertBefore(link, wrapper);
+                    link.appendChild(wrapper);
                 }
             } else {
-                // Fallback to default browser behavior for text selections
                 formatDoc('createLink', url);
             }
         }
@@ -2045,20 +2130,25 @@
 
             const insertImage = (src) => {
                 if (src) {
-                    // Sanitize alt text by escaping double quotes
                     const sanitizedAlt = altText.replace(/"/g, '&quot;');
 
-                    // Create element programmatically to ensure style is applied correctly
+                    // Create a wrapper for resizing capabilities
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'resize-wrapper';
+                    wrapper.style.margin = '1em auto'; // Center the block
+                    wrapper.style.width = 'fit-content'; // Shrink-wrap the image initially
+
                     const img = document.createElement('img');
                     img.src = src;
                     img.alt = sanitizedAlt;
                     img.style.maxWidth = '100%';
-                    img.style.height = 'auto';
                     img.style.display = 'block';
-                    img.style.margin = '1em auto';
 
+                    wrapper.appendChild(img);
+
+                    // Insert the wrapped image into the editor
                     articleOutput.focus();
-                    document.execCommand('insertHTML', false, img.outerHTML);
+                    document.execCommand('insertHTML', false, wrapper.outerHTML);
                 }
                 // Close and clear modal
                 cancelImageBtn.click();
