@@ -219,10 +219,10 @@
                         Bagaimana cara mendapatkan Kunci API RapidAPI (untuk Transkrip YouTube)?
                     </summary>
                     <div class="mt-4 text-sm text-gray-600 space-y-3">
-                        <p>Untuk menggunakan referensi URL YouTube, Anda memerlukan Kunci API gratis dari RapidAPI. Berikut langkah-langkahnya:</p>
+                        <p>Untuk menggunakan referensi URL YouTube, Anda memerlukan Kunci API gratis dari RapidAPI. Gunakan layanan 'Youtube Transcript by Solid-API' yang lebih andal. Berikut langkah-langkahnya:</p>
                         <ol class="list-decimal list-inside space-y-2">
-                            <li>Buka halaman <a href="https://rapidapi.com/8v2FWW4H6AmKw89/api/youtube-transcripts" target="_blank" class="text-indigo-600 font-medium hover:underline">YouTube Transcripts API di RapidAPI</a> dan daftar/masuk ke akun Anda.</li>
-                            <li>Klik tab "<strong>Pricing</strong>" dan temukan paket "<strong>BASIC</strong>" yang gratis (0/bulan).</li>
+                            <li>Buka halaman <a href="https://rapidapi.com/solid-api-solid-api-default/api/youtube-transcript3" target="_blank" class="text-indigo-600 font-medium hover:underline">Youtube Transcript by Solid-API di RapidAPI</a> dan daftar/masuk ke akun Anda.</li>
+                            <li>Klik tab "<strong>Pricing</strong>" dan temukan paket "<strong>BASIC</strong>" yang gratis (100 permintaan/bulan).</li>
                             <li>Klik tombol "<strong>Subscribe</strong>" pada paket BASIC tersebut. Anda tidak perlu memasukkan kartu kredit.</li>
                             <li>Kembali ke tab "<strong>Endpoints</strong>". Di panel kanan, Anda akan melihat "<strong>Code Snippets</strong>".</li>
                             <li>Cari header yang bernama <code>X-RapidAPI-Key</code>. Salin (copy) nilai (value) dari kunci tersebut.</li>
@@ -1334,51 +1334,51 @@
                         errorDiv.textContent = userMessage;
                         errorDiv.classList.remove('hidden');
                         console.warn(userMessage);
-                        return; // Skip this iteration if the key is missing
+                        return; // Skip this iteration
                     }
                     const videoId = videoIdMatch[1];
-                    // Using the new reliable RapidAPI endpoint. text=true is added to get a simple text response.
-                    const transcriptApiUrl = `https://youtube-transcript.p.rapidapi.com/youtube/transcript?videoId=${videoId}&text=true`;
+                    const transcriptApiUrl = `https://youtube-transcript3.p.rapidapi.com/transcript?video_id=${videoId}`;
 
                     const options = {
                         method: 'GET',
                         headers: {
                             'X-RapidAPI-Key': rapidApiKey,
-                            'X-RapidAPI-Host': 'youtube-transcript.p.rapidapi.com'
+                            'X-RapidAPI-Host': 'youtube-transcript3.p.rapidapi.com'
                         }
                     };
 
                     const promise = fetch(transcriptApiUrl, options)
                         .then(response => {
                             if (!response.ok) {
-                                // Log the error response text for better debugging
                                 return response.text().then(text => {
-                                    throw new Error(`RapidAPI request failed for ${url} with status ${response.status}: ${text}`);
+                                    throw new Error(`Solid-API request failed for ${url} with status ${response.status}: ${text}`);
                                 });
                             }
                             return response.json();
                         })
                         .then(data => {
-                            // Check for application-level errors within a successful (200 OK) response.
-                            if (data && data.error === 'transcript-unavailable') {
-                                const userMessage = `Transkrip tidak tersedia untuk video ini. Silakan coba URL YouTube yang lain.`;
+                            if (data && data.error) {
+                                let userMessage = `Gagal mengambil transkrip: ${data.error}.`;
+                                if (data.error.includes("transcript-unavailable") || data.error.includes("No transcript found")) {
+                                     userMessage = `Transkrip tidak tersedia untuk video ini. Silakan coba URL YouTube yang lain.`;
+                                }
                                 errorDiv.textContent = userMessage;
                                 errorDiv.classList.remove('hidden');
-                                console.warn(`Pesan dari API untuk ${url}: ${data.message}`);
-                                return; // Stop processing this URL
+                                console.warn(`Pesan dari Solid-API untuk ${url}: ${data.error}`);
+                                return;
                             }
 
-                            // The API returns an array of transcript chunks. We need to join them.
-                            if (data && Array.isArray(data) && data.length > 0) {
-                                const transcriptText = data.map(item => item.text).join(' ');
-                                extractedContents.push(`--- Transkrip dari YouTube ${url} ---\n${transcriptText}\n--- Akhir Transkrip ---\n`);
-                            } else if (data.content && typeof data.content === 'string') {
-                                // Fallback for a simple text response as described in some docs
-                                const transcriptText = data.content;
-                                extractedContents.push(`--- Transkrip dari YouTube ${url} ---\n${transcriptText}\n--- Akhir Transkrip ---\n`);
+                            let transcriptText = '';
+                            if (data && data.transcript && typeof data.transcript === 'string') {
+                                transcriptText = data.transcript;
+                            } else if (data && Array.isArray(data) && data.length > 0 && data[0].text) {
+                                transcriptText = data.map(item => item.text).join(' ');
                             }
-                            else {
-                                 console.warn(`Tidak ada transkrip yang ditemukan atau format respons tidak terduga untuk YouTube ${url}. Response:`, data);
+
+                            if (transcriptText) {
+                                 extractedContents.push(`--- Transkrip dari YouTube ${url} ---\n${transcriptText}\n--- Akhir Transkrip ---\n`);
+                            } else {
+                                 console.warn(`Format respons transkrip tidak terduga dari Solid-API untuk ${url}. Response:`, data);
                             }
                         })
                         .catch(error => {
@@ -1389,7 +1389,7 @@
                             } else if (error.message.includes("429")) {
                                 userMessage += "Anda telah mencapai batas permintaan API. Silakan coba lagi nanti.";
                             } else {
-                                userMessage += "API mungkin tidak dapat memproses video ini (misalnya, video live) atau layanan sedang tidak tersedia.";
+                                userMessage += "API mungkin tidak dapat memproses video ini atau layanan sedang tidak tersedia.";
                             }
                             errorDiv.textContent = userMessage;
                             errorDiv.classList.remove('hidden');
