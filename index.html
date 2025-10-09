@@ -414,7 +414,7 @@
                     <div id="website-url-container" class="space-y-2">
                         <div class="flex items-center justify-between">
                             <label class="block text-sm font-medium text-gray-700">URL Website</label>
-                            <button type="button" onclick="addReferenceInput('website-url-container', 'url')" class="add-btn flex items-center justify-center w-6 h-6 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <button type="button" onclick="addReferenceInput('website')" class="add-btn flex items-center justify-center w-6 h-6 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                             </button>
                         </div>
@@ -428,7 +428,7 @@
                     <div id="youtube-url-container" class="space-y-2">
                         <div class="flex items-center justify-between">
                             <label class="block text-sm font-medium text-gray-700">URL YouTube</label>
-                             <button type="button" onclick="addReferenceInput('youtube-url-container', 'url')" class="add-btn flex items-center justify-center w-6 h-6 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                             <button type="button" onclick="addReferenceInput('youtube')" class="add-btn flex items-center justify-center w-6 h-6 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                             </button>
                         </div>
@@ -442,7 +442,7 @@
                     <div id="paste-text-container" class="space-y-2">
                         <div class="flex items-center justify-between">
                             <label class="block text-sm font-medium text-gray-700">Tempel Teks</label>
-                             <button type="button" onclick="addReferenceInput('paste-text-container', 'textarea')" class="add-btn flex items-center justify-center w-6 h-6 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                             <button type="button" onclick="addReferenceInput('text')" class="add-btn flex items-center justify-center w-6 h-6 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                             </button>
                         </div>
@@ -714,26 +714,56 @@
         }
 
         // --- Dynamic Reference Inputs ---
-        function addReferenceInput(containerId, inputType) {
-            const container = document.getElementById(containerId);
-            const newGroup = document.createElement('div');
-            newGroup.className = 'reference-input-group flex items-start space-x-2 mt-2'; // Use items-start for textareas
+        function addReferenceInput(type) {
+            const config = {
+                website: {
+                    containerId: 'website-url-container',
+                    elementType: 'input',
+                    attributes: {
+                        type: 'url',
+                        name: 'url_website',
+                        placeholder: 'https://contoh-website.com/artikel'
+                    },
+                    isTextarea: false
+                },
+                youtube: {
+                    containerId: 'youtube-url-container',
+                    elementType: 'input',
+                    attributes: {
+                        type: 'url',
+                        name: 'url_youtube',
+                        placeholder: 'https://www.youtube.com/watch?v=...'
+                    },
+                    isTextarea: false
+                },
+                text: {
+                    containerId: 'paste-text-container',
+                    elementType: 'textarea',
+                    attributes: {
+                        name: 'text_paste',
+                        placeholder: 'Tempelkan teks referensi di sini...',
+                        rows: '4'
+                    },
+                    isTextarea: true
+                }
+            };
 
-            let newElement;
-            const name = container.querySelector('[name]').name; // Get name from the first input in the container
-            const placeholder = container.querySelector('[placeholder]').placeholder;
-
-            if (inputType === 'textarea') {
-                newElement = document.createElement('textarea');
-                newElement.rows = "4";
-                newElement.className = "block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50";
-            } else { // 'url' or other input types
-                newElement = document.createElement('input');
-                newElement.type = inputType;
-                newElement.className = "block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50";
+            const typeConfig = config[type];
+            if (!typeConfig) {
+                console.error('Invalid reference type specified:', type);
+                return;
             }
-            newElement.name = name;
-            newElement.placeholder = placeholder;
+
+            const container = document.getElementById(typeConfig.containerId);
+            const newGroup = document.createElement('div');
+            newGroup.className = 'reference-input-group flex items-start space-x-2 mt-2';
+
+            const newElement = document.createElement(typeConfig.elementType);
+            newElement.className = "block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50";
+
+            for (const [key, value] of Object.entries(typeConfig.attributes)) {
+                newElement.setAttribute(key, value);
+            }
 
             const removeBtn = document.createElement('button');
             removeBtn.type = 'button';
@@ -744,8 +774,7 @@
             newGroup.appendChild(newElement);
             newGroup.appendChild(removeBtn);
 
-            // Align button vertically for inputs
-            if (inputType !== 'textarea') {
+            if (!typeConfig.isTextarea) {
                 newGroup.classList.remove('items-start');
                 newGroup.classList.add('items-center');
             }
