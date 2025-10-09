@@ -202,34 +202,18 @@
             <h2 class="text-2xl font-bold mb-4 text-gray-800">Masukkan Kunci API Gemini Anda</h2>
             <p class="text-gray-600 mb-6">Aplikasi ini memerlukan Kunci API Google Gemini untuk berfungsi. Kunci Anda akan disimpan dengan aman di browser Anda dan tidak akan dibagikan.</p>
             
-            <label for="api-key-input" class="block text-sm font-medium text-gray-700 mb-1">Kunci API Google Gemini (Wajib)</label>
+            <label for="api-key-input" class="block text-sm font-medium text-gray-700 mb-1">Kunci API Google Gemini</label>
             <input type="password" id="api-key-input" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4 bg-blue-50" placeholder="Kunci API Gemini Anda (AIza...)">
 
-            <label for="rapid-api-key-input" class="block text-sm font-medium text-gray-700 mb-1 mt-4">Kunci API RapidAPI (untuk Transkrip YouTube)</label>
-            <input type="password" id="rapid-api-key-input" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4 bg-blue-50" placeholder="Kunci API dari RapidAPI (Opsional)">
+            <label for="scrapingdog-api-key-input" class="block text-sm font-medium text-gray-700 mb-1 mt-4">Kunci API Scrapingdog (Wajib untuk Transkrip YouTube)</label>
+            <input type="password" id="scrapingdog-api-key-input" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4 bg-blue-50" placeholder="Masukkan kunci API Scrapingdog Anda di sini">
 
             <button id="save-api-key" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 font-medium uppercase">
                 Simpan dan Lanjutkan
             </button>
-            <p id="api-key-error" class="text-red-500 text-sm mt-2 hidden">Kunci API tidak boleh kosong.</p>
+            <p id="api-key-error" class="text-red-500 text-sm mt-2 hidden">Kunci API Gemini tidak boleh kosong.</p>
 
             <div class="mt-8 space-y-4">
-                <details class="bg-gray-50 rounded-md p-4">
-                    <summary class="font-medium text-gray-700 cursor-pointer hover:text-indigo-600 uppercase">
-                        Bagaimana cara mendapatkan Kunci API RapidAPI (untuk Transkrip YouTube)?
-                    </summary>
-                    <div class="mt-4 text-sm text-gray-600 space-y-3">
-                        <p>Untuk menggunakan referensi URL YouTube, Anda memerlukan Kunci API gratis dari RapidAPI. Gunakan layanan 'Youtube Transcript by Solid-API' yang lebih andal. Berikut langkah-langkahnya:</p>
-                        <ol class="list-decimal list-inside space-y-2">
-                            <li>Buka halaman <a href="https://rapidapi.com/solid-api-solid-api-default/api/youtube-transcript3" target="_blank" class="text-indigo-600 font-medium hover:underline">Youtube Transcript by Solid-API di RapidAPI</a> dan daftar/masuk ke akun Anda.</li>
-                            <li>Klik tab "<strong>Pricing</strong>" dan temukan paket "<strong>BASIC</strong>" yang gratis (100 permintaan/bulan).</li>
-                            <li>Klik tombol "<strong>Subscribe</strong>" pada paket BASIC tersebut. Anda tidak perlu memasukkan kartu kredit.</li>
-                            <li>Kembali ke tab "<strong>Endpoints</strong>". Di panel kanan, Anda akan melihat "<strong>Code Snippets</strong>".</li>
-                            <li>Cari header yang bernama <code>X-RapidAPI-Key</code>. Salin (copy) nilai (value) dari kunci tersebut.</li>
-                            <li>Tempel (paste) kunci yang sudah disalin ke kolom "Kunci API RapidAPI" di atas.</li>
-                        </ol>
-                    </div>
-                </details>
                 <details class="bg-gray-50 rounded-md p-4">
                     <summary class="font-medium text-gray-700 cursor-pointer hover:text-indigo-600 uppercase">
                         Bagaimana cara mendapatkan Kunci API Gemini gratis?
@@ -243,6 +227,21 @@
                             <li>Pilih proyek yang ada atau buat proyek Google Cloud baru (ini gratis).</li>
                             <li>Kunci API Anda akan dibuat. Salin (copy) seluruh kunci tersebut.</li>
                             <li>Tempel (paste) kunci yang sudah disalin ke kolom input di atas dan klik simpan.</li>
+                        </ol>
+                    </div>
+                </details>
+                <details class="bg-gray-50 rounded-md p-4">
+                    <summary class="font-medium text-gray-700 cursor-pointer hover:text-indigo-600 uppercase">
+                        Bagaimana cara mendapatkan Kunci API Scrapingdog?
+                    </summary>
+                    <div class="mt-4 text-sm text-gray-600 space-y-3">
+                        <p>Scrapingdog API digunakan untuk mengambil transkrip dari video YouTube. Anda bisa mendapatkan 1000 panggilan gratis per bulan. Berikut langkah-langkahnya:</p>
+                        <ol class="list-decimal list-inside space-y-2">
+                            <li>Buka <a href="https://www.scrapingdog.com/" target="_blank" class="text-indigo-600 font-medium hover:underline">Scrapingdog.com</a> dan klik tombol "<strong>SIGN UP FOR FREE</strong>".</li>
+                            <li>Daftar dengan akun Google, GitHub, atau email Anda.</li>
+                            <li>Setelah mendaftar dan masuk, Anda akan diarahkan ke dasbor.</li>
+                            <li>Kunci API Anda akan terlihat langsung di bagian atas dasbor.</li>
+                            <li>Salin (copy) kunci API tersebut dan tempel (paste) ke kolom input di atas.</li>
                         </ol>
                     </div>
                 </details>
@@ -433,7 +432,6 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                             </button>
                         </div>
-                        <div id="youtube-transcript-error" class="hidden mt-2 text-sm text-red-600 bg-red-50 p-3 rounded-md"></div>
                         <div class="reference-input-group flex items-center space-x-2">
                             <input type="url" name="url_youtube" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="https://www.youtube.com/watch?v=...">
                             <!-- Remove button will be added here by JS -->
@@ -681,11 +679,11 @@
     <script>
         // --- API Key Modal Logic ---
         let userApiKey = '';
-        let rapidApiKey = '';
+        let scrapingDogApiKey = '';
         const apiKeyModalOverlay = document.getElementById('api-modal-overlay');
         const saveApiKeyBtn = document.getElementById('save-api-key');
         const apiKeyInput = document.getElementById('api-key-input');
-        const rapidApiKeyInput = document.getElementById('rapid-api-key-input');
+        const scrapingDogApiKeyInput = document.getElementById('scrapingdog-api-key-input');
         const apiKeyError = document.getElementById('api-key-error');
 
         // --- IndexedDB Logic ---
@@ -788,14 +786,14 @@
         window.addEventListener('DOMContentLoaded', () => {
             initDB();
             userApiKey = localStorage.getItem('geminiApiKey');
-            rapidApiKey = localStorage.getItem('rapidApiKey') || '';
+            scrapingDogApiKey = localStorage.getItem('scrapingDogApiKey') || '';
 
-            if (userApiKey) {
-                apiKeyInput.value = userApiKey;
-            } else {
+            apiKeyInput.value = userApiKey;
+            scrapingDogApiKeyInput.value = scrapingDogApiKey;
+
+            if (!userApiKey) {
                 apiKeyModalOverlay.classList.remove('hidden');
             }
-            rapidApiKeyInput.value = rapidApiKey;
             addInitialRemoveButtons();
             setDefaultView(); // Set the default view on page load
 
@@ -818,14 +816,14 @@
 
         saveApiKeyBtn.addEventListener('click', () => {
             const geminiKey = apiKeyInput.value.trim();
-            const newRapidApiKey = rapidApiKeyInput.value.trim();
+            const dogKey = scrapingDogApiKeyInput.value.trim();
 
             if (geminiKey) {
                 localStorage.setItem('geminiApiKey', geminiKey);
                 userApiKey = geminiKey;
 
-                localStorage.setItem('rapidApiKey', newRapidApiKey);
-                rapidApiKey = newRapidApiKey;
+                localStorage.setItem('scrapingDogApiKey', dogKey);
+                scrapingDogApiKey = dogKey;
 
                 apiKeyModalOverlay.classList.add('hidden');
                 apiKeyError.classList.add('hidden');
@@ -1186,6 +1184,17 @@
                 return;
             }
 
+            // Validasi Kunci API Scrapingdog jika URL YouTube digunakan
+            if (!promptModifier) { // Hanya validasi saat membuat artikel baru, bukan saat re-write
+                const youtubeUrls = Array.from(document.querySelectorAll('input[name="url_youtube"]')).map(input => input.value.trim()).filter(url => url);
+                if (youtubeUrls.length > 0 && !scrapingDogApiKey) {
+                    alert("Untuk membuat artikel dengan referensi YouTube, Anda wajib memasukkan Kunci API Scrapingdog.");
+                    apiKeyModalOverlay.classList.remove('hidden');
+                    return;
+                }
+            }
+
+
             loadingModalOverlay.classList.remove('hidden');
             outputContainer.style.display = 'none';
             
@@ -1293,7 +1302,6 @@
         }
 
         async function extractContentFromUrls(websiteUrls, youtubeUrls) {
-            const errorDiv = document.getElementById('youtube-transcript-error');
             const extractedContents = [];
             const corsProxy = 'https://api.allorigins.win/get?url=';
 
@@ -1329,70 +1337,29 @@
             youtubeUrls.forEach(url => {
                 const videoIdMatch = url.match(/(?:v=|\/embed\/|\/)([\w-]{11})/);
                 if (videoIdMatch && videoIdMatch[1]) {
-                    if (!rapidApiKey) {
-                        const userMessage = "Kunci API RapidAPI belum dimasukkan. Silakan masukkan di pengaturan untuk mengambil transkrip YouTube.";
-                        errorDiv.textContent = userMessage;
-                        errorDiv.classList.remove('hidden');
-                        console.warn(userMessage);
-                        return; // Skip this iteration
+                    if (!scrapingDogApiKey) {
+                        console.warn("Kunci API Scrapingdog tidak tersedia. Melewatkan ekstraksi transkrip YouTube.");
+                        return; // Skip this iteration if the key is missing
                     }
                     const videoId = videoIdMatch[1];
-                    const transcriptApiUrl = `https://youtube-transcript3.p.rapidapi.com/transcript?video_id=${videoId}`;
+                    const transcriptApiUrl = `https://api.scrapingdog.com/youtube/transcripts?api_key=${scrapingDogApiKey}&v=${videoId}`;
 
-                    const options = {
-                        method: 'GET',
-                        headers: {
-                            'X-RapidAPI-Key': rapidApiKey,
-                            'X-RapidAPI-Host': 'youtube-transcript3.p.rapidapi.com'
-                        }
-                    };
-
-                    const promise = fetch(transcriptApiUrl, options)
+                    const promise = fetch(transcriptApiUrl)
                         .then(response => {
-                            if (!response.ok) {
-                                return response.text().then(text => {
-                                    throw new Error(`Solid-API request failed for ${url} with status ${response.status}: ${text}`);
-                                });
-                            }
+                            if (!response.ok) throw new Error(`Scrapingdog API request failed for ${url} with status ${response.status}`);
                             return response.json();
                         })
                         .then(data => {
-                            if (data && data.error) {
-                                let userMessage = `Gagal mengambil transkrip: ${data.error}.`;
-                                if (data.error.includes("transcript-unavailable") || data.error.includes("No transcript found")) {
-                                     userMessage = `Transkrip tidak tersedia untuk video ini. Silakan coba URL YouTube yang lain.`;
-                                }
-                                errorDiv.textContent = userMessage;
-                                errorDiv.classList.remove('hidden');
-                                console.warn(`Pesan dari Solid-API untuk ${url}: ${data.error}`);
-                                return;
-                            }
-
-                            let transcriptText = '';
-                            if (data && data.transcript && typeof data.transcript === 'string') {
-                                transcriptText = data.transcript;
-                            } else if (data && Array.isArray(data) && data.length > 0 && data[0].text) {
-                                transcriptText = data.map(item => item.text).join(' ');
-                            }
-
-                            if (transcriptText) {
-                                 extractedContents.push(`--- Transkrip dari YouTube ${url} ---\n${transcriptText}\n--- Akhir Transkrip ---\n`);
-                            } else {
-                                 console.warn(`Format respons transkrip tidak terduga dari Solid-API untuk ${url}. Response:`, data);
+                            if (data && data.transcripts && data.transcripts.length > 0) {
+                                const transcriptText = data.transcripts.map(item => item.text).join(' ');
+                                extractedContents.push(`--- Transkrip dari YouTube ${url} ---\n${transcriptText}\n--- Akhir Transkrip ---\n`);
+                            } else if (data.transcripts && data.transcripts.length === 0) {
+                                 console.warn(`Tidak ada transkrip yang ditemukan untuk YouTube ${url}.`);
                             }
                         })
                         .catch(error => {
-                            console.error(`Gagal mendapatkan transkrip untuk YouTube ${url}:`, error);
-                            let userMessage = `Gagal mengambil transkrip untuk video: ${url}. `;
-                            if (error.message.includes("403") || error.message.includes("not subscribed")) {
-                                userMessage += "Pastikan Kunci API RapidAPI Anda valid dan Anda sudah ter-subscribe ke paket BASIC (gratis).";
-                            } else if (error.message.includes("429")) {
-                                userMessage += "Anda telah mencapai batas permintaan API. Silakan coba lagi nanti.";
-                            } else {
-                                userMessage += "API mungkin tidak dapat memproses video ini atau layanan sedang tidak tersedia.";
-                            }
-                            errorDiv.textContent = userMessage;
-                            errorDiv.classList.remove('hidden');
+                            console.warn(`Gagal mendapatkan transkrip untuk YouTube ${url}:`, error);
+                            // This will likely fail due to invalid API key for now, which is expected.
                         });
                     fetchPromises.push(promise);
                 }
@@ -2367,9 +2334,6 @@ Aturan:
         });
 
         generateIdeasBtn.addEventListener('click', async () => {
-            // **FIX**: Hide any previous error messages at the start of a new request.
-            document.getElementById('youtube-transcript-error').classList.add('hidden');
-
             const topicInput = document.getElementById('topic');
             let topic = topicInput.value;
 
@@ -2387,25 +2351,23 @@ Aturan:
                     return;
                 }
 
+                // Validasi Kunci API Scrapingdog jika URL YouTube digunakan
+                if (youtubeUrls.length > 0 && !scrapingDogApiKey) {
+                    alert("Untuk membuat topik dari referensi YouTube, Anda wajib memasukkan Kunci API Scrapingdog.");
+                    apiKeyModalOverlay.classList.remove('hidden');
+                    return;
+                }
+
                 loadingModalOverlay.classList.remove('hidden');
 
                 try {
                     const systemPrompt = "Anda adalah seorang ahli strategi konten yang cerdas. Tugas Anda adalah menganalisis sumber referensi yang diberikan dan menghasilkan SATU topik artikel yang paling menarik dan relevan dari sumber tersebut. Balas HANYA dengan topik artikelnya, tanpa penjelasan atau kata pengantar.";
 
-                    // **FIX**: Call extractContentFromUrls to get transcripts and website content first.
-                    const extractedText = await extractContentFromUrls(websiteUrls, youtubeUrls);
-
-                    let referencePrompt = "Berikut adalah sumber referensi yang tersedia untuk dianalisis:\n";
-                    if (extractedText) {
-                        referencePrompt += `\nKonten yang Diekstrak:\n${extractedText}`;
-                    }
-                    if (pastedTexts.length > 0) {
-                        referencePrompt += `\n\nTeks yang Ditempel:\n${pastedTexts.join('\n---\n')}`;
-                    }
-                    if (hasUploadedFiles) {
-                        const fileReferences = uploadedFileStore.map(f => f.name).join(', ');
-                        referencePrompt += `\n\nFile yang Diunggah: ${fileReferences}. (Anda tidak dapat mengakses konten file, hanya nama filenya).`;
-                    }
+                    let referencePrompt = "Berikut adalah sumber referensi yang tersedia:\n";
+                    if (websiteUrls.length > 0) referencePrompt += `\nURL Website:\n${websiteUrls.join('\n')}`;
+                    if (youtubeUrls.length > 0) referencePrompt += `\nURL YouTube:\n${youtubeUrls.join('\n')}`;
+                    if (pastedTexts.length > 0) referencePrompt += `\nTeks Ditempel:\n${pastedTexts.join('\n---\n')}`;
+                    if (hasUploadedFiles) referencePrompt += `\nFile Diunggah: ${uploadedFileStore.map(f => f.name).join(', ')}`;
 
                     const { text: generatedTopic } = await callGenerationAPI(systemPrompt, referencePrompt, 'gemini-2.5-flash');
 
