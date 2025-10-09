@@ -1311,29 +1311,24 @@
             youtubeUrls.forEach(url => {
                 const videoIdMatch = url.match(/(?:v=|\/embed\/|\/)([\w-]{11})/);
                 if (videoIdMatch && videoIdMatch[1]) {
-                    if (!scrapingDogApiKey) {
-                        console.warn("Kunci API Scrapingdog tidak tersedia. Melewatkan ekstraksi transkrip YouTube.");
-                        return; // Skip this iteration if the key is missing
-                    }
                     const videoId = videoIdMatch[1];
-                    const transcriptApiUrl = `https://api.scrapingdog.com/youtube/transcripts?api_key=${scrapingDogApiKey}&v=${videoId}`;
+                    const transcriptApiUrl = `https://tubetext.vercel.app/youtube/transcript?video_id=${videoId}`;
 
                     const promise = fetch(transcriptApiUrl)
                         .then(response => {
-                            if (!response.ok) throw new Error(`Scrapingdog API request failed for ${url} with status ${response.status}`);
+                            if (!response.ok) throw new Error(`TubeText API request failed for ${url} with status ${response.status}`);
                             return response.json();
                         })
                         .then(data => {
-                            if (data && data.transcripts && data.transcripts.length > 0) {
-                                const transcriptText = data.transcripts.map(item => item.text).join(' ');
+                            if (data && data.success && data.data && data.data.full_text) {
+                                const transcriptText = data.data.full_text;
                                 extractedContents.push(`--- Transkrip dari YouTube ${url} ---\n${transcriptText}\n--- Akhir Transkrip ---\n`);
-                            } else if (data.transcripts && data.transcripts.length === 0) {
-                                 console.warn(`Tidak ada transkrip yang ditemukan untuk YouTube ${url}.`);
+                            } else {
+                                 console.warn(`Tidak ada transkrip yang ditemukan atau terjadi kesalahan untuk YouTube ${url}. Response:`, data);
                             }
                         })
                         .catch(error => {
                             console.warn(`Gagal mendapatkan transkrip untuk YouTube ${url}:`, error);
-                            // This will likely fail due to invalid API key for now, which is expected.
                         });
                     fetchPromises.push(promise);
                 }
@@ -2330,11 +2325,20 @@ Aturan:
                 try {
                     const systemPrompt = "Anda adalah seorang ahli strategi konten yang cerdas. Tugas Anda adalah menganalisis sumber referensi yang diberikan dan menghasilkan SATU topik artikel yang paling menarik dan relevan dari sumber tersebut. Balas HANYA dengan topik artikelnya, tanpa penjelasan atau kata pengantar.";
 
-                    let referencePrompt = "Berikut adalah sumber referensi yang tersedia:\n";
-                    if (websiteUrls.length > 0) referencePrompt += `\nURL Website:\n${websiteUrls.join('\n')}`;
-                    if (youtubeUrls.length > 0) referencePrompt += `\nURL YouTube:\n${youtubeUrls.join('\n')}`;
-                    if (pastedTexts.length > 0) referencePrompt += `\nTeks Ditempel:\n${pastedTexts.join('\n---\n')}`;
-                    if (hasUploadedFiles) referencePrompt += `\nFile Diunggah: ${uploadedFileStore.map(f => f.name).join(', ')}`;
+                    // **FIX**: Call extractContentFromUrls to get transcripts and website content first.
+                    const extractedText = await extractContentFromUrls(websiteUrls, youtubeUrls);
+
+                    let referencePrompt = "Berikut adalah sumber referensi yang tersedia untuk dianalisis:\n";
+                    if (extractedText) {
+                        referencePrompt += `\nKonten yang Diekstrak:\n${extractedText}`;
+                    }
+                    if (pastedTexts.length > 0) {
+                        referencePrompt += `\n\nTeks yang Ditempel:\n${pastedTexts.join('\n---\n')}`;
+                    }
+                    if (hasUploadedFiles) {
+                        const fileReferences = uploadedFileStore.map(f => f.name).join(', ');
+                        referencePrompt += `\n\nFile yang Diunggah: ${fileReferences}. (Anda tidak dapat mengakses konten file, hanya nama filenya).`;
+                    }
 
                     const { text: generatedTopic } = await callGenerationAPI(systemPrompt, referencePrompt, 'gemini-2.5-flash');
 
