@@ -454,7 +454,7 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
                     <!-- Article Database -->
-                    <div id="article-db-container">
+                    <div id="article-db-container" class="hidden">
                         <div class="flex justify-between items-center border-b pb-2 mb-3">
                             <h3 class="text-lg font-medium text-gray-800">Database Artikel</h3>
                             <div class="flex space-x-2">
@@ -473,7 +473,7 @@
                     </div>
                 </div>
 
-                <div id="output-container" class="mt-8">
+                <div id="output-container" class="mt-8" style="display: none;">
                      <input type="hidden" id="current-article-id">
                     <!-- TTS Player -->
                     <div id="tts-player-container" class="hidden p-3 bg-gray-50 border border-gray-300 rounded-t-lg -mb-px">
@@ -498,9 +498,9 @@
                         <audio id="tts-audio-player" class="hidden"></audio>
                     </div>
                     <!-- Editor Controls -->
-                     <div id="editor-controls" class="flex items-center p-1 bg-gray-100 rounded-t-lg border-x border-t border-gray-300 flex-wrap gap-y-1">
+                     <div id="editor-controls" class="hidden flex items-center p-1 bg-gray-100 rounded-t-lg border-x border-t border-gray-300 flex-wrap gap-y-1">
                         <div class="toolbar-group">
-                             <select id="heading-select" class="editor-select" onchange="formatDoc('formatBlock', this.value)">
+                             <select id="heading-select" class="editor-select" onchange="formatDoc('formatBlock', this.value)" disabled>
                                 <option value="p">Paragraf</option>
                                 <option value="h1">Heading 1</option>
                                 <option value="h2">Heading 2</option>
@@ -508,37 +508,37 @@
                             </select>
                         </div>
                         <div class="toolbar-group">
-                            <button class="editor-btn" onclick="formatDoc('bold')" title="Bold"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4.25-4H7v14h7.04c2.1 0 3.71-1.7 3.71-3.78 0-1.52-.86-2.82-2.15-3.43zM10 6.5h3c.97 0 1.75.78 1.75 1.75S13.97 10 13 10h-3V6.5zm3.5 8.5H10v-3h3.5c.97 0 1.75.78 1.75 1.75s-.78 1.25-1.75 1.25z"></path></svg></button>
-                            <button class="editor-btn" onclick="formatDoc('italic')" title="Italic"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4v3h2.21l-3.42 8H6v3h8v-3h-2.21l3.42-8H18V4z"></path></svg></button>
-                            <button class="editor-btn" onclick="formatDoc('underline')" title="Underline"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17c3.31 0 6-2.69 6-6V3h-2.5v8c0 1.93-1.57 3.5-3.5 3.5S8.5 12.93 8.5 11V3H6v8c0 3.31 2.69 6 6 6zm-7 2v2h14v-2H5z"></path></svg></button>
+                            <button class="editor-btn" onclick="formatDoc('bold')" title="Bold" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4.25-4H7v14h7.04c2.1 0 3.71-1.7 3.71-3.78 0-1.52-.86-2.82-2.15-3.43zM10 6.5h3c.97 0 1.75.78 1.75 1.75S13.97 10 13 10h-3V6.5zm3.5 8.5H10v-3h3.5c.97 0 1.75.78 1.75 1.75s-.78 1.25-1.75 1.25z"></path></svg></button>
+                            <button class="editor-btn" onclick="formatDoc('italic')" title="Italic" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4v3h2.21l-3.42 8H6v3h8v-3h-2.21l3.42-8H18V4z"></path></svg></button>
+                            <button class="editor-btn" onclick="formatDoc('underline')" title="Underline" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17c3.31 0 6-2.69 6-6V3h-2.5v8c0 1.93-1.57 3.5-3.5 3.5S8.5 12.93 8.5 11V3H6v8c0 3.31 2.69 6 6 6zm-7 2v2h14v-2H5z"></path></svg></button>
                         </div>
                         <div class="toolbar-group">
-                            <button class="editor-btn" onclick="formatDoc('undo')" title="Undo"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"></path></svg></button>
-                            <button class="editor-btn" onclick="formatDoc('redo')" title="Redo"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.96 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"></path></svg></button>
+                            <button class="editor-btn" onclick="formatDoc('undo')" title="Undo" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"></path></svg></button>
+                            <button class="editor-btn" onclick="formatDoc('redo')" title="Redo" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.96 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"></path></svg></button>
                         </div>
                         <div class="toolbar-group">
-                            <button class="editor-btn" onclick="formatDoc('insertUnorderedList')" title="Bullet List"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm0-6c-.83 0-1.5.67-1.5 1.5S3.17 7.5 4 7.5 5.5 6.83 5.5 6 4.83 4.5 4 4.5zm0 12c-.83 0-1.5.68-1.5 1.5s.68 1.5 1.5 1.5 1.5-.68 1.5-1.5-.67-1.5-1.5-1.5zM7 19h14v-2H7v2zm0-6h14v-2H7v2zm0-8v2h14V5H7z"></path></svg></button>
-                            <button class="editor-btn" onclick="formatDoc('insertOrderedList')" title="Numbered List"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2v1zm1-9h1V4H2v1h1v3zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 11.9V11H2v1zm5-6v2h14V5H7zm0 14h14v-2H7v2zm0-6h14v-2H7v2z"></path></svg></button>
+                            <button class="editor-btn" onclick="formatDoc('insertUnorderedList')" title="Bullet List" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm0-6c-.83 0-1.5.67-1.5 1.5S3.17 7.5 4 7.5 5.5 6.83 5.5 6 4.83 4.5 4 4.5zm0 12c-.83 0-1.5.68-1.5 1.5s.68 1.5 1.5 1.5 1.5-.68 1.5-1.5-.67-1.5-1.5-1.5zM7 19h14v-2H7v2zm0-6h14v-2H7v2zm0-8v2h14V5H7z"></path></svg></button>
+                            <button class="editor-btn" onclick="formatDoc('insertOrderedList')" title="Numbered List" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2v1zm1-9h1V4H2v1h1v3zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 11.9V11H2v1zm5-6v2h14V5H7zm0 14h14v-2H7v2zm0-6h14v-2H7v2z"></path></svg></button>
                         </div>
                         <div class="toolbar-group">
                             <button id="insert-link-btn" class="editor-btn" onclick="insertLink()" title="Insert Link" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"></path></svg></button>
                         </div>
                         <div class="toolbar-group">
-                            <button id="insert-image-btn" class="editor-btn" title="Tambah Gambar"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"></path></svg></button>
+                            <button id="insert-image-btn" class="editor-btn" title="Tambah Gambar" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"></path></svg></button>
                         </div>
                         <div class="toolbar-group">
-                            <button id="tts-btn" class="editor-btn" title="Text to Speech">
+                            <button id="tts-btn" class="editor-btn" title="Text to Speech" disabled>
                                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>
                             </button>
                         </div>
                         <div class="toolbar-group">
-                             <button class="editor-btn" onclick="formatDoc('justifyLeft')" title="Rata Kiri"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M15 15H3v2h12v-2zm0-8H3v2h12V7zM3 13h18v-2H3v2zm0 8h18v-2H3v2zM3 3v2h18V3H3z"></path></svg></button>
-                            <button class="editor-btn" onclick="formatDoc('justifyCenter')" title="Rata Tengah"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M7 15v2h10v-2H7zm-4 6h18v-2H3v2zm0-8h18v-2H3v2zm4-6v2h10V7H7zM3 3v2h18V3H3z"></path></svg></button>
-                            <button class="editor-btn" onclick="formatDoc('justifyRight')" title="Rata Kanan"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3 21h18v-2H3v2zm6-4h12v-2H9v2zm-6-4h18v-2H3v2zm6-4h12V7H9v2zM3 3v2h18V3H3z"></path></svg></button>
-                            <button class="editor-btn" onclick="formatDoc('justifyFull')" title="Rata Kanan-Kiri"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3 21h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18v-2H3v2z"></path></svg></button>
+                             <button class="editor-btn" onclick="formatDoc('justifyLeft')" title="Rata Kiri" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M15 15H3v2h12v-2zm0-8H3v2h12V7zM3 13h18v-2H3v2zm0 8h18v-2H3v2zM3 3v2h18V3H3z"></path></svg></button>
+                            <button class="editor-btn" onclick="formatDoc('justifyCenter')" title="Rata Tengah" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M7 15v2h10v-2H7zm-4 6h18v-2H3v2zm0-8h18v-2H3v2zm4-6v2h10V7H7zM3 3v2h18V3H3z"></path></svg></button>
+                            <button class="editor-btn" onclick="formatDoc('justifyRight')" title="Rata Kanan" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3 21h18v-2H3v2zm6-4h12v-2H9v2zm-6-4h18v-2H3v2zm6-4h12V7H9v2zM3 3v2h18V3H3z"></path></svg></button>
+                            <button class="editor-btn" onclick="formatDoc('justifyFull')" title="Rata Kanan-Kiri" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3 21h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18v-2H3v2zm0-4h18v-2H3v2z"></path></svg></button>
                         </div>
                         <div class="toolbar-group">
-                            <button class="editor-btn" onclick="formatDoc('removeFormat')" title="Hapus Format"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3.27 5L2 6.27l6.97 6.97L6.5 19h3l1.57-3.66L16.73 21 18 19.73 3.55 5.27 3.27 5zM6 5v.18L8.82 8h2.4l-.72 1.68 2.1 2.1L14.21 8h2.4L19 5H6z"></path></svg></button>
+                            <button class="editor-btn" onclick="formatDoc('removeFormat')" title="Hapus Format" disabled><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3.27 5L2 6.27l6.97 6.97L6.5 19h3l1.57-3.66L16.73 21 18 19.73 3.55 5.27 3.27 5zM6 5v.18L8.82 8h2.4l-.72 1.68 2.1 2.1L14.21 8h2.4L19 5H6z"></path></svg></button>
                         </div>
                         <div class="flex-grow"></div>
                         <div class="flex items-center space-x-2 pl-2">
@@ -549,11 +549,11 @@
                                     <a href="#" id="copy-html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 uppercase">Salin sebagai Rich Text (HTML)</a>
                                 </div>
                             </div>
-                            <button id="cancel-edit-btn" class="py-2 px-3 text-sm font-medium rounded-md text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 uppercase">BATAL</button>
-                            <button id="edit-btn" class="py-2 px-3 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 uppercase">Selesai</button>
+                            <button id="cancel-edit-btn" class="hidden py-2 px-3 text-sm font-medium rounded-md text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 uppercase">BATAL</button>
+                            <button id="edit-btn" class="py-2 px-3 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 uppercase">Edit Artikel</button>
                         </div>
                     </div>
-                    <div id="article-output" class="prose bg-white p-6 rounded-b-lg border-2 border-indigo-300 -mt-px" contenteditable="true"></div>
+                    <div id="article-output" class="prose bg-white p-6 rounded-b-lg"></div>
                     <div id="action-buttons" class="mt-4 flex flex-wrap gap-2 justify-end">
                          <button id="rewrite-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 uppercase">Re-Write</button>
                          <button id="paraphrase-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 uppercase">Parafrase</button>
@@ -562,7 +562,7 @@
                     </div>
 
                     <!-- Image Prompt Generator -->
-                    <div id="image-generator-container" class="mt-10">
+                    <div id="image-generator-container" class="mt-10 hidden">
                         <h3 class="text-lg font-medium text-gray-800 border-b pb-2 mb-3">Buat Prompt Gambar Ilustrasi</h3>
                         <div class="grid grid-cols-1 md:grid-cols-1 gap-6 max-w-xl mx-auto">
                             <!-- Controls -->
@@ -780,7 +780,7 @@
                 apiKeyModalOverlay.classList.remove('hidden');
             }
             addInitialRemoveButtons();
-            enterEditMode(); // Activate editor on load
+            setDefaultView(); // Set the default view on page load
 
             // Search functionality
             const searchInput = document.getElementById('search-article-input');
@@ -1586,7 +1586,6 @@ Aturan:
                     );
                 }
 
-                dbContainer.classList.remove('hidden'); // Ensure container is always visible
                 if (articles && articles.length > 0) {
                     articles.forEach(article => {
                         const item = document.createElement('div');
@@ -1643,6 +1642,50 @@ Aturan:
             }
         });
 
+        function setDefaultView() {
+            // 1. Make containers visible
+            const dbContainer = document.getElementById('article-db-container');
+            dbContainer.classList.remove('hidden');
+            outputContainer.style.display = 'block';
+            editorControls.classList.remove('hidden');
+            editorControls.classList.add('flex');
+            document.getElementById('image-generator-container').classList.remove('hidden');
+
+            // 2. Enter edit mode by default
+            enterEditMode();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initDB();
+            userApiKey = localStorage.getItem('geminiApiKey');
+            scrapingDogApiKey = localStorage.getItem('scrapingDogApiKey') || '';
+
+            apiKeyInput.value = userApiKey;
+            scrapingDogApiKeyInput.value = scrapingDogApiKey;
+
+            if (!userApiKey) {
+                apiKeyModalOverlay.classList.remove('hidden');
+            }
+            addInitialRemoveButtons();
+            setDefaultView(); // Set the default view on page load
+
+            // Search functionality
+            const searchInput = document.getElementById('search-article-input');
+            const searchBtn = document.getElementById('search-article-btn');
+
+            searchBtn.addEventListener('click', () => {
+                displayArticles(searchInput.value);
+            });
+
+            searchInput.addEventListener('keyup', (event) => {
+                if (event.key === 'Enter') {
+                    displayArticles(searchInput.value);
+                } else if (searchInput.value === '') {
+                    displayArticles();
+                }
+            });
+        });
+
         function loadArticleForEditing(id) {
             const request = db.transaction("articles").objectStore("articles").get(id);
             request.onsuccess = (event) => {
@@ -1653,21 +1696,19 @@ Aturan:
                 }
 
                 articleOutput.innerHTML = article.content;
-                currentArticleIdInput.value = article.id;
-                isNewVersion = false; // CRITICAL: Reset state flag when loading an existing article.
+                // THIS IS THE KEY FIX: Update originalArticleContent with the loaded content.
+                originalArticleContent = article.content;
 
-                // CRITICAL: Populate input fields directly from the database object.
+                currentArticleIdInput.value = article.id;
+                isNewVersion = false;
+
                 document.getElementById('topic').value = article.title || '';
                 document.getElementById('keywords').value = article.keywords || '';
-
-                // Set the status from the loaded article, or default for older articles
                 currentArticleStatus = article.articleType || 'Artikel Asli';
 
-                outputContainer.style.display = 'block';
-                editorControls.classList.remove('hidden');
-                editorControls.classList.add('flex');
-                document.getElementById('image-generator-container').classList.remove('hidden');
-                ttsBtn.disabled = false; // Also enable TTS button when loading an article
+                // Ensure edit mode is active.
+                enterEditMode();
+
                 window.scrollTo({ top: outputContainer.offsetTop, behavior: 'smooth' });
             };
         }
@@ -1999,7 +2040,10 @@ Aturan:
         });
 
         function enterEditMode() {
-            originalArticleContent = articleOutput.innerHTML;
+            // Only set original content if not already in edit mode to avoid overwriting loaded content
+            if (!articleOutput.isContentEditable) {
+                originalArticleContent = articleOutput.innerHTML;
+            }
             articleOutput.contentEditable = 'true';
             editBtn.textContent = 'Selesai';
             cancelEditBtn.classList.remove('hidden');
@@ -2007,12 +2051,13 @@ Aturan:
             editorControls.classList.remove('rounded-b-lg');
 
             editorControls.querySelectorAll('button.editor-btn, select.editor-select').forEach(el => el.disabled = false);
-            insertLinkBtn.disabled = true;
+            // TTS button is enabled based on content, not edit mode.
+            ttsBtn.disabled = !articleOutput.innerText.trim();
+            insertLinkBtn.disabled = true; // Link button is enabled on selection
 
             document.addEventListener('selectionchange', handleSelectionChange);
             articleOutput.addEventListener('click', handleEditorClick);
             articleOutput.addEventListener('keydown', handleEditorKeyDown);
-            articleOutput.focus();
         }
 
         const exitEditMode = (restoreContent = false) => {
@@ -2023,6 +2068,7 @@ Aturan:
             cancelEditBtn.classList.add('hidden');
             articleOutput.classList.remove('border-2', 'border-indigo-300', 'p-4', 'rounded-b-md', '-mt-px');
             editorControls.classList.add('rounded-b-lg');
+            // Disable all editor buttons EXCEPT the main TTS button
             editorControls.querySelectorAll('button.editor-btn:not(#tts-btn), select.editor-select').forEach(el => el.disabled = true);
             document.removeEventListener('selectionchange', handleSelectionChange);
             articleOutput.removeEventListener('click', handleEditorClick);
@@ -2034,6 +2080,7 @@ Aturan:
                 exitEditMode(false);
             } else {
                 enterEditMode();
+                articleOutput.focus();
             }
         });
 
