@@ -1359,6 +1359,15 @@
                             return response.json();
                         })
                         .then(data => {
+                            // Check for application-level errors within a successful (200 OK) response.
+                            if (data && data.error === 'transcript-unavailable') {
+                                const userMessage = `Transkrip tidak tersedia untuk video ini. Silakan coba URL YouTube yang lain.`;
+                                errorDiv.textContent = userMessage;
+                                errorDiv.classList.remove('hidden');
+                                console.warn(`Pesan dari API untuk ${url}: ${data.message}`);
+                                return; // Stop processing this URL
+                            }
+
                             // The API returns an array of transcript chunks. We need to join them.
                             if (data && Array.isArray(data) && data.length > 0) {
                                 const transcriptText = data.map(item => item.text).join(' ');
