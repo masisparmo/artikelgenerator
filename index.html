@@ -433,6 +433,7 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                             </button>
                         </div>
+                        <div id="youtube-transcript-error" class="hidden mt-2 text-sm text-red-600 bg-red-50 p-3 rounded-md"></div>
                         <div class="reference-input-group flex items-center space-x-2">
                             <input type="url" name="url_youtube" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="https://www.youtube.com/watch?v=...">
                             <!-- Remove button will be added here by JS -->
@@ -1292,6 +1293,7 @@
         }
 
         async function extractContentFromUrls(websiteUrls, youtubeUrls) {
+            const errorDiv = document.getElementById('youtube-transcript-error');
             const extractedContents = [];
             const corsProxy = 'https://api.allorigins.win/get?url=';
 
@@ -1328,7 +1330,10 @@
                 const videoIdMatch = url.match(/(?:v=|\/embed\/|\/)([\w-]{11})/);
                 if (videoIdMatch && videoIdMatch[1]) {
                     if (!rapidApiKey) {
-                        console.warn("Kunci API RapidAPI tidak tersedia. Melewatkan ekstraksi transkrip YouTube.");
+                        const userMessage = "Kunci API RapidAPI belum dimasukkan. Silakan masukkan di pengaturan untuk mengambil transkrip YouTube.";
+                        errorDiv.textContent = userMessage;
+                        errorDiv.classList.remove('hidden');
+                        console.warn(userMessage);
                         return; // Skip this iteration if the key is missing
                     }
                     const videoId = videoIdMatch[1];
@@ -1368,7 +1373,17 @@
                             }
                         })
                         .catch(error => {
-                            console.warn(`Gagal mendapatkan transkrip untuk YouTube ${url}:`, error);
+                            console.error(`Gagal mendapatkan transkrip untuk YouTube ${url}:`, error);
+                            let userMessage = `Gagal mengambil transkrip untuk video: ${url}. `;
+                            if (error.message.includes("403") || error.message.includes("not subscribed")) {
+                                userMessage += "Pastikan Kunci API RapidAPI Anda valid dan Anda sudah ter-subscribe ke paket BASIC (gratis).";
+                            } else if (error.message.includes("429")) {
+                                userMessage += "Anda telah mencapai batas permintaan API. Silakan coba lagi nanti.";
+                            } else {
+                                userMessage += "API mungkin tidak dapat memproses video ini (misalnya, video live) atau layanan sedang tidak tersedia.";
+                            }
+                            errorDiv.textContent = userMessage;
+                            errorDiv.classList.remove('hidden');
                         });
                     fetchPromises.push(promise);
                 }
@@ -2343,6 +2358,9 @@ Aturan:
         });
 
         generateIdeasBtn.addEventListener('click', async () => {
+            // **FIX**: Hide any previous error messages at the start of a new request.
+            document.getElementById('youtube-transcript-error').classList.add('hidden');
+
             const topicInput = document.getElementById('topic');
             let topic = topicInput.value;
 
