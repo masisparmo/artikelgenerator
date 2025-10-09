@@ -2390,18 +2390,36 @@ Aturan:
                 loadingModalOverlay.classList.remove('hidden');
 
                 try {
-                    const systemPrompt = "Anda adalah seorang ahli strategi konten yang cerdas. Tugas Anda adalah menganalisis sumber referensi yang diberikan dan menghasilkan SATU topik artikel yang paling menarik dan relevan dari sumber tersebut. Balas HANYA dengan topik artikelnya, tanpa penjelasan atau kata pengantar.";
+                    // 1. Ekstrak konten dari semua sumber terlebih dahulu
+                    const extractedText = await extractContentFromUrls(websiteUrls, youtubeUrls);
+                    const pastedTextContent = pastedTexts.join('\n---\n');
+                    const fileNames = uploadedFileStore.map(f => f.name).join(', ');
 
-                    let referencePrompt = "Berikut adalah sumber referensi yang tersedia:\n";
-                    if (websiteUrls.length > 0) referencePrompt += `\nURL Website:\n${websiteUrls.join('\n')}`;
-                    if (youtubeUrls.length > 0) referencePrompt += `\nURL YouTube:\n${youtubeUrls.join('\n')}`;
-                    if (pastedTexts.length > 0) referencePrompt += `\nTeks Ditempel:\n${pastedTexts.join('\n---\n')}`;
-                    if (hasUploadedFiles) referencePrompt += `\nFile Diunggah: ${uploadedFileStore.map(f => f.name).join(', ')}`;
+                    let combinedContent = "";
+                    if (extractedText && extractedText.trim()) {
+                        combinedContent += `Konten dari URL:\n${extractedText}\n\n`;
+                    }
+                    if (pastedTextContent) {
+                        combinedContent += `Konten dari Teks Ditempel:\n${pastedTextContent}\n\n`;
+                    }
+                    if (fileNames) {
+                         combinedContent += `Nama File Referensi: ${fileNames}\n\n`;
+                    }
 
-                    const { text: generatedTopic } = await callGenerationAPI(systemPrompt, referencePrompt, 'gemini-2.5-flash');
+                    if (!combinedContent.trim()) {
+                         alert("Gagal mengekstrak konten dari sumber referensi. Pastikan URL valid atau teks tidak kosong.");
+                         loadingModalOverlay.classList.add('hidden');
+                         return;
+                    }
 
-                    topicInput.value = generatedTopic.trim();
-                    // Proses berhenti di sini, menunggu pengguna menekan tombol lagi.
+                    // 2. Buat topik berdasarkan konten yang diekstrak
+                    const systemPrompt = "Anda adalah seorang ahli strategi konten yang cerdas. Tugas Anda adalah menganalisis teks yang diberikan dan menghasilkan SATU judul topik artikel yang paling menarik dan relevan dari teks tersebut. Judul harus ringkas dan jelas. Balas HANYA dengan judul topiknya, tanpa penjelasan atau kata pengantar.";
+                    const userQuery = `Berikut adalah teks dari berbagai sumber referensi. Buatlah satu judul topik artikel yang merangkum keseluruhan teks ini:\n\n---\n${combinedContent}\n---`;
+
+                    const { text: generatedTopic } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
+
+                    // Isi kolom topik dengan hasil yang relevan
+                    topicInput.value = generatedTopic.trim().replace(/^"|"$/g, ''); // Hapus kutipan jika ada
 
                 } catch (error) {
                     console.error("Error generating topic from references:", error);
