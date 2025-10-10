@@ -479,7 +479,10 @@
                     <!-- Article Database -->
                     <div id="article-db-container" class="hidden">
                         <div class="flex justify-between items-center border-b pb-2 mb-3">
-                            <h3 class="text-lg font-medium text-gray-800">Database Artikel</h3>
+                            <div class="flex items-center space-x-3">
+                                <input type="checkbox" id="select-all-articles-checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                <h3 class="text-lg font-medium text-gray-800">Database Artikel</h3>
+                            </div>
                             <div class="flex space-x-2">
                                 <button id="import-db-btn" class="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700 uppercase">IMPORT DATABASE</button>
                                 <button id="export-db-btn" class="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 uppercase">EXPORT DATABASE</button>
@@ -1260,56 +1263,58 @@
                 userQuery = `${promptModifier}:\n\n---\n${currentContent}\n---`;
             } else { // For new article generation
                 isHtmlRewrite = false;
-                systemPrompt = markdownSystemPrompt;
                 const topic = document.getElementById('topic').value;
                 const keywords = document.getElementById('keywords').value;
 
                 if (!topic.trim()) {
-                    // This logic is now handled by the generate-ideas-btn listener
-                    // which first generates a topic from references if the topic is empty.
-                    // If it still reaches here, it means the user clicked "Buat Artikel Baru"
-                    // with an empty topic and no references.
                     alert("Silakan masukkan topik artikel.");
                     loadingModalOverlay.classList.add('hidden');
                     return;
                 }
-                userQuery = `Topik Artikel: "${topic}"\nKata Kunci: "${keywords}"`;
 
                 const websiteUrls = Array.from(document.querySelectorAll('input[name="url_website"]')).map(input => input.value.trim()).filter(url => url);
                 const youtubeUrls = Array.from(document.querySelectorAll('input[name="url_youtube"]')).map(input => input.value.trim()).filter(url => url);
                 const pastedTexts = Array.from(document.querySelectorAll('textarea[name="text_paste"]')).map(textarea => textarea.value.trim()).filter(text => text);
                 const uploadedFileNames = uploadedFileStore.map(file => file.name);
+                const hasReferences = websiteUrls.length > 0 || youtubeUrls.length > 0 || pastedTexts.length > 0 || uploadedFileNames.length > 0;
 
-                const extractedText = await extractContentFromUrls(websiteUrls, youtubeUrls);
+                if (hasReferences) {
+                    // --- LOGIKA BARU UNTUK ARTIKEL BERBASIS REFERENSI ---
+                    systemPrompt = `Anda adalah seorang penulis konten dan spesialis SEO yang ahli. Tugas Anda adalah menulis artikel blog yang komprehensif, mendalam, dan terstruktur dengan baik langsung dari topik dan teks referensi yang diberikan oleh pengguna. Ubah poin-poin dan informasi dari teks referensi menjadi sebuah narasi artikel yang mengalir lancar dan mudah dibaca. Gunakan format Markdown yang bersih. Untuk heading, gunakan HANYA format '# Judul H1', '## Judul H2', dan '### Judul H3'. PENTING: Tulis artikelnya secara langsung. Jangan membuat outline, rencana, atau komentar tentang proses penulisan. Fokus 100% pada penulisan artikel jadi.`;
 
-                let referencePrompt = "";
-                if (extractedText) {
-                    referencePrompt += `\n\nBerikut adalah konten yang diekstrak dari URL yang Anda berikan. Gunakan ini sebagai referensi utama:\n${extractedText}`;
-                }
-                 if (pastedTexts.length > 0) {
-                    referencePrompt += `\n\nTeks yang Ditempel sebagai Referensi:\n${pastedTexts.join('\n---\n')}`;
-                }
-                if (uploadedFileNames.length > 0) {
-                    const fileReferences = uploadedFileNames.join(', ');
-                     referencePrompt += `\n\nFile yang Diunggah sebagai Referensi: ${fileReferences}.`;
-                }
+                    const extractedText = await extractContentFromUrls(websiteUrls, youtubeUrls);
 
-                if (referencePrompt) {
-                    userQuery += `\n\n--- SUMBER REFERENSI PENGGUNA ---\n${referencePrompt}\n--- AKHIR SUMBER REFERENSI ---`;
-                }
+                    let referenceContent = "";
+                    if (extractedText && extractedText.trim()) {
+                        referenceContent += extractedText;
+                    }
+                    if (pastedTexts.length > 0) {
+                        referenceContent += `\n\n${pastedTexts.join('\n---\n')}`;
+                    }
+                     if (uploadedFileNames.length > 0) {
+                        referenceContent += `\n\nReferensi dari nama file: ${uploadedFileNames.join(', ')}`;
+                    }
 
-                userQuery += `\n\nInstruksi Penulisan:\nBuat artikel blog yang komprehensif (minimal 1500 kata). Artikel harus menyertakan '## Resume Artikel', '## Daftar Isi' dengan placeholder '[Daftar Isi]', dan konten utama. PENTING: Jika diberikan "SUMBER REFERENSI PENGGUNA", utamakan konten tersebut sebagai dasar penulisan. Setelah itu, Anda harus menggunakan alat pencarian untuk menemukan dan merujuk pada minimal 3 sumber online tambahan yang kredibel untuk melengkapi artikel. Di akhir artikel, buat bagian berjudul '## Daftar Pustaka'. Untuk setiap sumber online (termasuk yang Anda cari), formatlah dalam gaya sitasi APA, tetapi buatlah judul artikel atau video menjadi hyperlink markdown. Contoh untuk artikel web: 'Nama Penulis. (Tahun, Tanggal). [Judul Artikel](URL). Nama Situs Web.'. Contoh untuk YouTube: 'Nama Kanal. (Tahun, Tanggal Publikasi). [Judul Video [Video]](URL). YouTube.'.`;
+                    userQuery = `Topik Artikel: "${topic}"\n\nKata Kunci: "${keywords}"\n\nBerikut adalah teks referensi utama. Gunakan HANYA teks ini untuk menulis artikel blog yang lengkap dan siap publish:\n\n---\n${referenceContent}\n---`;
 
-                if (uploadedFileNames.length > 0) {
-                    const fileReferences = uploadedFileNames.join(', ');
-                    userQuery += `\n\nSelain sumber online, sertakan juga referensi dari dokumen yang diunggah berikut di dalam 'Daftar Pustaka': ${fileReferences}. Asumsikan ini adalah Ebook atau dokumen, dan formatlah sitasinya dengan benar, misalnya: 'Nama File (sebagai Judul). (Tahun). Dokumen Pribadi.'`;
+                } else {
+                    // --- LOGIKA LAMA UNTUK ARTIKEL BERBASIS TOPIK SAJA ---
+                    systemPrompt = markdownSystemPrompt; // Menggunakan prompt Markdown standar
+                    userQuery = `Topik Artikel: "${topic}"\nKata Kunci: "${keywords}"`;
+                    userQuery += `\n\nInstruksi Penulisan:\nBuat artikel blog yang komprehensif (minimal 1500 kata). Artikel harus menyertakan '## Resume Artikel', '## Daftar Isi' dengan placeholder '[Daftar Isi]', dan konten utama. PENTING: Anda harus menggunakan alat pencarian untuk menemukan dan merujuk pada minimal 3 sumber online tambahan yang kredibel untuk melengkapi artikel. Di akhir artikel, buat bagian berjudul '## Daftar Pustaka'. Untuk setiap sumber online (termasuk yang Anda cari), formatlah dalam gaya sitasi APA, tetapi buatlah judul artikel atau video menjadi hyperlink markdown. Contoh untuk artikel web: 'Nama Penulis. (Tahun, Tanggal). [Judul Artikel](URL). Nama Situs Web.'. Contoh untuk YouTube: 'Nama Kanal. (Tahun, Tanggal Publikasi). [Judul Video [Video]](URL). YouTube.'.`;
                 }
             }
             
             const keywordsToPreserve = document.getElementById('keywords').value;
 
             try {
-                const { text: generatedContent } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash', !isHtmlRewrite);
+                const websiteUrls = Array.from(document.querySelectorAll('input[name="url_website"]')).map(input => input.value.trim()).filter(url => url);
+                const youtubeUrls = Array.from(document.querySelectorAll('input[name="url_youtube"]')).map(input => input.value.trim()).filter(url => url);
+                const pastedTexts = Array.from(document.querySelectorAll('textarea[name="text_paste"]')).map(textarea => textarea.value.trim()).filter(text => text);
+                const uploadedFileNames = uploadedFileStore.map(file => file.name);
+                const hasReferences = websiteUrls.length > 0 || youtubeUrls.length > 0 || pastedTexts.length > 0 || uploadedFileNames.length > 0;
+
+                const { text: generatedContent } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash', !promptModifier && !hasReferences);
 
                 if (isHtmlRewrite) {
                     const cleanedContent = cleanHtmlResponse(generatedContent);
@@ -1674,10 +1679,11 @@ Aturan:
 
                         item.innerHTML = `
                             <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-2 flex-grow overflow-hidden">
+                                <div class="flex items-center space-x-3 flex-grow overflow-hidden">
+                                    <input type="checkbox" class="article-checkbox h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" data-id="${article.id}">
                                     <svg class="w-5 h-5 text-gray-500 hover:text-indigo-600 cursor-pointer flex-shrink-0" data-id="${article.id}" data-action="edit" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path></svg>
                                     <svg class="w-5 h-5 text-red-400 hover:text-red-600 cursor-pointer flex-shrink-0" data-id="${article.id}" data-action="delete" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>
-                                    <div class="flex flex-col ml-2 overflow-hidden">
+                                    <div class="flex flex-col overflow-hidden">
                                         <span class="truncate text-sm text-gray-700" title="${escapedTitle}">${articleTitle}</span>
                                         ${infoHtml}
                                     </div>
@@ -1692,6 +1698,26 @@ Aturan:
                     } else {
                         articleList.innerHTML = `<p class="text-sm text-gray-500 p-2">Database artikel Anda masih kosong.</p>`;
                     }
+                }
+
+                const selectAllCheckbox = document.getElementById('select-all-articles-checkbox');
+                const articleCheckboxes = document.querySelectorAll('.article-checkbox');
+
+                if (selectAllCheckbox) {
+                    selectAllCheckbox.addEventListener('change', (e) => {
+                        articleCheckboxes.forEach(checkbox => {
+                            checkbox.checked = e.target.checked;
+                        });
+                    });
+
+                    articleCheckboxes.forEach(checkbox => {
+                        checkbox.addEventListener('change', () => {
+                            const allChecked = articleCheckboxes.length > 0 && Array.from(articleCheckboxes).every(cb => cb.checked);
+                            selectAllCheckbox.checked = allChecked;
+                        });
+                    });
+                    // Set initial state of selectAllCheckbox
+                     selectAllCheckbox.checked = articleCheckboxes.length > 0 && Array.from(articleCheckboxes).every(cb => cb.checked);
                 }
             };
         }
@@ -2668,29 +2694,43 @@ Aturan:
         const importProgressMessage = document.getElementById('import-progress-message');
         const importProgressCounter = document.getElementById('import-progress-counter');
 
-        function exportDatabase() {
+        async function exportDatabase() {
             if (!db) {
                 alert("Database belum siap. Silakan coba lagi sebentar.");
                 return;
             }
 
+            const selectedCheckboxes = document.querySelectorAll('.article-checkbox:checked');
+            const selectedIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.dataset.id));
+
+            if (selectedIds.length === 0) {
+                alert("Silakan pilih setidaknya satu artikel untuk diekspor.");
+                return;
+            }
+
             const transaction = db.transaction(["articles"], "readonly");
             const objectStore = transaction.objectStore("articles");
-            const request = objectStore.getAll();
+            const articlesToExport = [];
 
-            request.onerror = (event) => {
-                console.error("Gagal mengambil data untuk ekspor:", event.target.errorCode);
-                alert("Gagal mengekspor database.");
-            };
+            // Use a series of get requests to fetch only the selected articles
+            const promises = selectedIds.map(id => {
+                return new Promise((resolve, reject) => {
+                    const request = objectStore.get(id);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            });
 
-            request.onsuccess = (event) => {
-                const articles = event.target.result;
-                if (articles.length === 0) {
-                    alert("Database artikel kosong. Tidak ada yang bisa diekspor.");
+            try {
+                const articles = await Promise.all(promises);
+                const validArticles = articles.filter(Boolean); // Filter out any undefined results
+
+                if (validArticles.length === 0) {
+                    alert("Artikel yang dipilih tidak dapat ditemukan di database.");
                     return;
                 }
 
-                const dataToExport = JSON.stringify(articles, null, 2);
+                const dataToExport = JSON.stringify(validArticles, null, 2);
                 const blob = new Blob([dataToExport], { type: "application/json" });
 
                 const today = new Date();
@@ -2699,13 +2739,12 @@ Aturan:
                 const year = today.getFullYear();
                 const fileName = `database-artikel-${day}${month}${year}.dbar`;
 
-                try {
-                    saveAs(blob, fileName);
-                } catch (e) {
-                    console.error("Error saat menyimpan file ekspor:", e);
-                    alert("Maaf, terjadi kesalahan saat mencoba menyimpan file database.");
-                }
-            };
+                saveAs(blob, fileName);
+
+            } catch (error) {
+                console.error("Gagal mengambil data untuk ekspor:", error);
+                alert("Gagal mengekspor database.");
+            }
         }
 
         exportDbBtn.addEventListener('click', exportDatabase);
