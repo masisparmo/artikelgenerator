@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generator Artikel SEO-Friendly berbasis AI - Oleh Isparmo</title>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mozilla/readability@0.5.0/Readability.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
@@ -99,7 +104,7 @@
              @apply p-2 rounded enabled:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-indigo-400 text-gray-600;
         }
         .editor-select {
-             @apply text-sm px-2 py-1.5 rounded bg-transparent hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-indigo-400 border-0;
+             @apply text-sm px-2 py-1.5 rounded bg-transparent hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-1 focus:ring-indigo-400 border-0;
         }
         #article-output {
             max-height: 50vh;
@@ -109,7 +114,7 @@
             @apply border-2 border-indigo-300 p-4 rounded-b-md focus:outline-none -mt-px;
         }
         .toolbar-group {
-            @apply flex items-center border-r border-gray-300 px-1;
+            @apply flex items-center border-r border-gray-300 dark:border-gray-600 px-1;
         }
         .toolbar-group:last-child {
             @apply border-r-0;
@@ -147,34 +152,46 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-200">
+
+    <!-- Dark Mode Toggle Button -->
+    <button id="theme-toggle-btn" class="fixed top-4 right-16 z-50 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:bg-gray-200 dark:hover:bg-gray-600 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" title="Ganti Mode Gelap/Terang">
+        <!-- Sun Icon (for Dark Mode) -->
+        <svg id="theme-toggle-sun-icon" class="w-6 h-6 text-yellow-500 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+        </svg>
+        <!-- Moon Icon (for Light Mode) -->
+        <svg id="theme-toggle-moon-icon" class="w-6 h-6 text-gray-700 dark:text-gray-300 dark:text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+        </svg>
+    </button>
 
     <!-- Settings Button -->
-    <button id="settings-btn" class="fixed top-4 right-4 z-50 p-2 bg-white rounded-full shadow-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" title="Pengaturan API">
-        <svg class="w-6 h-6 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+    <button id="settings-btn" class="fixed top-4 right-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:bg-gray-200 dark:hover:bg-gray-600 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" title="Pengaturan API">
+        <svg class="w-6 h-6 text-gray-700 dark:text-gray-300 dark:text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.438.995s.145.755.438.995l1.003.827c.48.398.668 1.05.26 1.431l-1.296 2.247a1.125 1.125 0 0 1-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 0 1-.22.127c-.331.183-.581.495-.644.87l-.213 1.281c-.09.543-.56.94-1.11.94h-2.593c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 0 1-.22-.127c-.324-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.37-.49l-1.296-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.437-.995s-.145-.755-.437-.995l-1.004-.827a1.125 1.125 0 0 1-.26-1.431l1.296-2.247a1.125 1.125 0 0 1 1.37-.49l1.217.456c.355.133.75.072 1.076-.124.072-.044.146-.087.22-.127.332-.183.582-.495.645-.87l.212-1.281z" />
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
         </svg>
     </button>
 
     <!-- Image Context Menu -->
-    <div id="image-context-menu" class="hidden absolute z-20 bg-white rounded-md shadow-lg border text-sm">
-        <button data-action="link" class="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center space-x-2"><svg class="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20"><path d="M12.232 4.232a2.5 2.5 0 013.536 3.536l-1.225 1.224a.75.75 0 001.061 1.06l1.224-1.224a4 4 0 00-5.656-5.656l-3 3a4 4 0 00.225 5.865.75.75 0 00.977-1.138 2.5 2.5 0 01-.142-3.665l3-3z"></path><path d="M8.603 14.25a2.5 2.5 0 01-3.536-3.536l1.225-1.224a.75.75 0 00-1.061-1.06l-1.224 1.224a4 4 0 005.656 5.656l3-3a4 4 0 00-.225-5.865.75.75 0 00-.977 1.138 2.5 2.5 0 01.142 3.665l-3 3z"></path></svg><span>Sisipkan Link</span></button>
-        <button data-action="alt" class="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center space-x-2"><svg class="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M15.28 16.72a.75.75 0 01-1.06 0l-4-4a.75.75 0 010-1.06l4-4a.75.75 0 111.06 1.06L11.81 12l3.47 3.47a.75.75 0 010 1.25zm-8.56-0a.75.75 0 01-1.06 0l-4-4a.75.75 0 010-1.06l4-4a.75.75 0 111.06 1.06L3.81 12l3.47 3.47a.75.75 0 010 1.25z" clip-rule="evenodd"></path></svg><span>Edit Alt Text</span></button>
-        <div class="border-t border-gray-200"></div>
-        <button data-action="delete" class="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600 flex items-center space-x-2"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.58.22-2.365.468a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193v-.443A2.75 2.75 0 0011.25 1H8.75zM10 4.5a.75.75 0 01.75.75v8.5a.75.75 0 01-1.5 0v-8.5A.75.75 0 0110 4.5zM7.5 3.75A1.25 1.25 0 018.75 2.5h2.5A1.25 1.25 0 0112.5 3.75v.443c-.621.048-1.25.12-1.875.215a.75.75 0 01-.375 0c-.625-.095-1.254-.167-1.875-.215v-.443z" clip-rule="evenodd"></path></svg><span>Hapus Gambar</span></button>
+    <div id="image-context-menu" class="hidden absolute z-20 bg-white dark:bg-gray-800 rounded-md shadow-lg border dark:border-gray-700 text-sm">
+        <button data-action="link" class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center space-x-2"><svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path d="M12.232 4.232a2.5 2.5 0 013.536 3.536l-1.225 1.224a.75.75 0 001.061 1.06l1.224-1.224a4 4 0 00-5.656-5.656l-3 3a4 4 0 00.225 5.865.75.75 0 00.977-1.138 2.5 2.5 0 01-.142-3.665l3-3z"></path><path d="M8.603 14.25a2.5 2.5 0 01-3.536-3.536l1.225-1.224a.75.75 0 00-1.061-1.06l-1.224 1.224a4 4 0 005.656 5.656l3-3a4 4 0 00-.225-5.865.75.75 0 00-.977 1.138 2.5 2.5 0 01.142 3.665l-3 3z"></path></svg><span>Sisipkan Link</span></button>
+        <button data-action="alt" class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center space-x-2"><svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M15.28 16.72a.75.75 0 01-1.06 0l-4-4a.75.75 0 010-1.06l4-4a.75.75 0 111.06 1.06L11.81 12l3.47 3.47a.75.75 0 010 1.25zm-8.56-0a.75.75 0 01-1.06 0l-4-4a.75.75 0 010-1.06l4-4a.75.75 0 111.06 1.06L3.81 12l3.47 3.47a.75.75 0 010 1.25z" clip-rule="evenodd"></path></svg><span>Edit Alt Text</span></button>
+        <div class="border-t border-gray-200 dark:border-gray-700"></div>
+        <button data-action="delete" class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 text-red-600 flex items-center space-x-2"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.58.22-2.365.468a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193v-.443A2.75 2.75 0 0011.25 1H8.75zM10 4.5a.75.75 0 01.75.75v8.5a.75.75 0 01-1.5 0v-8.5A.75.75 0 0110 4.5zM7.5 3.75A1.25 1.25 0 018.75 2.5h2.5A1.25 1.25 0 0112.5 3.75v.443c-.621.048-1.25.12-1.875.215a.75.75 0 01-.375 0c-.625-.095-1.254-.167-1.875-.215v-.443z" clip-rule="evenodd"></path></svg><span>Hapus Gambar</span></button>
     </div>
 
     <!-- Edit Alt Text Modal -->
     <div id="alt-text-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full">
-            <h3 class="text-lg font-medium text-gray-900 uppercase">Edit Alternate Text</h3>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-sm w-full">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white uppercase">Edit Alternate Text</h3>
             <div class="mt-4">
-                <label for="alt-text-input" class="block text-sm font-medium text-gray-700">Teks Alternatif (alt)</label>
-                <input type="text" id="alt-text-input" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50">
+                <label for="alt-text-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Teks Alternatif (alt)</label>
+                <input type="text" id="alt-text-input" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400">
             </div>
             <div class="mt-4 flex justify-end space-x-2">
-                <button id="cancel-alt-text-btn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 uppercase">Batal</button>
+                <button id="cancel-alt-text-btn" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 uppercase">Batal</button>
                 <button id="confirm-alt-text-btn" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 uppercase">Simpan</button>
             </div>
         </div>
@@ -182,39 +199,39 @@
 
     <!-- Import Progress Modal -->
     <div id="import-progress-modal-overlay" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-8 text-center max-w-sm w-full">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 text-center max-w-sm w-full">
             <svg class="animate-spin h-10 w-10 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <p id="import-progress-message" class="mt-4 text-gray-700 font-medium">Mengimpor database...</p>
-            <p id="import-progress-counter" class="text-sm text-gray-500 mt-1">Memproses artikel 0 dari 0</p>
+            <p id="import-progress-message" class="mt-4 text-gray-700 dark:text-gray-300 font-medium">Mengimpor database...</p>
+            <p id="import-progress-counter" class="text-sm text-gray-500 dark:text-gray-400 mt-1">Memproses artikel 0 dari 0</p>
         </div>
     </div>
 
     <!-- Loading Modal -->
     <div id="loading-modal-overlay" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-8 text-center">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 text-center">
             <svg class="animate-spin h-10 w-10 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <p class="mt-4 text-gray-700 font-medium">AI sedang memproses permintaan Anda...</p>
-            <p class="text-sm text-gray-500">Silahkan tunggu beberapa saat.</p>
+            <p class="mt-4 text-gray-700 dark:text-gray-300 font-medium">AI sedang memproses permintaan Anda...</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Silahkan tunggu beberapa saat.</p>
         </div>
     </div>
 
     <!-- API Key Modal -->
     <div id="api-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-8 max-w-lg w-full transform transition-all" id="api-modal-content">
-            <h2 class="text-2xl font-bold mb-4 text-gray-800">Masukkan Kunci API Gemini Anda</h2>
-            <p class="text-gray-600 mb-6">Aplikasi ini memerlukan Kunci API Google Gemini untuk berfungsi. Kunci Anda akan disimpan dengan aman di browser Anda dan tidak akan dibagikan.</p>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 max-w-lg w-full transform transition-all" id="api-modal-content">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100">Masukkan Kunci API Gemini Anda</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-6">Aplikasi ini memerlukan Kunci API Google Gemini untuk berfungsi. Kunci Anda akan disimpan dengan aman di browser Anda dan tidak akan dibagikan.</p>
             
-            <label for="api-key-input" class="block text-sm font-medium text-gray-700 mb-1">Kunci API Google Gemini</label>
-            <input type="password" id="api-key-input" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4 bg-blue-50" placeholder="Kunci API Gemini Anda (AIza...)">
+            <label for="api-key-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kunci API Google Gemini</label>
+            <input type="password" id="api-key-input" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4 bg-blue-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" placeholder="Kunci API Gemini Anda (AIza...)">
 
-            <label for="scrapingdog-api-key-input" class="block text-sm font-medium text-gray-700 mb-1 mt-4">Kunci API Scrapingdog (Wajib untuk Transkrip YouTube)</label>
-            <input type="password" id="scrapingdog-api-key-input" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4 bg-blue-50" placeholder="Masukkan kunci API Scrapingdog Anda di sini">
+            <label for="scrapingdog-api-key-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 mt-4">Kunci API Scrapingdog (Wajib untuk Transkrip YouTube)</label>
+            <input type="password" id="scrapingdog-api-key-input" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4 bg-blue-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" placeholder="Masukkan kunci API Scrapingdog Anda di sini">
 
             <button id="save-api-key" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 font-medium uppercase">
                 Simpan dan Lanjutkan
@@ -222,11 +239,11 @@
             <p id="api-key-error" class="text-red-500 text-sm mt-2 hidden">Kunci API Gemini tidak boleh kosong.</p>
 
             <div class="mt-8 space-y-4">
-                <details class="bg-gray-50 rounded-md p-4">
-                    <summary class="font-medium text-gray-700 cursor-pointer hover:text-indigo-600 uppercase">
+                <details class="bg-gray-50 dark:bg-gray-700 rounded-md p-4">
+                    <summary class="font-medium text-gray-700 dark:text-gray-300 cursor-pointer hover:text-indigo-600 uppercase">
                         Bagaimana cara mendapatkan Kunci API Gemini gratis?
                     </summary>
-                    <div class="mt-4 text-sm text-gray-600 space-y-3">
+                    <div class="mt-4 text-sm text-gray-600 dark:text-gray-400 space-y-3">
                         <p>Anda bisa mendapatkan Kunci API secara gratis dari Google AI Studio. Berikut langkah-langkahnya:</p>
                         <ol class="list-decimal list-inside space-y-2">
                             <li>Buka <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-600 font-medium hover:underline">Google AI Studio</a>.</li>
@@ -238,11 +255,11 @@
                         </ol>
                     </div>
                 </details>
-                <details class="bg-gray-50 rounded-md p-4">
-                    <summary class="font-medium text-gray-700 cursor-pointer hover:text-indigo-600 uppercase">
+                <details class="bg-gray-50 dark:bg-gray-700 rounded-md p-4">
+                    <summary class="font-medium text-gray-700 dark:text-gray-300 cursor-pointer hover:text-indigo-600 uppercase">
                         Bagaimana cara mendapatkan Kunci API Scrapingdog?
                     </summary>
-                    <div class="mt-4 text-sm text-gray-600 space-y-3">
+                    <div class="mt-4 text-sm text-gray-600 dark:text-gray-400 space-y-3">
                         <p>Scrapingdog API digunakan untuk mengambil transkrip dari video YouTube. Anda bisa mendapatkan 1000 panggilan gratis per bulan. Berikut langkah-langkahnya:</p>
                         <ol class="list-decimal list-inside space-y-2">
                             <li>Buka <a href="https://www.scrapingdog.com/" target="_blank" class="text-indigo-600 font-medium hover:underline">Scrapingdog.com</a> dan klik tombol "<strong>SIGN UP FOR FREE</strong>".</li>
@@ -259,11 +276,11 @@
     
     <!-- Delete Confirmation Modal -->
     <div id="delete-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full">
-            <h3 class="text-lg font-medium text-gray-900 uppercase">Konfirmasi Hapus</h3>
-            <p class="mt-2 text-sm text-gray-500">Apakah Anda yakin ingin menghapus artikel ini? Tindakan ini tidak dapat diurungkan.</p>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-sm w-full">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white uppercase">Konfirmasi Hapus</h3>
+            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Apakah Anda yakin ingin menghapus artikel ini? Tindakan ini tidak dapat diurungkan.</p>
             <div class="mt-4 flex justify-end space-x-2">
-                <button id="cancel-delete-btn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 uppercase">Batal</button>
+                <button id="cancel-delete-btn" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 uppercase">Batal</button>
                 <button id="confirm-delete-btn" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 uppercase">Hapus</button>
             </div>
         </div>
@@ -271,13 +288,13 @@
 
     <!-- Re-Write Options Modal -->
     <div id="rewrite-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full">
-            <h3 class="text-lg font-medium text-gray-900 uppercase mb-4">Opsi Tulis Ulang</h3>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-lg w-full">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white uppercase mb-4">Opsi Tulis Ulang</h3>
 
             <div class="space-y-4">
                 <div>
-                    <label for="rewrite-style" class="block text-sm font-medium text-gray-700">Gaya Penulisan</label>
-                    <select id="rewrite-style" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50">
+                    <label for="rewrite-style" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Gaya Penulisan</label>
+                    <select id="rewrite-style" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400">
                         <option>Gaya Penulisan Formal</option>
                         <option>Gaya Penulisan Semi Formal</option>
                         <option>Gaya Penulisan Casual (Awam)</option>
@@ -286,13 +303,13 @@
                     </select>
                 </div>
                 <div>
-                    <label for="rewrite-extra-prompt" class="block text-sm font-medium text-gray-700">Modifikasi Pembahasan</label>
-                    <textarea id="rewrite-extra-prompt" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Instruksi bisa berupa penambahan, pengurangan, penyederhanaan, atau perubahan konten lainnya"></textarea>
+                    <label for="rewrite-extra-prompt" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Modifikasi Pembahasan</label>
+                    <textarea id="rewrite-extra-prompt" rows="3" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" placeholder="Instruksi bisa berupa penambahan, pengurangan, penyederhanaan, atau perubahan konten lainnya"></textarea>
                 </div>
             </div>
 
             <div class="mt-6 flex justify-end space-x-2">
-                <button id="cancel-rewrite-btn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 uppercase">BATAL</button>
+                <button id="cancel-rewrite-btn" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 uppercase">BATAL</button>
                 <button id="confirm-rewrite-btn" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 uppercase">OK</button>
             </div>
         </div>
@@ -300,12 +317,12 @@
 
     <!-- Edit Idea Modal -->
     <div id="edit-idea-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full">
-            <h3 class="text-lg font-medium text-gray-900 uppercase mb-4">Edit Ide</h3>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-lg w-full">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white uppercase mb-4">Edit Ide</h3>
             <input type="hidden" id="edit-idea-id">
-            <textarea id="edit-idea-text" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50"></textarea>
+            <textarea id="edit-idea-text" rows="3" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"></textarea>
             <div class="mt-4 flex justify-end space-x-2">
-                <button id="cancel-edit-idea-btn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 uppercase">Batal</button>
+                <button id="cancel-edit-idea-btn" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 uppercase">Batal</button>
                 <button id="confirm-edit-idea-btn" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 uppercase">Simpan</button>
             </div>
         </div>
@@ -313,11 +330,11 @@
 
     <!-- Delete Image Confirmation Modal -->
     <div id="delete-image-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full">
-            <h3 class="text-lg font-medium text-gray-900 uppercase">Konfirmasi Hapus Gambar</h3>
-            <p class="mt-2 text-sm text-gray-500">Apakah Anda yakin ingin menghapus gambar ini dari artikel?</p>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-sm w-full">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white uppercase">Konfirmasi Hapus Gambar</h3>
+            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Apakah Anda yakin ingin menghapus gambar ini dari artikel?</p>
             <div class="mt-4 flex justify-end space-x-2">
-                <button id="cancel-delete-image-btn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 uppercase">Batal</button>
+                <button id="cancel-delete-image-btn" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 uppercase">Batal</button>
                 <button id="confirm-delete-image-btn" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 uppercase">Hapus</button>
             </div>
         </div>
@@ -325,16 +342,16 @@
 
     <!-- Add Image Modal -->
     <div id="image-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full">
-            <h3 class="text-lg font-medium text-gray-900 uppercase mb-4">Tambah Gambar</h3>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-lg w-full">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white uppercase mb-4">Tambah Gambar</h3>
 
             <!-- Tabs -->
-            <div class="border-b border-gray-200 mb-4">
+            <div class="border-b border-gray-200 dark:border-gray-700 mb-4">
                 <nav class="-mb-px flex space-x-4" aria-label="Tabs">
                     <button id="image-tab-url" class="py-2 px-1 text-center border-b-2 font-medium text-sm text-indigo-600 border-indigo-500 uppercase">
                         Dari URL
                     </button>
-                    <button id="image-tab-upload" class="py-2 px-1 text-center border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300 uppercase">
+                    <button id="image-tab-upload" class="py-2 px-1 text-center border-b-2 font-medium text-sm text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 hover:border-gray-300 uppercase">
                         Upload File
                     </button>
                 </nav>
@@ -343,25 +360,25 @@
             <!-- Tab Content -->
             <div id="image-content-url" class="tab-content active space-y-4">
                 <div>
-                    <label for="image-url-input" class="block text-sm font-medium text-gray-700">URL Gambar</label>
-                    <input type="url" id="image-url-input" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="https://...">
+                    <label for="image-url-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">URL Gambar</label>
+                    <input type="url" id="image-url-input" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" placeholder="https://...">
                 </div>
             </div>
             <div id="image-content-upload" class="tab-content space-y-4">
                  <div>
-                    <label for="image-file-input" class="block text-sm font-medium text-gray-700">Pilih File Gambar</label>
-                    <input type="file" id="image-file-input" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 uppercase" accept="image/*">
+                    <label for="image-file-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Pilih File Gambar</label>
+                    <input type="file" id="image-file-input" class="mt-1 block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 uppercase" accept="image/*">
                 </div>
             </div>
 
             <!-- Common Fields -->
             <div class="mt-4">
-                <label for="image-alt-text" class="block text-sm font-medium text-gray-700">Teks Alternatif (alt)</label>
-                <input type="text" id="image-alt-text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Deskripsi singkat gambar untuk SEO">
+                <label for="image-alt-text" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Teks Alternatif (alt)</label>
+                <input type="text" id="image-alt-text" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" placeholder="Deskripsi singkat gambar untuk SEO">
             </div>
 
             <div class="mt-6 flex justify-end space-x-2">
-                <button id="cancel-image-btn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 uppercase">BATAL</button>
+                <button id="cancel-image-btn" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 uppercase">BATAL</button>
                 <button id="confirm-image-btn" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 uppercase">SISIPKAN</button>
             </div>
         </div>
@@ -370,18 +387,18 @@
 
     <div class="container mx-auto p-4 md:p-8 max-w-4xl">
         <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Generator Artikel SEO Friendly</h1>
-            <p class="mt-2 text-gray-600">Si Pintar Pembuat Artikel yang Disukai Google. Powered by Gemini AI</p>
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">Generator Artikel SEO Friendly</h1>
+            <p class="mt-2 text-gray-600 dark:text-gray-400">Si Pintar Pembuat Artikel yang Disukai Google. Powered by Gemini AI</p>
         </header>
 
-        <div class="bg-white rounded-lg shadow-lg">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg">
             <!-- Tab Buttons -->
-            <div class="border-b border-gray-200">
+            <div class="border-b border-gray-200 dark:border-gray-700">
                 <nav class="-mb-px flex" aria-label="Tabs">
                     <button id="tab-generator" class="w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm text-indigo-600 border-indigo-500 uppercase" onclick="switchTab('generator')">
                         Generator Artikel
                     </button>
-                    <button id="tab-panduan" class="w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300 uppercase" onclick="switchTab('panduan')">
+                    <button id="tab-panduan" class="w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 hover:border-gray-300 uppercase" onclick="switchTab('panduan')">
                         Panduan SEO
                     </button>
                 </nav>
@@ -392,8 +409,8 @@
                 
                 <div class="space-y-6">
                     <div>
-                        <label for="topic" class="block text-sm font-medium text-gray-700">Topik Artikel</label>
-                        <input type="text" id="topic" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Contoh: Manfaat teh hijau untuk kesehatan">
+                        <label for="topic" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Topik Artikel</label>
+                        <input type="text" id="topic" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" placeholder="Contoh: Manfaat teh hijau untuk kesehatan">
                     </div>
                     <div class="flex justify-end -mt-2 mb-2">
                         <button id="generate-ideas-btn" class="px-3 py-1 text-xs font-medium text-white bg-indigo-500 rounded-md hover:bg-indigo-600 uppercase">GENERATE IDE</button>
@@ -403,31 +420,31 @@
                     </div>
                     <!-- Idea Database -->
                     <div id="idea-db-container" class="mt-4" style="display: none;">
-                         <h3 class="text-lg font-medium text-gray-800 border-b pb-2 mb-3">Database Topik Artikel</h3>
+                         <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100 border-b pb-2 mb-3">Database Topik Artikel</h3>
                          <div id="idea-list" class="space-y-2 max-h-48 overflow-y-auto pr-2">
                              <!-- Saved ideas will be listed here -->
                          </div>
                     </div>
                     <div>
-                        <label for="keywords" class="block text-sm font-medium text-gray-700">Kata Kunci (pisahkan dengan koma)</label>
-                        <input type="text" id="keywords" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Contoh: teh hijau, antioksidan, kesehatan jantung">
+                        <label for="keywords" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Kata Kunci (pisahkan dengan koma)</label>
+                        <input type="text" id="keywords" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" placeholder="Contoh: teh hijau, antioksidan, kesehatan jantung">
                     </div>
                     <div class="flex justify-end -mt-2 mb-2">
                         <button id="generate-keywords-btn" class="px-3 py-1 text-xs font-medium text-white bg-indigo-500 rounded-md hover:bg-indigo-600 uppercase">GENERATE KEYWORD</button>
                     </div>
 
-                    <h3 class="text-lg font-medium text-gray-800 border-t pt-6">Sumber Referensi (Opsional)</h3>
+                    <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100 border-t pt-6">Sumber Referensi (Opsional)</h3>
 
                     <!-- URL Website Container -->
                     <div id="website-url-container" class="space-y-2">
                         <div class="flex items-center justify-between">
-                            <label class="block text-sm font-medium text-gray-700">URL Website</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">URL Website</label>
                             <button type="button" onclick="addReferenceInput('website')" class="add-btn flex items-center justify-center w-6 h-6 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                             </button>
                         </div>
                         <div class="reference-input-group flex items-center space-x-2">
-                            <input type="url" name="url_website" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="https://contoh-website.com/artikel">
+                            <input type="url" name="url_website" class="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" placeholder="https://contoh-website.com/artikel">
                             <!-- Remove button will be added here by JS -->
                         </div>
                     </div>
@@ -435,13 +452,13 @@
                     <!-- URL YouTube Container -->
                     <div id="youtube-url-container" class="space-y-2">
                         <div class="flex items-center justify-between">
-                            <label class="block text-sm font-medium text-gray-700">URL YouTube</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">URL YouTube</label>
                              <button type="button" onclick="addReferenceInput('youtube')" class="add-btn flex items-center justify-center w-6 h-6 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                             </button>
                         </div>
                         <div class="reference-input-group flex items-center space-x-2">
-                            <input type="url" name="url_youtube" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="https://www.youtube.com/watch?v=...">
+                            <input type="url" name="url_youtube" class="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" placeholder="https://www.youtube.com/watch?v=...">
                             <!-- Remove button will be added here by JS -->
                         </div>
                     </div>
@@ -449,22 +466,22 @@
                     <!-- Tempel Teks Container -->
                     <div id="paste-text-container" class="space-y-2">
                         <div class="flex items-center justify-between">
-                            <label class="block text-sm font-medium text-gray-700">Tempel Teks</label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tempel Teks</label>
                              <button type="button" onclick="addReferenceInput('text')" class="add-btn flex items-center justify-center w-6 h-6 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                             </button>
                         </div>
                         <div class="reference-input-group flex items-start space-x-2">
-                            <textarea name="text_paste" rows="4" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Tempelkan teks referensi di sini..."></textarea>
+                            <textarea name="text_paste" rows="4" class="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" placeholder="Tempelkan teks referensi di sini..."></textarea>
                             <!-- Remove button will be added here by JS -->
                         </div>
                     </div>
 
                     <div>
-                        <label for="file_upload" class="block text-sm font-medium text-gray-700">Unggah File (.pdf, .docx, .pptx, .xlsx, .epub)</label>
+                        <label for="file_upload" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Unggah File (.pdf, .docx, .pptx, .xlsx, .epub)</label>
                         <div class="mt-1">
-                            <input type="file" id="file_upload" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 uppercase" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.epub">
-                            <div id="file-upload-feedback" class="mt-2 text-sm text-gray-500"></div>
+                            <input type="file" id="file_upload" class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 uppercase" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.epub">
+                            <div id="file-upload-feedback" class="mt-2 text-sm text-gray-500 dark:text-gray-400"></div>
                         </div>
                     </div>
 
@@ -480,8 +497,8 @@
                     <div id="article-db-container" class="hidden">
                         <div class="flex justify-between items-center border-b pb-2 mb-3">
                             <div class="flex items-center space-x-3">
-                                <input type="checkbox" id="select-all-articles-checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-                                <h3 class="text-lg font-medium text-gray-800">Database Artikel</h3>
+                                <input type="checkbox" id="select-all-articles-checkbox" class="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500">
+                                <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100">Database Artikel</h3>
                             </div>
                             <div class="flex space-x-2">
                                 <button id="import-db-btn" class="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700 uppercase">IMPORT DATABASE</button>
@@ -490,7 +507,7 @@
                             </div>
                         </div>
                          <div class="mb-3 flex space-x-2">
-                            <input type="text" id="search-article-input" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Cari judul artikel...">
+                            <input type="text" id="search-article-input" class="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" placeholder="Cari judul artikel...">
                             <button id="search-article-btn" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 uppercase">CARI</button>
                          </div>
                          <div id="article-list" class="space-y-2 max-h-48 overflow-y-auto pr-2">
@@ -502,7 +519,7 @@
                 <div id="output-container" class="mt-8" style="display: none;">
                      <input type="hidden" id="current-article-id">
                     <!-- TTS Player -->
-                    <div id="tts-player-container" class="hidden p-3 bg-gray-50 border border-gray-300 rounded-t-lg -mb-px">
+                    <div id="tts-player-container" class="hidden p-3 bg-gray-50 dark:bg-gray-700 dark:bg-gray-700 dark:border-gray-600 border border-gray-300 dark:border-gray-600 rounded-t-lg -mb-px">
                         <div class="flex items-center space-x-3">
                             <!-- Player Controls -->
                             <button id="tts-play-btn" class="p-2 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
@@ -515,7 +532,7 @@
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2H5z"></path></svg>
                             </button>
                             <!-- Status Message -->
-                            <div id="tts-status-message" class="text-sm text-gray-600 flex-grow">
+                            <div id="tts-status-message" class="text-sm text-gray-600 dark:text-gray-400 flex-grow">
                                 Siap untuk mengonversi teks ke suara.
                             </div>
                             <!-- Save Button -->
@@ -524,7 +541,7 @@
                         <audio id="tts-audio-player" class="hidden"></audio>
                     </div>
                     <!-- Editor Controls -->
-                     <div id="editor-controls" class="hidden flex items-center p-1 bg-gray-100 rounded-t-lg border-x border-t border-gray-300 flex-wrap gap-y-1">
+                     <div id="editor-controls" class="hidden flex items-center p-1 bg-gray-100 dark:bg-gray-700 dark:border-gray-600 rounded-t-lg border-x border-t border-gray-300 dark:border-gray-600 flex-wrap gap-y-1">
                         <div class="toolbar-group">
                              <select id="heading-select" class="editor-select" onchange="formatDoc('formatBlock', this.value)" disabled>
                                 <option value="p">Paragraf</option>
@@ -571,15 +588,15 @@
                              <div class="relative">
                                 <button id="copy-btn" class="py-2 px-3 text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 uppercase">Salin</button>
                                 <div id="copy-options" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border">
-                                    <a href="#" id="copy-text" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 uppercase">Salin sebagai Teks Biasa</a>
-                                    <a href="#" id="copy-html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 uppercase">Salin sebagai Rich Text (HTML)</a>
+                                    <a href="#" id="copy-text" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 uppercase">Salin sebagai Teks Biasa</a>
+                                    <a href="#" id="copy-html" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 uppercase">Salin sebagai Rich Text (HTML)</a>
                                 </div>
                             </div>
-                            <button id="cancel-edit-btn" class="hidden py-2 px-3 text-sm font-medium rounded-md text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 uppercase">BATAL</button>
+                            <button id="cancel-edit-btn" class="hidden py-2 px-3 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 uppercase">BATAL</button>
                             <button id="edit-btn" class="py-2 px-3 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 uppercase">Edit Artikel</button>
                         </div>
                     </div>
-                    <div id="article-output" class="prose bg-white p-6 rounded-b-lg"></div>
+                    <div id="article-output" class="prose bg-white dark:bg-gray-200 dark:text-gray-900 p-6 rounded-b-lg"></div>
                     <div id="action-buttons" class="mt-4 flex flex-wrap gap-2 justify-end">
                          <button id="rewrite-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 uppercase">Re-Write</button>
                          <button id="paraphrase-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 uppercase">Parafrase</button>
@@ -589,13 +606,13 @@
 
                     <!-- Image Prompt Generator -->
                     <div id="image-generator-container" class="mt-10 hidden">
-                        <h3 class="text-lg font-medium text-gray-800 border-b pb-2 mb-3">Buat Prompt Gambar Ilustrasi</h3>
+                        <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100 border-b pb-2 mb-3">Buat Prompt Gambar Ilustrasi</h3>
                         <div class="grid grid-cols-1 md:grid-cols-1 gap-6 max-w-xl mx-auto">
                             <!-- Controls -->
                             <div class="space-y-4">
                                 <div>
-                                    <label for="image-type" class="block text-sm font-medium text-gray-700">Tipe Gambar</label>
-                                    <select id="image-type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50">
+                                    <label for="image-type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipe Gambar</label>
+                                    <select id="image-type" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400">
                                         <option>Foto Realistis</option>
                                         <option>Gambar 2D</option>
                                         <option>Gambar 3D</option>
@@ -604,58 +621,58 @@
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700">Aspek Rasio Gambar</label>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Aspek Rasio Gambar</label>
                                     <div id="aspect-ratio-selector" class="mt-1 flex items-center space-x-4 flex-wrap">
                                         <div class="flex flex-col items-center">
                                             <button data-ratio="1:1" class="aspect-btn border-2 border-indigo-500 p-2 rounded-md text-indigo-600">
                                                 <svg class="w-6 h-6" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" fill="currentColor"></rect></svg>
                                             </button>
-                                            <span class="text-xs text-gray-500 mt-1">1:1</span>
+                                            <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">1:1</span>
                                         </div>
                                         <div class="flex flex-col items-center">
                                             <button data-ratio="4:3" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
                                                 <svg class="w-8 h-6" viewBox="0 0 32 24"><rect x="0" y="0" width="32" height="24" fill="currentColor"></rect></svg>
                                             </button>
-                                            <span class="text-xs text-gray-500 mt-1">4:3</span>
+                                            <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">4:3</span>
                                         </div>
                                         <div class="flex flex-col items-center">
                                             <button data-ratio="3:4" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
                                                 <svg class="w-6 h-8" viewBox="0 0 24 32"><rect x="0" y="0" width="24" height="32" fill="currentColor"></rect></svg>
                                             </button>
-                                             <span class="text-xs text-gray-500 mt-1">3:4</span>
+                                             <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">3:4</span>
                                         </div>
                                         <div class="flex flex-col items-center">
                                             <button data-ratio="16:9" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
                                                 <svg class="w-10 h-6" viewBox="0 0 48 27"><rect x="0" y="0" width="48" height="27" fill="currentColor"></rect></svg>
                                             </button>
-                                             <span class="text-xs text-gray-500 mt-1">16:9</span>
+                                             <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">16:9</span>
                                         </div>
                                          <div class="flex flex-col items-center">
                                              <button data-ratio="9:16" class="aspect-btn border-2 border-transparent p-2 rounded-md text-gray-400 hover:text-gray-600">
                                                 <svg class="w-6 h-10" viewBox="0 0 27 48"><rect x="0" y="0" width="27" height="48" fill="currentColor"></rect></svg>
                                             </button>
-                                             <span class="text-xs text-gray-500 mt-1">9:16</span>
+                                             <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">9:16</span>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div>
                                     <div class="flex justify-between items-center">
-                                        <label for="prompt-text" class="block text-sm font-medium text-gray-700">Prompt (Teks)</label>
+                                        <label for="prompt-text" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Prompt (Teks)</label>
                                     <div class="flex items-center space-x-2">
                                         <button id="to-json-btn" class="px-3 py-1 text-xs font-medium rounded-md text-white bg-slate-600 hover:bg-slate-700 uppercase">Ubah ke JSON</button>
                                         <button id="copy-prompt-text-btn" class="px-3 py-1 text-xs font-medium rounded-md text-white bg-slate-600 hover:bg-slate-700 uppercase">SALIN</button>
                                         </div>
                                     </div>
-                                    <textarea id="prompt-text" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50" placeholder="Jelaskan gambar yang ingin Anda buat..."></textarea>
+                                    <textarea id="prompt-text" rows="4" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" placeholder="Jelaskan gambar yang ingin Anda buat..."></textarea>
                                 </div>
 
                                 <div>
                                     <div class="flex justify-between items-center">
-                                        <label for="prompt-json" class="block text-sm font-medium text-gray-700">Prompt (JSON)</label>
+                                        <label for="prompt-json" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Prompt (JSON)</label>
                                     <button id="copy-prompt-json-btn" class="px-3 py-1 text-xs font-medium rounded-md text-white bg-slate-600 hover:bg-slate-700 uppercase">SALIN</button>
                                     </div>
-                                    <textarea id="prompt-json" rows="4" readonly class="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm bg-blue-50 cursor-not-allowed" placeholder="Format JSON akan muncul di sini..."></textarea>
+                                    <textarea id="prompt-json" rows="4" readonly class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm sm:text-sm bg-blue-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 cursor-not-allowed" placeholder="Format JSON akan muncul di sini..."></textarea>
                                 </div>
 
                                 <div class="flex flex-wrap gap-2">
@@ -770,7 +787,7 @@
             newGroup.className = 'reference-input-group flex items-start space-x-2 mt-2';
 
             const newElement = document.createElement(typeConfig.elementType);
-            newElement.className = "block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50";
+            newElement.className = "block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400";
 
             for (const [key, value] of Object.entries(typeConfig.attributes)) {
                 newElement.setAttribute(key, value);
@@ -856,6 +873,40 @@
             const settingsBtn = document.getElementById('settings-btn');
             settingsBtn.addEventListener('click', () => {
                 apiKeyModalOverlay.classList.remove('hidden');
+            });
+
+            // --- Dark Mode Logic ---
+            const themeToggleBtn = document.getElementById('theme-toggle-btn');
+            const sunIcon = document.getElementById('theme-toggle-sun-icon');
+            const moonIcon = document.getElementById('theme-toggle-moon-icon');
+
+            function setTheme(theme) {
+                if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    sunIcon.classList.remove('hidden');
+                    moonIcon.classList.add('hidden');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    sunIcon.classList.add('hidden');
+                    moonIcon.classList.remove('hidden');
+                    localStorage.setItem('theme', 'light');
+                }
+            }
+
+            // Check preference on load
+            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                setTheme('dark');
+            } else {
+                setTheme('light');
+            }
+
+            themeToggleBtn.addEventListener('click', () => {
+                if (document.documentElement.classList.contains('dark')) {
+                    setTheme('light');
+                } else {
+                    setTheme('dark');
+                }
             });
         });
 
@@ -1178,7 +1229,7 @@
 
                 uploadedFileStore.forEach((file, index) => {
                     const listItem = document.createElement('li');
-                    listItem.className = 'flex items-center justify-between bg-gray-50 p-2 rounded';
+                    listItem.className = 'flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-2 rounded';
 
                     const fileNameSpan = document.createElement('span');
                     fileNameSpan.textContent = file.name;
@@ -1301,7 +1352,7 @@
                     // --- LOGIKA LAMA UNTUK ARTIKEL BERBASIS TOPIK SAJA ---
                     systemPrompt = markdownSystemPrompt; // Menggunakan prompt Markdown standar
                     userQuery = `Topik Artikel: "${topic}"\nKata Kunci: "${keywords}"`;
-                    userQuery += `\n\nInstruksi Penulisan:\nBuat artikel blog yang komprehensif (minimal 1500 kata). Artikel harus menyertakan '## Resume Artikel', '## Daftar Isi' dengan placeholder '[Daftar Isi]', dan konten utama. PENTING: Anda harus menggunakan alat pencarian untuk menemukan dan merujuk pada minimal 3 sumber online tambahan yang kredibel untuk melengkapi artikel. Di akhir artikel, buat bagian berjudul '## Daftar Pustaka'. Untuk setiap sumber online (termasuk yang Anda cari), formatlah dalam gaya sitasi APA, tetapi buatlah judul artikel atau video menjadi hyperlink markdown. Contoh untuk artikel web: 'Nama Penulis. (Tahun, Tanggal). [Judul Artikel](URL). Nama Situs Web.'. Contoh untuk YouTube: 'Nama Kanal. (Tahun, Tanggal Publikasi). [Judul Video [Video]](URL). YouTube.'.`;
+                    userQuery += `\n\nInstruksi Penulisan:\nBuat artikel blog yang komprehensif (minimal 1500 kata). Artikel harus menyertakan '## Resume Artikel', '## Daftar Isi' dengan placeholder '[Daftar Isi]', dan konten utama. PENTING: Anda harus menggunakan alat pencarian untuk menemukan dan merujuk pada minimal 3 sumber online tambahan yang kredibel untuk melengkapi artikel.`;
                 }
             }
             
@@ -1662,7 +1713,7 @@ Aturan:
                 if (articles && articles.length > 0) {
                     articles.forEach(article => {
                         const item = document.createElement('div');
-                        item.className = 'p-2 bg-gray-50 rounded hover:bg-gray-100';
+                        item.className = 'p-2 bg-gray-50 dark:bg-gray-700 rounded hover:bg-gray-100';
 
                         let infoHtml = '';
                         if (article.createdAt) {
@@ -1671,7 +1722,7 @@ Aturan:
                             const month = String(date.getMonth() + 1).padStart(2, '0');
                             const year = date.getFullYear();
                             const statusText = article.articleType || 'Artikel Asli'; // Default to 'Artikel Asli' if not present
-                            infoHtml = `<span class="text-xs text-gray-500">${day}/${month}/${year} - ${statusText}</span>`;
+                            infoHtml = `<span class="text-xs text-gray-500 dark:text-gray-400">${day}/${month}/${year} - ${statusText}</span>`;
                         }
 
                         const articleTitle = article.title || 'Artikel Tanpa Judul';
@@ -1680,11 +1731,11 @@ Aturan:
                         item.innerHTML = `
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-3 flex-grow overflow-hidden">
-                                    <input type="checkbox" class="article-checkbox h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" data-id="${article.id}">
-                                    <svg class="w-5 h-5 text-gray-500 hover:text-indigo-600 cursor-pointer flex-shrink-0" data-id="${article.id}" data-action="edit" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path></svg>
+                                    <input type="checkbox" class="article-checkbox h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500" data-id="${article.id}">
+                                    <svg class="w-5 h-5 text-gray-500 dark:text-gray-400 hover:text-indigo-600 cursor-pointer flex-shrink-0" data-id="${article.id}" data-action="edit" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path></svg>
                                     <svg class="w-5 h-5 text-red-400 hover:text-red-600 cursor-pointer flex-shrink-0" data-id="${article.id}" data-action="delete" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>
                                     <div class="flex flex-col overflow-hidden">
-                                        <span class="truncate text-sm text-gray-700" title="${escapedTitle}">${articleTitle}</span>
+                                        <span class="truncate text-sm text-gray-700 dark:text-gray-300" title="${escapedTitle}">${articleTitle}</span>
                                         ${infoHtml}
                                     </div>
                                 </div>
@@ -1694,9 +1745,9 @@ Aturan:
                     });
                 } else {
                     if (filter) {
-                        articleList.innerHTML = `<p class="text-sm text-gray-500 p-2">Tidak ada artikel yang cocok dengan pencarian Anda.</p>`;
+                        articleList.innerHTML = `<p class="text-sm text-gray-500 dark:text-gray-400 p-2">Tidak ada artikel yang cocok dengan pencarian Anda.</p>`;
                     } else {
-                        articleList.innerHTML = `<p class="text-sm text-gray-500 p-2">Database artikel Anda masih kosong.</p>`;
+                        articleList.innerHTML = `<p class="text-sm text-gray-500 dark:text-gray-400 p-2">Database artikel Anda masih kosong.</p>`;
                     }
                 }
 
@@ -2484,8 +2535,8 @@ Aturan:
 
                 if (ideas.length > 0) {
                     const ideasHtml = ideas.map(idea => `
-                        <div class="flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-indigo-50 group">
-                            <span class="idea-text text-sm text-gray-800 cursor-pointer group-hover:text-indigo-600 flex-grow">${idea}</span>
+                        <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded hover:bg-indigo-50 group">
+                            <span class="idea-text text-sm text-gray-800 dark:text-gray-100 cursor-pointer group-hover:text-indigo-600 flex-grow">${idea}</span>
                             <button class="save-idea-btn ml-2 p-1 rounded-full hover:bg-green-200 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path d="M7.5 2.5a.5.5 0 00-1 0V5a.5.5 0 001 0V2.5zM10 2.5a.5.5 0 00-1 0V5a.5.5 0 001 0V2.5zM12.5 2.5a.5.5 0 00-1 0V5a.5.5 0 001 0V2.5z"></path><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"></path></svg>
                             </button>
@@ -2562,14 +2613,14 @@ Aturan:
                     ideaDbContainer.style.display = 'block';
                     ideas.forEach(idea => {
                         const item = document.createElement('div');
-                        item.className = 'idea-item flex items-center p-2 bg-gray-50 rounded hover:bg-gray-100';
+                        item.className = 'idea-item flex items-center p-2 bg-gray-50 dark:bg-gray-700 rounded hover:bg-gray-100';
                         item.innerHTML = `
                             <div class="flex-shrink-0 flex items-center space-x-2 mr-3">
                                 <svg data-id="${idea.id}" data-action="use" class="w-5 h-5 text-gray-400 hover:text-green-600 cursor-pointer" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
                                 <svg data-id="${idea.id}" data-action="edit" class="w-5 h-5 text-gray-400 hover:text-indigo-600 cursor-pointer" fill="currentColor" viewBox="0 0 20 20"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path></svg>
                                 <svg data-id="${idea.id}" data-action="delete" class="w-5 h-5 text-gray-400 hover:text-red-600 cursor-pointer" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
                             </div>
-                            <span class="flex-grow text-sm text-gray-700">${idea.idea}</span>
+                            <span class="flex-grow text-sm text-gray-700 dark:text-gray-300">${idea.idea}</span>
                         `;
                         ideaList.appendChild(item);
                     });
