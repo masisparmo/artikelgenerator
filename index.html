@@ -441,23 +441,6 @@
                         </div>
                     </div>
 
-                    <!-- URL YouTube Container -->
-                    <div id="youtube-url-container" class="space-y-2">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-2">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">URL YouTube</label>
-                                <button type="button" onclick="generateIdeasFromSpecificSource('youtube')" class="px-2 py-0.5 text-xs font-medium text-white bg-teal-500 rounded hover:bg-teal-600 uppercase" title="Generate Ide dari URL YouTube">Generate Ide</button>
-                            </div>
-                             <button type="button" onclick="addReferenceInput('youtube')" class="add-btn flex items-center justify-center w-6 h-6 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                            </button>
-                        </div>
-                        <div class="reference-input-group flex items-center space-x-2">
-                            <input type="url" name="url_youtube" class="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-blue-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400" placeholder="https://www.youtube.com/watch?v=...">
-                            <!-- Remove button will be added here by JS -->
-                        </div>
-                    </div>
-
                     <!-- Tempel Teks Container -->
                     <div id="paste-text-container" class="space-y-2">
                         <div class="flex items-center justify-between">
@@ -750,16 +733,6 @@
                         type: 'url',
                         name: 'url_website',
                         placeholder: 'https://contoh-website.com/artikel'
-                    },
-                    isTextarea: false
-                },
-                youtube: {
-                    containerId: 'youtube-url-container',
-                    elementType: 'input',
-                    attributes: {
-                        type: 'url',
-                        name: 'url_youtube',
-                        placeholder: 'https://www.youtube.com/watch?v=...'
                     },
                     isTextarea: false
                 },
@@ -1312,14 +1285,13 @@
                     extractedText = specificContent;
                 } else {
                     const websiteUrls = Array.from(document.querySelectorAll('input[name="url_website"]')).map(input => input.value.trim()).filter(url => url);
-                    const youtubeUrls = Array.from(document.querySelectorAll('input[name="url_youtube"]')).map(input => input.value.trim()).filter(url => url);
                     const pastedTexts = Array.from(document.querySelectorAll('textarea[name="text_paste"]')).map(textarea => textarea.value.trim()).filter(text => text);
                     const uploadedFileNames = uploadedFileStore.map(file => file.name);
-                    const hasReferences = websiteUrls.length > 0 || youtubeUrls.length > 0 || pastedTexts.length > 0 || uploadedFileNames.length > 0;
+                    const hasReferences = websiteUrls.length > 0 || pastedTexts.length > 0 || uploadedFileNames.length > 0;
 
                     if (hasReferences) {
                         try {
-                            extractedText = await gatherReferenceContent(websiteUrls, youtubeUrls, pastedTexts, uploadedFileStore);
+                            extractedText = await gatherReferenceContent(websiteUrls, pastedTexts, uploadedFileStore);
                             if (!extractedText || !extractedText.trim()) {
                                 throw new Error("Konten kosong setelah ekstraksi.");
                             }
@@ -1404,18 +1376,14 @@
                 if (sourceType === 'website') {
                     const websiteUrls = Array.from(document.querySelectorAll('input[name="url_website"]')).map(input => input.value.trim()).filter(url => url);
                     if (websiteUrls.length === 0) throw new Error("Tidak ada URL Website yang dimasukkan.");
-                    extractedText = await gatherReferenceContent(websiteUrls, [], [], []);
-                } else if (sourceType === 'youtube') {
-                    const youtubeUrls = Array.from(document.querySelectorAll('input[name="url_youtube"]')).map(input => input.value.trim()).filter(url => url);
-                    if (youtubeUrls.length === 0) throw new Error("Tidak ada URL YouTube yang dimasukkan.");
-                    extractedText = await gatherReferenceContent([], youtubeUrls, [], []);
+                    extractedText = await gatherReferenceContent(websiteUrls, [], []);
                 } else if (sourceType === 'text') {
                     const pastedTexts = Array.from(document.querySelectorAll('textarea[name="text_paste"]')).map(textarea => textarea.value.trim()).filter(text => text);
                     if (pastedTexts.length === 0) throw new Error("Tidak ada teks yang ditempel.");
-                    extractedText = await gatherReferenceContent([], [], pastedTexts, []);
+                    extractedText = await gatherReferenceContent([], pastedTexts, []);
                 } else if (sourceType === 'file') {
                     if (uploadedFileStore.length === 0) throw new Error("Tidak ada file yang diunggah.");
-                    extractedText = await gatherReferenceContent([], [], [], uploadedFileStore);
+                    extractedText = await gatherReferenceContent([], [], uploadedFileStore);
                 }
 
                 if (!extractedText || !extractedText.trim()) {
@@ -1456,7 +1424,7 @@
             }
         }
 
-        async function gatherReferenceContent(argWebsiteUrls, argYoutubeUrls, argPastedTexts, argFileStore) {
+        async function gatherReferenceContent(argWebsiteUrls, argPastedTexts, argFileStore) {
             const extractedContents = [];
             const fetchPromises = [];
             const errors = [];
@@ -1475,18 +1443,7 @@
                 });
             }
 
-            // 2. YouTube URL
-            if (argYoutubeUrls && Array.isArray(argYoutubeUrls)) {
-                argYoutubeUrls.forEach(url => {
-                    const promise = extractContentFromYoutube(url)
-                        .then(content => {
-                            if (content) extractedContents.push(content);
-                        });
-                    fetchPromises.push(promise);
-                });
-            }
-
-            // 3. Files (PDF, DOCX, etc.)
+            // 2. Files (PDF, DOCX, etc.)
             if (argFileStore && argFileStore.length > 0) {
                 const promise = extractContentFromFiles(argFileStore)
                     .then(content => {
@@ -1495,7 +1452,7 @@
                 fetchPromises.push(promise);
             }
 
-            // 4. Pasted Text
+            // 3. Pasted Text
             if (argPastedTexts && argPastedTexts.length > 0) {
                 const textContent = argPastedTexts.join('\n---\n');
                 extractedContents.push(`--- Konten dari Teks Ditempel ---\n${textContent}\n--- Akhir Konten ---\n`);
@@ -1559,104 +1516,6 @@
                 }
             }
             throw new Error(`Semua proxy gagal. Terakhir: ${lastError?.message || 'Unknown error'}`);
-        }
-
-        async function extractContentFromYoutube(url) {
-            // 1. Get Video ID
-            const videoIdMatch = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/);
-            const videoId = (videoIdMatch && videoIdMatch[2].length === 11) ? videoIdMatch[2] : null;
-
-            if (!videoId) {
-                console.warn("Format URL YouTube tidak valid:", url);
-                return null;
-            }
-
-            const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-            const proxies = [
-                'https://api.codetabs.com/v1/proxy?quest=',
-                'https://corsproxy.io/?',
-                'https://api.allorigins.win/get?url='
-            ];
-
-            let captionUrl = null;
-
-            // 2. Fetch Video Page & Extract Caption URL
-            for (const proxy of proxies) {
-                try {
-                    const fetchUrl = `${proxy}${encodeURIComponent(videoUrl)}`;
-                    const response = await fetch(fetchUrl);
-                    if (!response.ok) continue;
-
-                    let html = '';
-                    if (proxy.includes('allorigins')) {
-                        const data = await response.json();
-                        html = data.contents;
-                    } else {
-                        html = await response.text();
-                    }
-
-                    // Regex to find captionTracks
-                    const match = html.match(/"captionTracks"\s*:\s*(\[.*?\])/);
-                    if (match && match[1]) {
-                        try {
-                            const tracks = JSON.parse(match[1]);
-                            if (tracks.length > 0) {
-                                // Prioritize English or auto-generated, or just take the first one
-                                captionUrl = tracks[0].baseUrl;
-                                break;
-                            }
-                        } catch (e) {
-                             console.warn("JSON parse error for captionTracks", e);
-                        }
-                    }
-                } catch (e) {
-                    console.warn(`Proxy ${proxy} failed to fetch video page:`, e);
-                }
-            }
-
-            if (!captionUrl) {
-                console.warn("Tidak dapat menemukan transkrip/caption untuk video ini (mungkin tidak ada CC).");
-                return null;
-            }
-
-            // 3. Fetch Transcript Content
-            let transcriptXml = '';
-            for (const proxy of proxies) {
-                 try {
-                    const fetchUrl = `${proxy}${encodeURIComponent(captionUrl)}`;
-                    const response = await fetch(fetchUrl);
-                    if (!response.ok) continue;
-
-                    if (proxy.includes('allorigins')) {
-                        const data = await response.json();
-                        transcriptXml = data.contents;
-                    } else {
-                        transcriptXml = await response.text();
-                    }
-
-                    if (transcriptXml) break;
-                 } catch (e) {
-                     console.warn(`Proxy ${proxy} failed to fetch transcript XML:`, e);
-                 }
-            }
-
-            if (!transcriptXml) return null;
-
-            // 4. Parse XML
-            try {
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(transcriptXml, "text/xml");
-                const textNodes = xmlDoc.getElementsByTagName("text");
-                let fullText = "";
-                for (let i = 0; i < textNodes.length; i++) {
-                    fullText += textNodes[i].textContent + " ";
-                }
-
-                 return `--- Transkrip dari YouTube ${url} ---\n${fullText.trim()}\n--- Akhir Transkrip ---\n`;
-            } catch (e) {
-                console.warn("Error parsing XML transcript:", e);
-                return null;
-            }
         }
 
         async function extractContentFromFiles(files) {
@@ -2705,11 +2564,10 @@ Aturan:
             // Jika topik kosong, coba generate dari referensi
             if (!topic.trim()) {
                 const websiteUrls = Array.from(document.querySelectorAll('input[name="url_website"]')).map(input => input.value.trim()).filter(url => url);
-                const youtubeUrls = Array.from(document.querySelectorAll('input[name="url_youtube"]')).map(input => input.value.trim()).filter(url => url);
                 const pastedTexts = Array.from(document.querySelectorAll('textarea[name="text_paste"]')).map(textarea => textarea.value.trim()).filter(text => text);
                 const hasUploadedFiles = uploadedFileStore.length > 0;
 
-                const hasReferences = websiteUrls.length > 0 || youtubeUrls.length > 0 || pastedTexts.length > 0 || hasUploadedFiles;
+                const hasReferences = websiteUrls.length > 0 || pastedTexts.length > 0 || hasUploadedFiles;
 
                 if (!hasReferences) {
                     alert("Silakan isi Topik Artikel atau berikan Sumber Referensi.");
@@ -2722,7 +2580,7 @@ Aturan:
                 try {
                     // 1. Ekstrak konten dari semua sumber terlebih dahulu
                     // PENTING: Gunakan fungsi baru yang menggabungkan semua konten referensi (termasuk file)
-                    const extractedText = await gatherReferenceContent(websiteUrls, youtubeUrls, pastedTexts, uploadedFileStore);
+                    const extractedText = await gatherReferenceContent(websiteUrls, pastedTexts, uploadedFileStore);
 
                     if (!extractedText || !extractedText.trim()) {
                          throw new Error("Konten kosong setelah ekstraksi.");
