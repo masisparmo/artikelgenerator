@@ -13,6 +13,13 @@
     <script src="https://cdn.jsdelivr.net/npm/@mozilla/readability@0.5.0/Readability.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html-docx-js-version-updated@0.4.0/dist/html-docx.js"></script>
+    <!-- PDF.js for reading PDF files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+    <!-- Mammoth.js for reading DOCX files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -1326,27 +1333,23 @@
                 const websiteUrls = Array.from(document.querySelectorAll('input[name="url_website"]')).map(input => input.value.trim()).filter(url => url);
                 const youtubeUrls = Array.from(document.querySelectorAll('input[name="url_youtube"]')).map(input => input.value.trim()).filter(url => url);
                 const pastedTexts = Array.from(document.querySelectorAll('textarea[name="text_paste"]')).map(textarea => textarea.value.trim()).filter(text => text);
-                const uploadedFileNames = uploadedFileStore.map(file => file.name);
-                const hasReferences = websiteUrls.length > 0 || youtubeUrls.length > 0 || pastedTexts.length > 0 || uploadedFileNames.length > 0;
+                const hasUploadedFiles = uploadedFileStore.length > 0;
+                const hasReferences = websiteUrls.length > 0 || youtubeUrls.length > 0 || pastedTexts.length > 0 || hasUploadedFiles;
 
                 if (hasReferences) {
                     // --- LOGIKA BARU UNTUK ARTIKEL BERBASIS REFERENSI ---
                     systemPrompt = `Anda adalah seorang penulis konten dan spesialis SEO yang ahli. Tugas Anda adalah menulis artikel blog yang komprehensif, mendalam, dan terstruktur dengan baik langsung dari topik dan teks referensi yang diberikan oleh pengguna. Ubah poin-poin dan informasi dari teks referensi menjadi sebuah narasi artikel yang mengalir lancar dan mudah dibaca. Gunakan format Markdown yang bersih. Untuk heading, gunakan HANYA format '# Judul H1', '## Judul H2', dan '### Judul H3'. PENTING: Tulis artikelnya secara langsung. Jangan membuat outline, rencana, atau komentar tentang proses penulisan. Fokus 100% pada penulisan artikel jadi.`;
 
-                    const extractedText = await extractContentFromUrls(websiteUrls, youtubeUrls);
+                    // PENTING: Gunakan fungsi baru yang menggabungkan semua konten referensi (termasuk file)
+                    const extractedText = await gatherReferenceContent(websiteUrls, youtubeUrls, pastedTexts, uploadedFileStore);
 
-                    let referenceContent = "";
-                    if (extractedText && extractedText.trim()) {
-                        referenceContent += extractedText;
-                    }
-                    if (pastedTexts.length > 0) {
-                        referenceContent += `\n\n${pastedTexts.join('\n---\n')}`;
-                    }
-                     if (uploadedFileNames.length > 0) {
-                        referenceContent += `\n\nReferensi dari nama file: ${uploadedFileNames.join(', ')}`;
+                    if (!extractedText || !extractedText.trim()) {
+                        alert("Gagal mengekstrak konten dari sumber referensi. Pastikan URL valid, teks tidak kosong, atau file dapat dibaca.");
+                        loadingModalOverlay.classList.add('hidden');
+                        return;
                     }
 
-                    userQuery = `Topik Artikel: "${topic}"\n\nKata Kunci: "${keywords}"\n\nBerikut adalah teks referensi utama. Gunakan HANYA teks ini untuk menulis artikel blog yang lengkap dan siap publish:\n\n---\n${referenceContent}\n---`;
+                    userQuery = `Topik Artikel: "${topic}"\n\nKata Kunci: "${keywords}"\n\nBerikut adalah teks referensi utama. Gunakan HANYA teks ini untuk menulis artikel blog yang lengkap dan siap publish:\n\n---\n${extractedText}\n---`;
 
                 } else {
                     // --- LOGIKA LAMA UNTUK ARTIKEL BERBASIS TOPIK SAJA ---
@@ -1359,11 +1362,12 @@
             const keywordsToPreserve = document.getElementById('keywords').value;
 
             try {
+                // Determine if we need to call the API (this logic block was slightly broken in previous search/replace, cleaning it up)
                 const websiteUrls = Array.from(document.querySelectorAll('input[name="url_website"]')).map(input => input.value.trim()).filter(url => url);
                 const youtubeUrls = Array.from(document.querySelectorAll('input[name="url_youtube"]')).map(input => input.value.trim()).filter(url => url);
                 const pastedTexts = Array.from(document.querySelectorAll('textarea[name="text_paste"]')).map(textarea => textarea.value.trim()).filter(text => text);
-                const uploadedFileNames = uploadedFileStore.map(file => file.name);
-                const hasReferences = websiteUrls.length > 0 || youtubeUrls.length > 0 || pastedTexts.length > 0 || uploadedFileNames.length > 0;
+                const hasUploadedFiles = uploadedFileStore.length > 0;
+                const hasReferences = websiteUrls.length > 0 || youtubeUrls.length > 0 || pastedTexts.length > 0 || hasUploadedFiles;
 
                 const { text: generatedContent } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash', !promptModifier && !hasReferences);
 
@@ -1399,73 +1403,166 @@
             }
         }
 
-        async function extractContentFromUrls(websiteUrls, youtubeUrls) {
+        async function gatherReferenceContent(websiteUrls, youtubeUrls, pastedTexts, fileStore) {
             const extractedContents = [];
-            const corsProxy = 'https://api.allorigins.win/get?url=';
-
             const fetchPromises = [];
 
-            // Promises for website URLs
+            // 1. URL Website (Using multiple proxies fallback)
             websiteUrls.forEach(url => {
-                const promise = fetch(`${corsProxy}${encodeURIComponent(url)}`)
-                    .then(response => {
-                        if (!response.ok) throw new Error(`Network response was not ok for ${url}`);
-                        return response.json();
-                    })
-                    .then(data => {
-                        // Create a temporary element to parse the HTML and extract text
-                        const parser = new DOMParser();
-                        const doc = parser.parseFromString(data.contents, 'text/html');
-                        // Attempt to find the main content, or fall back to the body
-                        const readerView = new Readability(doc).parse();
-                        const textContent = readerView ? readerView.textContent : doc.body.innerText;
-
-                        if (textContent && textContent.trim()) {
-                            extractedContents.push(`--- Konten dari ${url} ---\n${textContent.trim()}\n--- Akhir Konten ---\n`);
-                        }
-                    })
-                    .catch(error => {
-                        console.warn(`Gagal mengekstrak konten dari website ${url}:`, error);
-                        // Don't push anything, just log the warning
+                const promise = extractContentFromWeb(url)
+                    .then(content => {
+                        if (content) extractedContents.push(content);
                     });
                 fetchPromises.push(promise);
             });
 
-            // Promises for YouTube URLs
+            // 2. YouTube URL
             youtubeUrls.forEach(url => {
-                const videoIdMatch = url.match(/(?:v=|\/embed\/|\/)([\w-]{11})/);
-                if (videoIdMatch && videoIdMatch[1]) {
-                    if (!scrapingDogApiKey) {
-                        console.warn("Kunci API Scrapingdog tidak tersedia. Melewatkan ekstraksi transkrip YouTube.");
-                        return; // Skip this iteration if the key is missing
-                    }
-                    const videoId = videoIdMatch[1];
-                    const transcriptApiUrl = `https://api.scrapingdog.com/youtube/transcripts?api_key=${scrapingDogApiKey}&v=${videoId}`;
-
-                    const promise = fetch(transcriptApiUrl)
-                        .then(response => {
-                            if (!response.ok) throw new Error(`Scrapingdog API request failed for ${url} with status ${response.status}`);
-                            return response.json();
-                        })
-                        .then(data => {
-                            if (data && data.transcripts && data.transcripts.length > 0) {
-                                const transcriptText = data.transcripts.map(item => item.text).join(' ');
-                                extractedContents.push(`--- Transkrip dari YouTube ${url} ---\n${transcriptText}\n--- Akhir Transkrip ---\n`);
-                            } else if (data.transcripts && data.transcripts.length === 0) {
-                                 console.warn(`Tidak ada transkrip yang ditemukan untuk YouTube ${url}.`);
-                            }
-                        })
-                        .catch(error => {
-                            console.warn(`Gagal mendapatkan transkrip untuk YouTube ${url}:`, error);
-                            // This will likely fail due to invalid API key for now, which is expected.
-                        });
-                    fetchPromises.push(promise);
-                }
+                const promise = extractContentFromYoutube(url)
+                    .then(content => {
+                        if (content) extractedContents.push(content);
+                    });
+                fetchPromises.push(promise);
             });
 
-            await Promise.allSettled(fetchPromises);
+            // 3. Files (PDF, DOCX, etc.)
+            if (fileStore && fileStore.length > 0) {
+                const promise = extractContentFromFiles(fileStore)
+                    .then(content => {
+                        if (content) extractedContents.push(content);
+                    });
+                fetchPromises.push(promise);
+            }
 
+            // 4. Pasted Text
+            if (pastedTexts && pastedTexts.length > 0) {
+                const textContent = pastedTexts.join('\n---\n');
+                extractedContents.push(`--- Konten dari Teks Ditempel ---\n${textContent}\n--- Akhir Konten ---\n`);
+            }
+
+            await Promise.allSettled(fetchPromises);
             return extractedContents.join('\n\n');
+        }
+
+        async function extractContentFromWeb(url) {
+            const proxies = [
+                'https://api.allorigins.win/get?url=',
+                'https://corsproxy.io/?'
+            ];
+
+            for (const proxy of proxies) {
+                try {
+                    const fetchUrl = `${proxy}${encodeURIComponent(url)}`;
+                    const response = await fetch(fetchUrl);
+                    if (!response.ok) throw new Error(`Status ${response.status}`);
+
+                    let html = '';
+                    if (proxy.includes('allorigins')) {
+                        const data = await response.json();
+                        html = data.contents;
+                    } else {
+                        html = await response.text();
+                    }
+
+                    if (!html) throw new Error("Empty response");
+
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const readerView = new Readability(doc).parse();
+                    const textContent = readerView ? readerView.textContent : doc.body.innerText;
+
+                    if (textContent && textContent.trim()) {
+                        return `--- Konten dari ${url} ---\n${textContent.trim()}\n--- Akhir Konten ---\n`;
+                    }
+                } catch (error) {
+                    console.warn(`Proxy ${proxy} failed for ${url}:`, error);
+                    // Continue to next proxy
+                }
+            }
+            console.error(`All proxies failed for ${url}`);
+            return null;
+        }
+
+        async function extractContentFromYoutube(url) {
+            const videoIdMatch = url.match(/(?:v=|\/embed\/|\/)([\w-]{11})/);
+            if (!videoIdMatch || !videoIdMatch[1]) return null;
+
+            if (!scrapingDogApiKey) {
+                console.warn("Kunci API Scrapingdog tidak tersedia. Melewatkan ekstraksi transkrip YouTube.");
+                return null;
+            }
+
+            const videoId = videoIdMatch[1];
+            const transcriptApiUrl = `https://api.scrapingdog.com/youtube/transcripts?api_key=${scrapingDogApiKey}&v=${videoId}`;
+
+            try {
+                const response = await fetch(transcriptApiUrl);
+                if (!response.ok) throw new Error(`Scrapingdog API request failed for ${url} with status ${response.status}`);
+
+                const data = await response.json();
+                if (data && data.transcripts && data.transcripts.length > 0) {
+                    const transcriptText = data.transcripts.map(item => item.text).join(' ');
+                    return `--- Transkrip dari YouTube ${url} ---\n${transcriptText}\n--- Akhir Transkrip ---\n`;
+                }
+            } catch (error) {
+                console.warn(`Gagal mendapatkan transkrip untuk YouTube ${url}:`, error);
+            }
+            return null;
+        }
+
+        async function extractContentFromFiles(files) {
+            const fileContents = [];
+
+            for (const file of files) {
+                try {
+                    let text = '';
+                    if (file.type === 'application/pdf') {
+                        text = await readPdfFile(file);
+                    } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                        text = await readDocxFile(file);
+                    } else {
+                        // Fallback for text files
+                        text = await readTextFile(file);
+                    }
+
+                    if (text && text.trim()) {
+                        fileContents.push(`--- Konten dari File: ${file.name} ---\n${text.trim()}\n--- Akhir File ---\n`);
+                    }
+                } catch (error) {
+                    console.error(`Gagal membaca file ${file.name}:`, error);
+                }
+            }
+
+            return fileContents.join('\n\n');
+        }
+
+        function readTextFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = (e) => reject(e);
+                reader.readAsText(file);
+            });
+        }
+
+        async function readPdfFile(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let fullText = '';
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items.map(item => item.str).join(' ');
+                fullText += pageText + '\n';
+            }
+            return fullText;
+        }
+
+        async function readDocxFile(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+            return result.value;
         }
 
         generateBtn.addEventListener('click', () => {
@@ -2481,30 +2578,18 @@ Aturan:
 
                 try {
                     // 1. Ekstrak konten dari semua sumber terlebih dahulu
-                    const extractedText = await extractContentFromUrls(websiteUrls, youtubeUrls);
-                    const pastedTextContent = pastedTexts.join('\n---\n');
-                    const fileNames = uploadedFileStore.map(f => f.name).join(', ');
+                    // PENTING: Gunakan fungsi baru yang menggabungkan semua konten referensi (termasuk file)
+                    const extractedText = await gatherReferenceContent(websiteUrls, youtubeUrls, pastedTexts, uploadedFileStore);
 
-                    let combinedContent = "";
-                    if (extractedText && extractedText.trim()) {
-                        combinedContent += `Konten dari URL:\n${extractedText}\n\n`;
-                    }
-                    if (pastedTextContent) {
-                        combinedContent += `Konten dari Teks Ditempel:\n${pastedTextContent}\n\n`;
-                    }
-                    if (fileNames) {
-                         combinedContent += `Nama File Referensi: ${fileNames}\n\n`;
-                    }
-
-                    if (!combinedContent.trim()) {
-                         alert("Gagal mengekstrak konten dari sumber referensi. Pastikan URL valid atau teks tidak kosong.");
+                    if (!extractedText || !extractedText.trim()) {
+                         alert("Gagal mengekstrak konten dari sumber referensi. Pastikan URL valid, teks tidak kosong, atau file dapat dibaca.");
                          loadingModalOverlay.classList.add('hidden');
                          return;
                     }
 
                     // 2. Buat topik berdasarkan konten yang diekstrak
                     const systemPrompt = "Anda adalah seorang ahli strategi konten yang cerdas. Tugas Anda adalah menganalisis teks yang diberikan dan menghasilkan SATU judul topik artikel yang paling menarik dan relevan dari teks tersebut. Judul harus ringkas dan jelas. Balas HANYA dengan judul topiknya, tanpa penjelasan atau kata pengantar.";
-                    const userQuery = `Berikut adalah teks dari berbagai sumber referensi. Buatlah satu judul topik artikel yang merangkum keseluruhan teks ini:\n\n---\n${combinedContent}\n---`;
+                    const userQuery = `Berikut adalah teks dari berbagai sumber referensi. Buatlah satu judul topik artikel yang merangkum keseluruhan teks ini:\n\n---\n${extractedText}\n---`;
 
                     const { text: generatedTopic } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
 
