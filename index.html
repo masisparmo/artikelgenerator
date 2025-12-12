@@ -1354,11 +1354,14 @@
                     const hasReferences = websiteUrls.length > 0 || youtubeUrls.length > 0 || pastedTexts.length > 0 || uploadedFileNames.length > 0;
 
                     if (hasReferences) {
-                        extractedText = await gatherReferenceContent(websiteUrls, youtubeUrls, pastedTexts, uploadedFileStore);
-                        // If extraction failed but references were provided, we should probably warn or let the user know.
-                        // However, current logic alerts "Gagal mengekstrak...".
-                        if (!extractedText || !extractedText.trim()) {
-                            alert("Gagal mengekstrak konten dari sumber referensi. Pastikan URL valid, teks tidak kosong, atau file dapat dibaca.");
+                        try {
+                            extractedText = await gatherReferenceContent(websiteUrls, youtubeUrls, pastedTexts, uploadedFileStore);
+                            if (!extractedText || !extractedText.trim()) {
+                                throw new Error("Konten kosong setelah ekstraksi.");
+                            }
+                        } catch (error) {
+                            console.error("Gagal mengekstrak konten:", error);
+                            alert(`Gagal mengekstrak konten:\n${error.message}\n\nPastikan URL valid, dapat diakses publik, dan Kunci API (jika ada) sudah benar.`);
                             loadingModalOverlay.classList.add('hidden');
                             return;
                         }
@@ -1493,6 +1496,7 @@
         async function gatherReferenceContent(argWebsiteUrls, argYoutubeUrls, argPastedTexts, argFileStore) {
             const extractedContents = [];
             const fetchPromises = [];
+            const errors = [];
 
             // 1. URL Website (Using multiple proxies fallback)
             if (argWebsiteUrls && Array.isArray(argWebsiteUrls)) {
@@ -1500,6 +1504,9 @@
                     const promise = extractContentFromWeb(url)
                         .then(content => {
                             if (content) extractedContents.push(content);
+                        })
+                        .catch(err => {
+                            errors.push(`Gagal mengambil ${url}: ${err.message}`);
                         });
                     fetchPromises.push(promise);
                 });
@@ -1532,14 +1539,24 @@
             }
 
             await Promise.allSettled(fetchPromises);
+
+            // If we have errors but NO content, let the user know.
+            if (extractedContents.length === 0 && errors.length > 0) {
+                console.error("Errors encountered:", errors);
+                // Throwing here allows the caller to catch and alert the specific errors
+                throw new Error(errors.join("\n"));
+            }
+
             return extractedContents.join('\n\n');
         }
 
         async function extractContentFromWeb(url) {
             const proxies = [
                 'https://api.allorigins.win/get?url=',
+                'https://api.codetabs.com/v1/proxy?quest=',
                 'https://corsproxy.io/?'
             ];
+            let lastError = null;
 
             for (const proxy of proxies) {
                 try {
@@ -1560,18 +1577,25 @@
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(html, 'text/html');
                     const readerView = new Readability(doc).parse();
-                    const textContent = readerView ? readerView.textContent : doc.body.innerText;
+                    let textContent = readerView ? readerView.textContent : doc.body.innerText;
+
+                    // Fallback to body text if readability extraction is too short or failed
+                    if (!textContent || textContent.length < 50) {
+                         textContent = doc.body.innerText;
+                    }
 
                     if (textContent && textContent.trim()) {
                         return `--- Konten dari ${url} ---\n${textContent.trim()}\n--- Akhir Konten ---\n`;
+                    } else {
+                        throw new Error("Gagal mengekstrak teks bermakna");
                     }
                 } catch (error) {
                     console.warn(`Proxy ${proxy} failed for ${url}:`, error);
+                    lastError = error;
                     // Continue to next proxy
                 }
             }
-            console.error(`All proxies failed for ${url}`);
-            return null;
+            throw new Error(`Semua proxy gagal. Terakhir: ${lastError?.message || 'Unknown error'}`);
         }
 
         async function extractContentFromYoutube(url) {
@@ -2686,9 +2710,7 @@ Aturan:
                     const extractedText = await gatherReferenceContent(websiteUrls, youtubeUrls, pastedTexts, uploadedFileStore);
 
                     if (!extractedText || !extractedText.trim()) {
-                         alert("Gagal mengekstrak konten dari sumber referensi. Pastikan URL valid, teks tidak kosong, atau file dapat dibaca.");
-                         loadingModalOverlay.classList.add('hidden');
-                         return;
+                         throw new Error("Konten kosong setelah ekstraksi.");
                     }
 
                     // 2. Buat topik berdasarkan konten yang diekstrak
