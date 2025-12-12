@@ -118,7 +118,7 @@
             overflow-y: auto;
         }
         #article-output[contenteditable="true"] {
-            @apply border-2 border-indigo-300 p-4 rounded-b-md focus:outline-none -mt-px;
+            @apply border-2 border-indigo-300 p-4 rounded-b-md focus:outline-none -mt-px dark:bg-gray-800 dark:text-gray-100;
         }
         .toolbar-group {
             @apply flex items-center border-r border-gray-300 dark:border-gray-600 px-1;
@@ -445,7 +445,10 @@
                     <!-- URL Website Container -->
                     <div id="website-url-container" class="space-y-2">
                         <div class="flex items-center justify-between">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">URL Website</label>
+                            <div class="flex items-center space-x-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">URL Website</label>
+                                <button type="button" onclick="generateIdeasFromSpecificSource('website')" class="px-2 py-0.5 text-xs font-medium text-white bg-teal-500 rounded hover:bg-teal-600 uppercase" title="Generate Ide dari URL Website">Generate Ide</button>
+                            </div>
                             <button type="button" onclick="addReferenceInput('website')" class="add-btn flex items-center justify-center w-6 h-6 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                             </button>
@@ -459,7 +462,10 @@
                     <!-- URL YouTube Container -->
                     <div id="youtube-url-container" class="space-y-2">
                         <div class="flex items-center justify-between">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">URL YouTube</label>
+                            <div class="flex items-center space-x-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">URL YouTube</label>
+                                <button type="button" onclick="generateIdeasFromSpecificSource('youtube')" class="px-2 py-0.5 text-xs font-medium text-white bg-teal-500 rounded hover:bg-teal-600 uppercase" title="Generate Ide dari URL YouTube">Generate Ide</button>
+                            </div>
                              <button type="button" onclick="addReferenceInput('youtube')" class="add-btn flex items-center justify-center w-6 h-6 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                             </button>
@@ -473,7 +479,10 @@
                     <!-- Tempel Teks Container -->
                     <div id="paste-text-container" class="space-y-2">
                         <div class="flex items-center justify-between">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tempel Teks</label>
+                            <div class="flex items-center space-x-2">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tempel Teks</label>
+                                <button type="button" onclick="generateIdeasFromSpecificSource('text')" class="px-2 py-0.5 text-xs font-medium text-white bg-teal-500 rounded hover:bg-teal-600 uppercase" title="Generate Ide dari Teks">Generate Ide</button>
+                            </div>
                              <button type="button" onclick="addReferenceInput('text')" class="add-btn flex items-center justify-center w-6 h-6 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                             </button>
@@ -485,7 +494,10 @@
                     </div>
 
                     <div>
-                        <label for="file_upload" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Unggah File (.pdf, .docx, .pptx, .xlsx, .epub)</label>
+                        <div class="flex items-center justify-between mb-1">
+                            <label for="file_upload" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Unggah File (.pdf, .docx, .pptx, .xlsx, .epub)</label>
+                            <button type="button" onclick="generateIdeasFromSpecificSource('file')" class="px-2 py-0.5 text-xs font-medium text-white bg-teal-500 rounded hover:bg-teal-600 uppercase" title="Generate Ide dari File">Generate Ide</button>
+                        </div>
                         <div class="mt-1">
                             <input type="file" id="file_upload" class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 uppercase" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.epub">
                             <div id="file-upload-feedback" class="mt-2 text-sm text-gray-500 dark:text-gray-400"></div>
@@ -603,7 +615,7 @@
                             <button id="edit-btn" class="py-2 px-3 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 uppercase">Edit Artikel</button>
                         </div>
                     </div>
-                    <div id="article-output" class="prose bg-white dark:bg-gray-200 dark:text-gray-900 p-6 rounded-b-lg"></div>
+                    <div id="article-output" class="prose bg-white dark:bg-gray-800 dark:text-gray-100 p-6 rounded-b-lg"></div>
                     <div id="action-buttons" class="mt-4 flex flex-wrap gap-2 justify-end">
                          <button id="rewrite-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 uppercase">Re-Write</button>
                          <button id="paraphrase-btn" class="py-2 px-4 text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 uppercase">Parafrase</button>
@@ -1280,7 +1292,7 @@
             event.target.value = '';
         });
 
-        async function handleArticleGeneration(promptModifier = "") {
+        async function handleArticleGeneration(promptModifier = "", specificContent = null) {
             if (!userApiKey) {
                 apiKeyModalOverlay.classList.remove('hidden');
                 alert("Silakan masukkan Kunci API Gemini Anda untuk melanjutkan.");
@@ -1288,7 +1300,7 @@
             }
 
             // Validasi Kunci API Scrapingdog jika URL YouTube digunakan
-            if (!promptModifier) { // Hanya validasi saat membuat artikel baru, bukan saat re-write
+            if (!promptModifier && !specificContent) { // Hanya validasi saat membuat artikel baru, bukan saat re-write
                 const youtubeUrls = Array.from(document.querySelectorAll('input[name="url_youtube"]')).map(input => input.value.trim()).filter(url => url);
                 if (youtubeUrls.length > 0 && !scrapingDogApiKey) {
                     alert("Untuk membuat artikel dengan referensi YouTube, Anda wajib memasukkan Kunci API Scrapingdog.");
@@ -1297,13 +1309,13 @@
                 }
             }
 
-
             loadingModalOverlay.classList.remove('hidden');
             outputContainer.style.display = 'none';
             
             let userQuery;
             let systemPrompt;
             let isHtmlRewrite = false;
+            let extractedText = "";
 
             const markdownSystemPrompt = `Anda adalah seorang penulis konten ahli dan spesialis SEO. Tugas Anda adalah memproses teks yang diberikan sesuai instruksi. Gunakan format Markdown yang bersih. Untuk heading, gunakan HANYA format '# Judul H1', '## Judul H2', dan '### Judul H3'. Jangan gunakan format '####' atau heading yang lebih dalam.`;
             const htmlSystemPrompt = `Anda adalah seorang editor ahli yang memproses konten HTML. Tugas Anda adalah menulis ulang atau memodifikasi teks di dalam tag HTML tanpa mengubah struktur tag itu sendiri. Pertahankan semua tag, termasuk <a>, <strong>, <em>, <ul>, <ol>, <li>, <h2>, <h3>, dll. Hasilnya harus berupa HTML yang valid.`;
@@ -1319,7 +1331,7 @@
                     return;
                 }
                 userQuery = `${promptModifier}:\n\n---\n${currentContent}\n---`;
-            } else { // For new article generation
+            } else { // For new article generation or specific ide generation
                 isHtmlRewrite = false;
                 const topic = document.getElementById('topic').value;
                 const keywords = document.getElementById('keywords').value;
@@ -1330,26 +1342,39 @@
                     return;
                 }
 
-                const websiteUrls = Array.from(document.querySelectorAll('input[name="url_website"]')).map(input => input.value.trim()).filter(url => url);
-                const youtubeUrls = Array.from(document.querySelectorAll('input[name="url_youtube"]')).map(input => input.value.trim()).filter(url => url);
-                const pastedTexts = Array.from(document.querySelectorAll('textarea[name="text_paste"]')).map(textarea => textarea.value.trim()).filter(text => text);
-                const hasUploadedFiles = uploadedFileStore.length > 0;
-                const hasReferences = websiteUrls.length > 0 || youtubeUrls.length > 0 || pastedTexts.length > 0 || hasUploadedFiles;
+                // If specific content is provided (via specific Generate IDE buttons), use it.
+                // Otherwise, gather all references.
+                if (specificContent) {
+                    extractedText = specificContent;
+                } else {
+                    const websiteUrls = Array.from(document.querySelectorAll('input[name="url_website"]')).map(input => input.value.trim()).filter(url => url);
+                    const youtubeUrls = Array.from(document.querySelectorAll('input[name="url_youtube"]')).map(input => input.value.trim()).filter(url => url);
+                    const pastedTexts = Array.from(document.querySelectorAll('textarea[name="text_paste"]')).map(textarea => textarea.value.trim()).filter(text => text);
+                    const uploadedFileNames = uploadedFileStore.map(file => file.name);
+                    const hasReferences = websiteUrls.length > 0 || youtubeUrls.length > 0 || pastedTexts.length > 0 || uploadedFileNames.length > 0;
 
-                if (hasReferences) {
+                    if (hasReferences) {
+                        extractedText = await gatherReferenceContent(websiteUrls, youtubeUrls, pastedTexts, uploadedFileStore);
+                        // If extraction failed but references were provided, we should probably warn or let the user know.
+                        // However, current logic alerts "Gagal mengekstrak...".
+                        if (!extractedText || !extractedText.trim()) {
+                            alert("Gagal mengekstrak konten dari sumber referensi. Pastikan URL valid, teks tidak kosong, atau file dapat dibaca.");
+                            loadingModalOverlay.classList.add('hidden');
+                            return;
+                        }
+                    }
+                }
+
+                if (extractedText) {
                     // --- LOGIKA BARU UNTUK ARTIKEL BERBASIS REFERENSI ---
                     systemPrompt = `Anda adalah seorang penulis konten dan spesialis SEO yang ahli. Tugas Anda adalah menulis artikel blog yang komprehensif, mendalam, dan terstruktur dengan baik langsung dari topik dan teks referensi yang diberikan oleh pengguna. Ubah poin-poin dan informasi dari teks referensi menjadi sebuah narasi artikel yang mengalir lancar dan mudah dibaca. Gunakan format Markdown yang bersih. Untuk heading, gunakan HANYA format '# Judul H1', '## Judul H2', dan '### Judul H3'. PENTING: Tulis artikelnya secara langsung. Jangan membuat outline, rencana, atau komentar tentang proses penulisan. Fokus 100% pada penulisan artikel jadi.`;
 
-                    // PENTING: Gunakan fungsi baru yang menggabungkan semua konten referensi (termasuk file)
-                    const extractedText = await gatherReferenceContent(websiteUrls, youtubeUrls, pastedTexts, uploadedFileStore);
-
-                    if (!extractedText || !extractedText.trim()) {
-                        alert("Gagal mengekstrak konten dari sumber referensi. Pastikan URL valid, teks tidak kosong, atau file dapat dibaca.");
-                        loadingModalOverlay.classList.add('hidden');
-                        return;
+                    if (topic.trim()) {
+                         userQuery = `Topik Artikel: "${topic}"\n\nKata Kunci: "${keywords}"\n\nBerikut adalah teks referensi utama. Gunakan HANYA teks ini untuk menulis artikel blog yang lengkap dan siap publish:\n\n---\n${extractedText}\n---`;
+                    } else {
+                         // Case specifically for Idea Generation from content without explicit topic (though topic input is required above, logic supports flexibilty)
+                         userQuery = `Buat artikel blog berdasarkan referensi berikut:\n\n---\n${extractedText}\n---`;
                     }
-
-                    userQuery = `Topik Artikel: "${topic}"\n\nKata Kunci: "${keywords}"\n\nBerikut adalah teks referensi utama. Gunakan HANYA teks ini untuk menulis artikel blog yang lengkap dan siap publish:\n\n---\n${extractedText}\n---`;
 
                 } else {
                     // --- LOGIKA LAMA UNTUK ARTIKEL BERBASIS TOPIK SAJA ---
@@ -1362,14 +1387,11 @@
             const keywordsToPreserve = document.getElementById('keywords').value;
 
             try {
-                // Determine if we need to call the API (this logic block was slightly broken in previous search/replace, cleaning it up)
-                const websiteUrls = Array.from(document.querySelectorAll('input[name="url_website"]')).map(input => input.value.trim()).filter(url => url);
-                const youtubeUrls = Array.from(document.querySelectorAll('input[name="url_youtube"]')).map(input => input.value.trim()).filter(url => url);
-                const pastedTexts = Array.from(document.querySelectorAll('textarea[name="text_paste"]')).map(textarea => textarea.value.trim()).filter(text => text);
-                const hasUploadedFiles = uploadedFileStore.length > 0;
-                const hasReferences = websiteUrls.length > 0 || youtubeUrls.length > 0 || pastedTexts.length > 0 || hasUploadedFiles;
+                // Determine if we need to call the API with search tool
+                // If specific content provided or references exist, we use them primarily. Search is used for topic-only generation.
+                const useSearch = !promptModifier && !specificContent && !extractedText; // Only use search if no specific content/references
 
-                const { text: generatedContent } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash', !promptModifier && !hasReferences);
+                const { text: generatedContent } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash', useSearch);
 
                 if (isHtmlRewrite) {
                     const cleanedContent = cleanHtmlResponse(generatedContent);
@@ -1403,31 +1425,100 @@
             }
         }
 
-        async function gatherReferenceContent(websiteUrls, youtubeUrls, pastedTexts, fileStore) {
+        // Helper for specific idea generation buttons
+        async function generateIdeasFromSpecificSource(sourceType) {
+            const topicInput = document.getElementById('topic');
+
+            let extractedText = "";
+            loadingModalOverlay.classList.remove('hidden');
+
+            try {
+                // Explicitly pass empty arrays for unused sources to ensure isolation
+                if (sourceType === 'website') {
+                    const websiteUrls = Array.from(document.querySelectorAll('input[name="url_website"]')).map(input => input.value.trim()).filter(url => url);
+                    if (websiteUrls.length === 0) throw new Error("Tidak ada URL Website yang dimasukkan.");
+                    extractedText = await gatherReferenceContent(websiteUrls, [], [], []);
+                } else if (sourceType === 'youtube') {
+                    const youtubeUrls = Array.from(document.querySelectorAll('input[name="url_youtube"]')).map(input => input.value.trim()).filter(url => url);
+                    if (youtubeUrls.length === 0) throw new Error("Tidak ada URL YouTube yang dimasukkan.");
+                    if (!scrapingDogApiKey) throw new Error("Kunci API Scrapingdog diperlukan untuk YouTube.");
+                    extractedText = await gatherReferenceContent([], youtubeUrls, [], []);
+                } else if (sourceType === 'text') {
+                    const pastedTexts = Array.from(document.querySelectorAll('textarea[name="text_paste"]')).map(textarea => textarea.value.trim()).filter(text => text);
+                    if (pastedTexts.length === 0) throw new Error("Tidak ada teks yang ditempel.");
+                    extractedText = await gatherReferenceContent([], [], pastedTexts, []);
+                } else if (sourceType === 'file') {
+                    if (uploadedFileStore.length === 0) throw new Error("Tidak ada file yang diunggah.");
+                    extractedText = await gatherReferenceContent([], [], [], uploadedFileStore);
+                }
+
+                if (!extractedText || !extractedText.trim()) {
+                    throw new Error("Gagal mengekstrak konten. Pastikan sumber valid.");
+                }
+
+                // Generate Ideas based on this content
+                const systemPrompt = "Anda adalah generator ide konten yang kreatif. Berdasarkan teks referensi yang diberikan, hasilkan 5 ide judul artikel blog yang menarik dan SEO-friendly. Setiap ide harus berada di baris baru, diawali dengan '- ' (tanda hubung dan spasi).";
+                const userQuery = `Buat ide judul artikel berdasarkan konten berikut:\n\n---\n${extractedText}\n---`;
+
+                const { text: ideasText } = await callGenerationAPI(systemPrompt, userQuery, 'gemini-2.5-flash');
+
+                displayGeneratedIdeas(ideasText);
+
+            } catch (error) {
+                console.error(`Error generating ideas for ${sourceType}:`, error);
+                alert(error.message);
+            } finally {
+                loadingModalOverlay.classList.add('hidden');
+            }
+        }
+
+        function displayGeneratedIdeas(ideasText) {
+            const ideaSuggestionContainer = document.getElementById('idea-suggestion-container');
+            const ideas = ideasText.split('\n').filter(idea => idea.trim().startsWith('- ')).map(idea => idea.trim().substring(2).trim());
+
+            if (ideas.length > 0) {
+                const ideasHtml = ideas.map(idea => `
+                    <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded hover:bg-indigo-50 group">
+                        <span class="idea-text text-sm text-gray-800 dark:text-gray-100 cursor-pointer group-hover:text-indigo-600 flex-grow">${idea}</span>
+                        <button class="save-idea-btn ml-2 p-1 rounded-full hover:bg-green-200 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path d="M7.5 2.5a.5.5 0 00-1 0V5a.5.5 0 001 0V2.5zM10 2.5a.5.5 0 00-1 0V5a.5.5 0 001 0V2.5zM12.5 2.5a.5.5 0 00-1 0V5a.5.5 0 001 0V2.5z"></path><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"></path></svg>
+                        </button>
+                    </div>
+                `).join('');
+                ideaSuggestionContainer.innerHTML = ideasHtml;
+                ideaSuggestionContainer.classList.remove('hidden');
+            }
+        }
+
+        async function gatherReferenceContent(argWebsiteUrls, argYoutubeUrls, argPastedTexts, argFileStore) {
             const extractedContents = [];
             const fetchPromises = [];
 
             // 1. URL Website (Using multiple proxies fallback)
-            websiteUrls.forEach(url => {
-                const promise = extractContentFromWeb(url)
-                    .then(content => {
-                        if (content) extractedContents.push(content);
-                    });
-                fetchPromises.push(promise);
-            });
+            if (argWebsiteUrls && Array.isArray(argWebsiteUrls)) {
+                argWebsiteUrls.forEach(url => {
+                    const promise = extractContentFromWeb(url)
+                        .then(content => {
+                            if (content) extractedContents.push(content);
+                        });
+                    fetchPromises.push(promise);
+                });
+            }
 
             // 2. YouTube URL
-            youtubeUrls.forEach(url => {
-                const promise = extractContentFromYoutube(url)
-                    .then(content => {
-                        if (content) extractedContents.push(content);
-                    });
-                fetchPromises.push(promise);
-            });
+            if (argYoutubeUrls && Array.isArray(argYoutubeUrls)) {
+                argYoutubeUrls.forEach(url => {
+                    const promise = extractContentFromYoutube(url)
+                        .then(content => {
+                            if (content) extractedContents.push(content);
+                        });
+                    fetchPromises.push(promise);
+                });
+            }
 
             // 3. Files (PDF, DOCX, etc.)
-            if (fileStore && fileStore.length > 0) {
-                const promise = extractContentFromFiles(fileStore)
+            if (argFileStore && argFileStore.length > 0) {
+                const promise = extractContentFromFiles(argFileStore)
                     .then(content => {
                         if (content) extractedContents.push(content);
                     });
@@ -1435,8 +1526,8 @@
             }
 
             // 4. Pasted Text
-            if (pastedTexts && pastedTexts.length > 0) {
-                const textContent = pastedTexts.join('\n---\n');
+            if (argPastedTexts && argPastedTexts.length > 0) {
+                const textContent = argPastedTexts.join('\n---\n');
                 extractedContents.push(`--- Konten dari Teks Ditempel ---\n${textContent}\n--- Akhir Konten ---\n`);
             }
 
@@ -1484,25 +1575,38 @@
         }
 
         async function extractContentFromYoutube(url) {
-            const videoIdMatch = url.match(/(?:v=|\/embed\/|\/)([\w-]{11})/);
-            if (!videoIdMatch || !videoIdMatch[1]) return null;
+            // Improved regex to handle various YouTube URL formats (standard, short, embed)
+            const videoIdMatch = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/);
+            const videoId = (videoIdMatch && videoIdMatch[2].length === 11) ? videoIdMatch[2] : null;
+
+            if (!videoId) {
+                console.warn("Format URL YouTube tidak valid:", url);
+                return null;
+            }
 
             if (!scrapingDogApiKey) {
                 console.warn("Kunci API Scrapingdog tidak tersedia. Melewatkan ekstraksi transkrip YouTube.");
                 return null;
             }
 
-            const videoId = videoIdMatch[1];
+            // Using Scrapingdog API
             const transcriptApiUrl = `https://api.scrapingdog.com/youtube/transcripts?api_key=${scrapingDogApiKey}&v=${videoId}`;
 
             try {
                 const response = await fetch(transcriptApiUrl);
-                if (!response.ok) throw new Error(`Scrapingdog API request failed for ${url} with status ${response.status}`);
+                if (!response.ok) {
+                    throw new Error(`Scrapingdog API request failed for ${url} with status ${response.status}`);
+                }
 
                 const data = await response.json();
-                if (data && data.transcripts && data.transcripts.length > 0) {
-                    const transcriptText = data.transcripts.map(item => item.text).join(' ');
-                    return `--- Transkrip dari YouTube ${url} ---\n${transcriptText}\n--- Akhir Transkrip ---\n`;
+                // Check for 'transcripts' array or 'text' if format varies
+                if (data && data.transcripts && Array.isArray(data.transcripts)) {
+                     const transcriptText = data.transcripts.map(item => item.text).join(' ');
+                    if (transcriptText.trim()) {
+                        return `--- Transkrip dari YouTube ${url} ---\n${transcriptText}\n--- Akhir Transkrip ---\n`;
+                    }
+                } else {
+                    console.warn("Struktur respons Scrapingdog tidak sesuai atau transkrip tidak ditemukan:", data);
                 }
             } catch (error) {
                 console.warn(`Gagal mendapatkan transkrip untuk YouTube ${url}:`, error);
